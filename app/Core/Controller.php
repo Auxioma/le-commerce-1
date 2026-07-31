@@ -52,6 +52,7 @@ abstract class Controller
             ],
             'latitude'  => isset($overrides['latitude']) ? (float) $overrides['latitude'] : $defaults['latitude'],
             'longitude' => isset($overrides['longitude']) ? (float) $overrides['longitude'] : $defaults['longitude'],
+            'streetview_embed_url' => $overrides['streetview_embed_url'] ?? ($defaults['streetview_embed_url'] ?? ''),
             'legal' => [
                 'forme_juridique'       => $overrides['legal_forme_juridique'] ?? $defaults['legal']['forme_juridique'],
                 'capital_social'        => $overrides['legal_capital_social'] ?? $defaults['legal']['capital_social'],

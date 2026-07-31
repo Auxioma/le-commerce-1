@@ -94,4 +94,8 @@ $mapQuery = urlencode($shop['address'] . ', ' . $shop['zipcode'] . ' ' . $shop['
       </div>
     </div>
   </div>
+
+  <div class="mt-6">
+    <?php require __DIR__ . '/../partials/street-view-section.php'; ?>
+  </div>
 </section>

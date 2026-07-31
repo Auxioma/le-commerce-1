@@ -82,6 +82,14 @@ require __DIR__ . '/../../partials/admin-page-header.php';
     </div>
 
     <div class="card card-md">
+      <h2 class="font-bold text-ink mb-4">Visite virtuelle (Street View)</h2>
+      <label class="block text-sm font-semibold text-ink mb-1.5">URL d'intégration Google Maps</label>
+      <input type="url" name="streetview_embed_url" placeholder="https://www.google.com/maps/embed?pb=..."
+             value="<?= htmlspecialchars($shop['streetview_embed_url'] ?? '') ?>" class="form-input">
+      <p class="text-xs text-gray-400 mt-1">Depuis Google Maps : ouvrez la vue 360° de l'établissement, cliquez sur « Partager » puis « Intégrer une carte », et collez ici l'URL présente dans l'attribut src de l'iframe fournie.</p>
+    </div>
+
+    <div class="card card-md">
       <h2 class="font-bold text-ink mb-4">Horaires d'ouverture</h2>
       <div class="grid sm:grid-cols-2 gap-4">
         <div>

@@ -37,6 +37,7 @@ class AdminSettingsController extends Controller
             'social_instagram' => trim((string) $this->input('social_instagram', '')),
             'latitude'         => trim((string) $this->input('latitude', '')),
             'longitude'        => trim((string) $this->input('longitude', '')),
+            'streetview_embed_url' => trim((string) $this->input('streetview_embed_url', '')),
 
             'legal_forme_juridique'       => trim((string) $this->input('legal_forme_juridique', '')),
             'legal_capital_social'        => trim((string) $this->input('legal_capital_social', '')),

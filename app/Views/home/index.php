@@ -26,7 +26,8 @@ $serviceIcons = [
 
 <!-- =====================  HERO  ===================== -->
 <section class="relative w-full overflow-hidden rounded-b-3xl" style="min-height:clamp(420px,65vw,540px);">
-  <img src="<?= htmlspecialchars($heroImage) ?>" alt="Façade du Commerce" class="absolute inset-0 w-full h-full object-cover object-right" loading="eager" decoding="async">
+  <div class="flex-1 w-4/12"></div>
+  <img src="<?= htmlspecialchars($heroImage) ?>" alt="Façade du Commerce" class="absolute  inset-0 w-full h-full object-cover object-right" loading="eager" decoding="async">
   <div class="relative flex" style="min-height:clamp(420px,65vw,540px);">
     <div class="flex flex-col justify-center gap-2 px-6 sm:px-10 lg:px-8" style="max-width:480px; background:linear-gradient(90deg,rgba(255,255,255,.98) 0%,rgba(255,255,255,.9) 55%,rgba(255,255,255,.6) 85%,rgba(255,255,255,0) 100%);">
       <p class="font-bold uppercase" style="color:#c8272c; font-size:13px; letter-spacing:.5px;">VOTRE COMMERCE DE PROXIMITÉ À FORGES-LES-EAUX</p>
@@ -218,6 +219,11 @@ $serviceIcons = [
     </div>
 
   </div>
+</section>
+
+<!-- =====================  VUE 360° / STREET VIEW  ===================== -->
+<section class="px-6 sm:px-8 lg:px-8 py-5" style="background:#f7f7f6;">
+  <?php require __DIR__ . '/../partials/street-view-section.php'; ?>
 </section>
 
 <!-- =====================  INFO ROW (4 colonnes)  ===================== -->
