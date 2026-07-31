@@ -39,6 +39,8 @@ abstract class Controller
             'city'      => $overrides['shop_city'] ?? $defaults['city'],
             'phone'     => $overrides['shop_phone'] ?? $defaults['phone'],
             'phone_href'=> isset($overrides['shop_phone']) ? self::phoneHref($overrides['shop_phone']) : $defaults['phone_href'],
+            'whatsapp'      => $overrides['shop_whatsapp'] ?? $defaults['whatsapp'],
+            'whatsapp_href' => self::resolveWhatsappHref($overrides, $defaults),
             'email'     => $overrides['shop_email'] ?? $defaults['email'],
             'hours' => [
                 'lun_sam' => $overrides['hours_lun_sam'] ?? $defaults['hours']['lun_sam'],
@@ -62,6 +64,22 @@ abstract class Controller
                 'hebergeur_telephone'   => $overrides['legal_hebergeur_telephone'] ?? $defaults['legal']['hebergeur_telephone'],
             ],
         ]);
+    }
+
+    /**
+     * Détermine le numéro WhatsApp effectif : le champ dédié s'il a été
+     * renseigné en admin, sinon le téléphone du commerce (comportement
+     * historique, avant que les deux numéros ne soient dissociables).
+     */
+    private static function resolveWhatsappHref(array $overrides, array $defaults): string
+    {
+        $whatsapp = $overrides['shop_whatsapp'] ?? $defaults['whatsapp'] ?? '';
+        if ($whatsapp !== '') {
+            return self::phoneHref($whatsapp);
+        }
+
+        $phone = $overrides['shop_phone'] ?? $defaults['phone'];
+        return self::phoneHref($phone);
     }
 
     /**

@@ -26,7 +26,7 @@ $serviceIcons = [
 
 <!-- =====================  HERO  ===================== -->
 <section class="relative w-full overflow-hidden rounded-b-3xl" style="height:clamp(380px,65vw,520px);">
-  <img src="<?= htmlspecialchars($heroImage) ?>" alt="Façade du Commerce" class="absolute inset-0 w-full h-full object-cover object-center" loading="eager" decoding="async">
+  <img src="<?= htmlspecialchars($heroImage) ?>" alt="Façade du Commerce" class="absolute inset-0 w-full h-full object-cover object-right" loading="eager" decoding="async">
   <div class="absolute inset-0" style="background:linear-gradient(90deg,rgba(255,255,255,.97) 0%,rgba(255,255,255,.93) 32%,rgba(255,255,255,.55) 52%,rgba(255,255,255,.05) 68%,rgba(255,255,255,0) 100%);"></div>
   <div class="relative h-full flex flex-col justify-center gap-3 px-6 sm:px-10 lg:px-8" style="max-width:480px;">
     <p class="font-bold uppercase" style="color:#c8272c; font-size:13px; letter-spacing:.5px;">VOTRE COMMERCE DE PROXIMITÉ À FORGES-LES-EAUX</p>
@@ -176,7 +176,7 @@ $serviceIcons = [
       <div class="flex-1 flex items-center justify-center py-2">
         <img src="<?= BASE_PATH ?>/assets/images/qrcode.jpg" alt="QR Code WhatsApp" class="rounded-lg" style="width:120px; height:120px; object-fit:cover;" loading="lazy" decoding="async">
       </div>
-      <a href="https://wa.me/<?= htmlspecialchars(str_replace(['+', ' '], '', $shop['phone_href'])) ?>"
+      <a href="https://wa.me/<?= htmlspecialchars(str_replace(['+', ' '], '', $shop['whatsapp_href'])) ?>"
          target="_blank" rel="noopener"
          class="flex items-center justify-center gap-2 text-white font-bold rounded-lg py-3 w-full mt-3 transition-opacity hover:opacity-90" style="background:#1fa855; font-size:13px;">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.4A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-2.9.8.8-2.8-.2-.3A8 8 0 1 1 12 20z"/></svg>

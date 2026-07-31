@@ -29,6 +29,7 @@ class AdminSettingsController extends Controller
             'shop_zipcode'     => trim((string) $this->input('shop_zipcode', '')),
             'shop_city'        => trim((string) $this->input('shop_city', '')),
             'shop_phone'       => trim((string) $this->input('shop_phone', '')),
+            'shop_whatsapp'    => trim((string) $this->input('shop_whatsapp', '')),
             'shop_email'       => trim((string) $this->input('shop_email', '')),
             'hours_lun_sam'    => trim((string) $this->input('hours_lun_sam', '')),
             'hours_dim'        => trim((string) $this->input('hours_dim', '')),

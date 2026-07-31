@@ -37,6 +37,12 @@ require __DIR__ . '/../../partials/admin-page-header.php';
                    class="form-input">
           </div>
         </div>
+        <div>
+          <label class="block text-sm font-semibold text-ink mb-1.5">Téléphone WhatsApp</label>
+          <input type="text" name="shop_whatsapp" placeholder="Laisser vide pour utiliser le téléphone ci-dessus"
+                 value="<?= htmlspecialchars($shop['whatsapp']) ?>" class="form-input">
+          <p class="text-xs text-gray-400 mt-1">Utilisé pour les boutons "WhatsApp" du site. Renseignez-le uniquement s'il diffère du téléphone.</p>
+        </div>
       </div>
     </div>
 

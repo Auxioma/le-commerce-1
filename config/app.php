@@ -24,6 +24,11 @@ return [
         'city'      => 'Forges-les-Eaux',
         'phone'     => '07 81 77 15 52',
         'phone_href'=> '+33781771552',
+        // Numéro WhatsApp, séparé du téléphone (ex. si une ligne dédiée est
+        // utilisée pour les messages). Vide par défaut : les liens WhatsApp
+        // utilisent alors le téléphone ci-dessus.
+        'whatsapp'      => '',
+        'whatsapp_href' => '+33781771552',
         'email'     => 'lecommercetabac@gmail.com',
         'hours' => [
             'lun_sam' => '6h40 - 20h30',
