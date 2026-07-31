@@ -216,26 +216,24 @@
     opacity: 1;
   }
 
-  /* Bandeau de section public (Bar, Tabac, PMU, FDJ, Presse, Services, Contact) */
+  /* Bandeau de section public (Bar, Tabac, PMU, FDJ, Presse, Services, Contact) — même
+     traitement clair (photo + dégradé blanc) que le hero de l'accueil, pour une
+     cohérence visuelle sur tout le site public. */
   .page-hero {
-    @apply relative overflow-hidden rounded-[32px] bg-slate-950 px-6 py-14 sm:px-10 sm:py-16 text-white;
-  }
-  .page-hero::before {
-    content: '';
-    @apply absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(248,113,113,0.2),transparent_25%),radial-gradient(circle_at_bottom_right,rgba(248,113,113,0.1),transparent_20%)];
-    pointer-events: none;
+    @apply relative overflow-hidden rounded-[32px] bg-white px-6 py-14 sm:px-10 sm:py-16 text-ink;
   }
   .page-hero > div {
     @apply relative;
   }
   .page-hero h1 {
-    @apply text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.04];
+    @apply text-4xl sm:text-5xl lg:text-6xl font-black leading-[1.04] text-ink;
   }
   .page-hero p {
-    @apply text-gray-300 text-sm sm:text-base leading-8 max-w-2xl;
+    @apply text-slate-500 text-sm sm:text-base leading-8 max-w-2xl;
   }
   .page-hero .eyebrow {
-    @apply text-sm tracking-[0.26em] text-brand-100/90;
+    @apply rounded-none bg-transparent px-0 py-0 text-xs sm:text-sm font-bold uppercase tracking-[0.2em];
+    color: #c8272c;
   }
   .nav-link {
     position: relative;
