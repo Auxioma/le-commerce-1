@@ -27,23 +27,28 @@ $serviceIcons = [
 <!-- =====================  HERO  ===================== -->
 <section class="relative w-full overflow-hidden rounded-b-3xl" style="min-height:clamp(420px,65vw,540px);">
   <img src="<?= htmlspecialchars($heroImage) ?>" alt="Façade du Commerce" class="absolute inset-0 w-full h-full object-cover object-right" loading="eager" decoding="async">
-  <div class="absolute inset-0" style="background:linear-gradient(90deg,rgba(255,255,255,.98) 0%,rgba(255,255,255,.92) 28%,rgba(255,255,255,.55) 42%,rgba(255,255,255,0) 60%);"></div>
-  <div class="relative h-full flex flex-col justify-center gap-2 px-6 sm:px-10 lg:px-8" style="max-width:480px;">
-    <p class="font-bold uppercase" style="color:#c8272c; font-size:13px; letter-spacing:.5px;">VOTRE COMMERCE DE PROXIMITÉ À FORGES-LES-EAUX</p>
-    <h1 class="font-black text-ink leading-[1.02]" style="font-size:clamp(2.8rem,5vw,3.75rem); letter-spacing:-1px;">LE COMMERCE</h1>
-    <p class="font-extrabold text-ink uppercase" style="font-size:clamp(1rem,1.8vw,1.3rem);">BAR &bull; TABAC &bull; PMU &bull; FDJ &bull; PRESSE &bull; NIRIO</p>
-    <p class="font-logo" style="color:#c8272c; font-size:clamp(1.3rem,2.4vw,1.6rem); line-height:1;">Votre lieu convivial à Forges-les-Eaux</p>
-    <p class="text-slate-500 leading-relaxed" style="font-size:15px; max-width:400px;">Un endroit chaleureux pour se retrouver, se détendre et profiter de nombreux services au quotidien.</p>
-    <div class="flex flex-wrap gap-3 mt-2">
-      <a href="<?= BASE_PATH ?>/le-bar" class="inline-flex items-center gap-2 text-white font-bold px-6 py-3.5 rounded-lg transition-opacity hover:opacity-90" style="background:#c8272c; font-size:13px;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M18 8h1a3 3 0 013 3v1a3 3 0 01-3 3h-1" stroke="white" stroke-width="2"/><path d="M2 8h16v6a4 4 0 01-4 4H6a4 4 0 01-4-4V8z" fill="white"/><path d="M6 2v3M10 2v3M14 2v3" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
-        DÉCOUVRIR LE BAR
-      </a>
-      <a href="<?= BASE_PATH ?>/contact" class="inline-flex items-center gap-2 font-bold px-6 py-3.5 rounded-lg border transition-colors text-ink hover:border-brand-500 hover:text-brand-500" style="background:#fff; border-color:#d8d8d8; font-size:13px;">
-        <svg width="14" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 22s7-7.5 7-13a7 7 0 10-14 0c0 5.5 7 13 7 13z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="9" r="2.5" stroke="currentColor" stroke-width="2"/></svg>
-        NOUS TROUVER
-      </a>
+  <div class="relative h-full flex">
+    <div class="flex flex-col justify-center gap-2 px-6 sm:px-10 lg:px-8" style="max-width:480px; background:linear-gradient(90deg,rgba(255,255,255,.98) 0%,rgba(255,255,255,.9) 55%,rgba(255,255,255,.6) 85%,rgba(255,255,255,0) 100%);">
+      <p class="font-bold uppercase" style="color:#c8272c; font-size:13px; letter-spacing:.5px;">VOTRE COMMERCE DE PROXIMITÉ À FORGES-LES-EAUX</p>
+      <h1 class="font-black text-ink leading-[1.02]" style="font-size:clamp(2.8rem,5vw,3.75rem); letter-spacing:-1px;">LE COMMERCE</h1>
+      <p class="font-extrabold text-ink uppercase" style="font-size:clamp(1rem,1.8vw,1.3rem);">BAR &bull; TABAC &bull; PMU &bull; FDJ &bull; PRESSE &bull; NIRIO</p>
+      <p class="font-logo" style="color:#c8272c; font-size:clamp(1.3rem,2.4vw,1.6rem); line-height:1;">Votre lieu convivial à Forges-les-Eaux</p>
+      <p class="text-slate-500 leading-relaxed" style="font-size:15px; max-width:400px;">Un endroit chaleureux pour se retrouver, se détendre et profiter de nombreux services au quotidien.</p>
+      <div class="flex flex-wrap gap-3 mt-2">
+        <a href="<?= BASE_PATH ?>/le-bar" class="inline-flex items-center gap-2 text-white font-bold px-6 py-3.5 rounded-lg transition-opacity hover:opacity-90" style="background:#c8272c; font-size:13px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M18 8h1a3 3 0 013 3v1a3 3 0 01-3 3h-1" stroke="white" stroke-width="2"/><path d="M2 8h16v6a4 4 0 01-4 4H6a4 4 0 01-4-4V8z" fill="white"/><path d="M6 2v3M10 2v3M14 2v3" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+          DÉCOUVRIR LE BAR
+        </a>
+        <a href="<?= BASE_PATH ?>/contact" class="inline-flex items-center gap-2 font-bold px-6 py-3.5 rounded-lg border transition-colors text-ink hover:border-brand-500 hover:text-brand-500" style="background:#fff; border-color:#d8d8d8; font-size:13px;">
+          <svg width="14" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 22s7-7.5 7-13a7 7 0 10-14 0c0 5.5 7 13 7 13z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="9" r="2.5" stroke="currentColor" stroke-width="2"/></svg>
+          NOUS TROUVER
+        </a>
+      </div>
     </div>
+    <!-- Div vide : réserve tout l'espace restant en flex, ce qui borne le voile blanc
+         à la largeur du bloc de texte au lieu de l'étendre sur ~60% du hero. Le reste
+         de la photo n'est plus couvert par aucun dégradé, donc pleinement visible. -->
+    <div class="flex-1"></div>
   </div>
 </section>
 
