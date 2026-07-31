@@ -25,14 +25,15 @@ $serviceIcons = [
 ?>
 
 <!-- =====================  HERO  ===================== -->
-<section class="relative w-full overflow-hidden rounded-b-3xl" style="height:clamp(380px,65vw,520px);">
+<section class="relative w-full overflow-hidden rounded-b-3xl" style="min-height:clamp(420px,65vw,540px);">
   <img src="<?= htmlspecialchars($heroImage) ?>" alt="Façade du Commerce" class="absolute inset-0 w-full h-full object-cover object-right" loading="eager" decoding="async">
-  <div class="absolute inset-0" style="background:linear-gradient(90deg,rgba(255,255,255,.97) 0%,rgba(255,255,255,.93) 32%,rgba(255,255,255,.55) 52%,rgba(255,255,255,.05) 68%,rgba(255,255,255,0) 100%);"></div>
-  <div class="relative h-full flex flex-col justify-center gap-3 px-6 sm:px-10 lg:px-8" style="max-width:480px;">
+  <div class="absolute inset-0" style="background:linear-gradient(90deg,rgba(255,255,255,.98) 0%,rgba(255,255,255,.92) 28%,rgba(255,255,255,.55) 42%,rgba(255,255,255,0) 60%);"></div>
+  <div class="relative h-full flex flex-col justify-center gap-2 px-6 sm:px-10 lg:px-8" style="max-width:480px;">
     <p class="font-bold uppercase" style="color:#c8272c; font-size:13px; letter-spacing:.5px;">VOTRE COMMERCE DE PROXIMITÉ À FORGES-LES-EAUX</p>
     <h1 class="font-black text-ink leading-[1.02]" style="font-size:clamp(2.8rem,5vw,3.75rem); letter-spacing:-1px;">LE COMMERCE</h1>
     <p class="font-extrabold text-ink uppercase" style="font-size:clamp(1rem,1.8vw,1.3rem);">BAR &bull; TABAC &bull; PMU &bull; FDJ &bull; PRESSE &bull; NIRIO</p>
-    <p class="text-slate-500 leading-relaxed" style="font-size:15px; max-width:400px;">Un lieu convivial où se retrouver, se détendre et profiter de nombreux services au quotidien.</p>
+    <p class="font-logo" style="color:#c8272c; font-size:clamp(1.3rem,2.4vw,1.6rem); line-height:1;">Votre lieu convivial à Forges-les-Eaux</p>
+    <p class="text-slate-500 leading-relaxed" style="font-size:15px; max-width:400px;">Un endroit chaleureux pour se retrouver, se détendre et profiter de nombreux services au quotidien.</p>
     <div class="flex flex-wrap gap-3 mt-2">
       <a href="<?= BASE_PATH ?>/le-bar" class="inline-flex items-center gap-2 text-white font-bold px-6 py-3.5 rounded-lg transition-opacity hover:opacity-90" style="background:#c8272c; font-size:13px;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M18 8h1a3 3 0 013 3v1a3 3 0 01-3 3h-1" stroke="white" stroke-width="2"/><path d="M2 8h16v6a4 4 0 01-4 4H6a4 4 0 01-4-4V8z" fill="white"/><path d="M6 2v3M10 2v3M14 2v3" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
@@ -55,15 +56,16 @@ $serviceIcons = [
 </style>
 
 <!-- =====================  SECTION CATÉGORIES  ===================== -->
-<section class="px-6 sm:px-8 lg:px-8 py-5 -mt-20 relative z-10" style="background:#ffffff;">
+<section class="px-6 sm:px-8 lg:px-8 py-5 -mt-4 sm:-mt-14 relative z-10 mx-4 sm:mx-8 rounded-2xl shadow-lg" style="background:#ffffff;">
   <div id="home-categories" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
 
     <!-- LE BAR -->
     <a href="<?= BASE_PATH ?>/le-bar" class="group flex flex-row gap-3 items-start p-4 rounded-lg hover:bg-slate-50 transition-colors">
       <svg width="28" height="28" viewBox="0 0 24 24" class="flex-shrink-0 text-brand-500 group-hover:text-brand-600 transition-colors mt-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M18 8h1a3 3 0 013 3v1a3 3 0 01-3 3h-1"></path>
-        <path d="M2 8h16v6a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"></path>
-        <path d="M6 2v3M10 2v3M14 2v3"></path>
+        <path d="M5 8h11v9a3 3 0 01-3 3H8a3 3 0 01-3-3V8z"></path>
+        <path d="M16 10h1.5a2.5 2.5 0 010 5H16"></path>
+        <path d="M8 8V5a1 1 0 011-1h1"></path>
+        <line x1="8" y1="12" x2="13" y2="12"></line>
       </svg>
       <div class="flex-1 min-w-0">
         <h3 class="font-bold text-sm text-slate-900">LE BAR</h3>
@@ -74,9 +76,11 @@ $serviceIcons = [
     <!-- TABAC -->
     <a href="<?= BASE_PATH ?>/tabac" class="group flex flex-row gap-3 items-start p-4 rounded-lg hover:bg-slate-50 transition-colors">
       <svg width="28" height="28" viewBox="0 0 24 24" class="flex-shrink-0 text-brand-500 group-hover:text-brand-600 transition-colors mt-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="7" cy="18" r="3"></circle>
-        <path d="M11 14l3.5-5M14 2h-1a3 3 0 00-3 3v8"></path>
-        <path d="M17 2h-1a3 3 0 00-3 3v6M20 2h-1a3 3 0 00-3 3v4"></path>
+        <rect x="3" y="9" width="18" height="12" rx="1"></rect>
+        <line x1="3" y1="13" x2="21" y2="13"></line>
+        <line x1="7" y1="9" x2="7" y2="13"></line>
+        <line x1="11" y1="9" x2="11" y2="13"></line>
+        <path d="M9 9V6a2 2 0 012-2h2a2 2 0 012 2v3"></path>
       </svg>
       <div class="flex-1 min-w-0">
         <h3 class="font-bold text-sm text-slate-900">TABAC</h3>
@@ -87,8 +91,11 @@ $serviceIcons = [
     <!-- PMU -->
     <a href="<?= BASE_PATH ?>/pmu" class="group flex flex-row gap-3 items-start p-4 rounded-lg hover:bg-slate-50 transition-colors">
       <svg width="28" height="28" viewBox="0 0 24 24" class="flex-shrink-0 text-brand-500 group-hover:text-brand-600 transition-colors mt-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M13 2H7a2 2 0 00-2 2v16a2 2 0 002 2h10a2 2 0 002-2V9z"></path>
-        <polyline points="13 2 13 9 20 9"></polyline>
+        <path d="M4 20v-3.5c0-.9.5-1.7 1.3-2.1L8 13"></path>
+        <path d="M8 13V8c0-2.8 2.2-5.5 5.5-5.5 1 0 1.9.3 2.7.8"></path>
+        <path d="M16.2 3.3c1.7 1 3.3 3 3.3 5.7 0 1.4-.4 2.3-1 3.3l-1.2 2v3.2c0 1.4.4 2 1.2 2.5"></path>
+        <path d="M8 13l3 1.2"></path>
+        <path d="M13 6.5c.6-.3 1.3-.3 1.8 0"></path>
       </svg>
       <div class="flex-1 min-w-0">
         <h3 class="font-bold text-sm text-slate-900">PMU</h3>
@@ -99,9 +106,11 @@ $serviceIcons = [
     <!-- FDJ -->
     <a href="<?= BASE_PATH ?>/fdj" class="group flex flex-row gap-3 items-start p-4 rounded-lg hover:bg-slate-50 transition-colors">
       <svg width="28" height="28" viewBox="0 0 24 24" class="flex-shrink-0 text-brand-500 group-hover:text-brand-600 transition-colors mt-0.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-        <line x1="9" y1="9" x2="15" y2="9"></line>
-        <line x1="9" y1="15" x2="15" y2="15"></line>
+        <path d="M12 12c0-2.5-2-4.5-4.5-4.5S3 9.5 3 12s2 4.5 4.5 4.5S12 14.5 12 12z"></path>
+        <path d="M12 12c0-2.5 2-4.5 4.5-4.5S21 9.5 21 12s-2 4.5-4.5 4.5S12 14.5 12 12z"></path>
+        <path d="M12 12c-2.5 0-4.5-2-4.5-4.5S9.5 3 12 3s4.5 2 4.5 4.5S14.5 12 12 12z"></path>
+        <path d="M12 12c-2.5 0-4.5 2-4.5 4.5S9.5 21 12 21s4.5-2 4.5-4.5S14.5 12 12 12z"></path>
+        <line x1="12" y1="13" x2="12" y2="19"></line>
       </svg>
       <div class="flex-1 min-w-0">
         <h3 class="font-bold text-sm text-slate-900">FDJ</h3>
