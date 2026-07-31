@@ -44,8 +44,8 @@ $serviceIcons = [
         </a>
       </div>
     </div>
-    <div class="w-full lg:w-[54%]" style="height:280px;">
-      <img src="<?= htmlspecialchars($heroImage) ?>" alt="Façade du Commerce" class="w-full h-full object-cover object-right" loading="eager" decoding="async" style="min-height:280px;">
+    <div class="w-full h-[280px] lg:h-auto lg:w-[54%]">
+      <img src="<?= htmlspecialchars($heroImage) ?>" alt="Façade du Commerce" class="w-full h-full object-cover object-right" loading="eager" decoding="async">
     </div>
   </div>
 </section>
