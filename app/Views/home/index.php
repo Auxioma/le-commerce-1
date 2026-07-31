@@ -28,8 +28,8 @@ $serviceIcons = [
 <section class="relative w-full overflow-hidden rounded-b-3xl">
   <div class="flex flex-col lg:flex-row lg:items-stretch">
     <div class="relative flex flex-col justify-center gap-2 px-6 sm:px-10 lg:px-8 py-10 lg:py-0 lg:w-[46%] bg-white" style="min-height:clamp(360px,45vw,480px);">
-      <!-- Brouillard : fondu blanc qui déborde sur l'image pour adoucir la jointure texte/photo -->
-      <div class="hidden lg:block absolute inset-y-0 right-0 pointer-events-none" style="width:220px; transform:translateX(100%); background:linear-gradient(90deg,rgba(255,255,255,1) 0%,rgba(255,255,255,.85) 30%,rgba(255,255,255,.35) 60%,rgba(255,255,255,0) 100%);"></div>
+      <!-- Brouillard : fondu blanc large et progressif qui déborde sur l'image, comme sur la maquette -->
+      <div class="hidden lg:block absolute inset-y-0 right-0 pointer-events-none" style="width:42vw; max-width:620px; transform:translateX(100%); background:linear-gradient(90deg,rgba(255,255,255,1) 0%,rgba(255,255,255,.92) 20%,rgba(255,255,255,.7) 40%,rgba(255,255,255,.4) 60%,rgba(255,255,255,.15) 80%,rgba(255,255,255,0) 100%);"></div>
       <div class="relative z-10 flex flex-col gap-2">
         <p class="font-bold uppercase" style="color:#c8272c; font-size:13px; letter-spacing:.5px;">VOTRE COMMERCE DE PROXIMITÉ À FORGES-LES-EAUX</p>
         <h1 class="font-black text-ink leading-[1.02]" style="font-size:clamp(2.8rem,5vw,3.75rem); letter-spacing:-1px;">LE COMMERCE</h1>
