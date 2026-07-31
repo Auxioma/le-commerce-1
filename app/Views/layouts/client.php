@@ -6,7 +6,7 @@
 <title><?= htmlspecialchars($title ?? $shop['name']) ?></title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Pacifico&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="<?= BASE_PATH ?>/assets/css/app.css">
+<link rel="stylesheet" href="<?= assetVersion('assets/css/app.css') ?>">
 <style>
   html, body { scrollbar-width: none; }
   ::-webkit-scrollbar { display: none; }

@@ -87,3 +87,17 @@ if (!function_exists('siteImage')) {
         return $path ? BASE_PATH . $path : $default;
     }
 }
+
+/**
+ * Ajoute un paramètre de version (date de dernière modification du fichier)
+ * à une URL d'asset, pour forcer le navigateur à recharger le fichier après
+ * chaque `npm run build` au lieu de servir une version mise en cache.
+ */
+if (!function_exists('assetVersion')) {
+    function assetVersion(string $relativePath): string
+    {
+        $fullPath = dirname(__DIR__) . '/public/' . ltrim($relativePath, '/');
+        $version = file_exists($fullPath) ? filemtime($fullPath) : time();
+        return BASE_PATH . '/' . ltrim($relativePath, '/') . '?v=' . $version;
+    }
+}

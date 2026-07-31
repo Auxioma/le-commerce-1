@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Pacifico&display=swap" rel="stylesheet">
 
 <!-- CSS compilé (Tailwind + DaisyUI, build local via `npm run build`) -->
-<link rel="stylesheet" href="<?= BASE_PATH ?>/assets/css/app.css">
+<link rel="stylesheet" href="<?= assetVersion('assets/css/app.css') ?>">
 <style>
   html, body { scrollbar-width: none !important; }
   ::-webkit-scrollbar { width: 0px !important; height: 0px !important; display: none !important; }
