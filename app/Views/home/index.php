@@ -26,9 +26,9 @@ $serviceIcons = [
 
 <!-- =====================  HERO  ===================== -->
 <section class="relative w-full overflow-hidden rounded-b-3xl" style="min-height:clamp(420px,65vw,540px);">
-  <img src="<?= htmlspecialchars($heroImage) ?>" alt="Façade du Commerce" class="absolute inset-0 w-full h-full object-cover object-left" loading="eager" decoding="async">
-  <div class="relative flex flex-row-reverse" style="min-height:clamp(420px,65vw,540px);">
-    <div class="flex flex-col justify-center gap-2 px-6 sm:px-10 lg:px-8" style="max-width:480px; background:linear-gradient(270deg,rgba(255,255,255,.98) 0%,rgba(255,255,255,.9) 55%,rgba(255,255,255,.6) 85%,rgba(255,255,255,0) 100%);">
+  <img src="<?= htmlspecialchars($heroImage) ?>" alt="Façade du Commerce" class="absolute inset-0 w-full h-full object-cover object-right" loading="eager" decoding="async">
+  <div class="relative flex" style="min-height:clamp(420px,65vw,540px);">
+    <div class="flex flex-col justify-center gap-2 px-6 sm:px-10 lg:px-8" style="max-width:480px; background:linear-gradient(90deg,rgba(255,255,255,.98) 0%,rgba(255,255,255,.9) 55%,rgba(255,255,255,.6) 85%,rgba(255,255,255,0) 100%);">
       <p class="font-bold uppercase" style="color:#c8272c; font-size:13px; letter-spacing:.5px;">VOTRE COMMERCE DE PROXIMITÉ À FORGES-LES-EAUX</p>
       <h1 class="font-black text-ink leading-[1.02]" style="font-size:clamp(2.8rem,5vw,3.75rem); letter-spacing:-1px;">LE COMMERCE</h1>
       <p class="font-extrabold text-ink uppercase" style="font-size:clamp(1rem,1.8vw,1.3rem);">BAR &bull; TABAC &bull; PMU &bull; FDJ &bull; PRESSE &bull; NIRIO</p>
