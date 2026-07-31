@@ -57,10 +57,16 @@ $categoryLabels = [
       <div class="w-10 h-1 bg-brand-500 rounded-full mb-5"></div>
       <ul class="space-y-4">
         <?php foreach ($planches as $planche): ?>
-          <?php $thumb = siteImage($planche['slug'] ?? '', 'https://source.unsplash.com/200x140/?' . rawurlencode($planche['name'])); ?>
+          <?php $thumbImg = \App\Models\Settings::get('img_' . ($planche['slug'] ?? '')); ?>
           <li class="flex items-start justify-between gap-4 pb-4 border-b border-gray-50 last:border-0 last:pb-0">
             <div class="flex items-center gap-3">
-              <img src="<?= $thumb ?>" alt="<?= htmlspecialchars($planche['name']) ?>" class="w-16 h-12 object-cover rounded-md shrink-0" loading="lazy" decoding="async">
+              <?php if ($thumbImg): ?>
+                <img src="<?= htmlspecialchars(BASE_PATH . $thumbImg) ?>" alt="<?= htmlspecialchars($planche['name']) ?>" class="w-16 h-12 object-cover rounded-md shrink-0" loading="lazy" decoding="async">
+              <?php else: ?>
+                <div class="w-16 h-12 rounded-md shrink-0 bg-brand-50 flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-brand-200" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M5 6h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z"/></svg>
+                </div>
+              <?php endif; ?>
               <div>
                 <p class="font-semibold text-ink text-sm"><?= htmlspecialchars($planche['name']) ?></p>
                 <p class="text-gray-500 text-xs mt-1"><?= htmlspecialchars($planche['desc']) ?></p>
