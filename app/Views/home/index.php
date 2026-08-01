@@ -220,11 +220,6 @@ $serviceIcons = [
   </div>
 </section>
 
-<!-- =====================  VUE 360° / STREET VIEW  ===================== -->
-<section class="px-6 sm:px-8 lg:px-8 py-5" style="background:#f7f7f6;">
-  <?php require __DIR__ . '/../partials/street-view-section.php'; ?>
-</section>
-
 <!-- =====================  INFO ROW (4 colonnes)  ===================== -->
 <section class="px-6 sm:px-8 lg:px-8 py-5 pb-10" style="background:#ffffff;">
   <div id="home-info-row" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
