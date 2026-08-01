@@ -86,6 +86,10 @@ $router->post('/admin/connexion', AdminLoginController::class, 'store');
 $router->get('/admin', AdminDashboardController::class, 'index');
 $router->get('/admin/clients', AdminClientController::class, 'index');
 $router->get('/admin/clients/export', AdminClientController::class, 'export');
+$router->get('/admin/clients/{id}', AdminClientController::class, 'show');
+$router->post('/admin/clients/{id}', AdminClientController::class, 'update');
+$router->post('/admin/clients/{id}/wallet', AdminClientController::class, 'adjustWallet');
+$router->post('/admin/clients/{id}/supprimer', AdminClientController::class, 'destroy');
 $router->post('/admin/clients/{id}/message', AdminClientController::class, 'sendMessage');
 
 // --- Offres & Avantages (Lot 6) ---

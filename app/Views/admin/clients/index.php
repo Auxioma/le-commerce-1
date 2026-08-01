@@ -102,12 +102,12 @@
           ?>
           <tr class="hover:bg-gray-50 transition-colors">
             <td class="px-5 py-3.5 whitespace-nowrap">
-              <div class="flex items-center gap-3">
+              <a href="<?= BASE_PATH ?>/admin/clients/<?= $client['id'] ?>" class="flex items-center gap-3 group">
                 <div class="w-9 h-9 rounded-full <?= $avatarColors[$colorIdx] ?> flex items-center justify-center shrink-0">
                   <span class="text-white font-bold" style="font-size:12px;"><?= htmlspecialchars($initials) ?></span>
                 </div>
-                <span class="font-semibold text-ink" style="font-size:13px;"><?= htmlspecialchars($client['first_name'] . ' ' . $client['last_name']) ?></span>
-              </div>
+                <span class="font-semibold text-ink group-hover:text-brand-500 transition-colors" style="font-size:13px;"><?= htmlspecialchars($client['first_name'] . ' ' . $client['last_name']) ?></span>
+              </a>
             </td>
             <td class="px-5 py-3.5 whitespace-nowrap">
               <div class="flex items-center gap-2" style="font-size:13px; color:#2a2a2a;">
@@ -132,13 +132,21 @@
               <?= $isToday ? "Aujourd'hui" : ($isYesterday ? 'Hier' : $lastActivity) ?>
             </td>
             <td class="px-5 py-3.5 whitespace-nowrap text-right">
-              <button type="button"
-                      onclick="document.getElementById('msg-modal-<?= $client['id'] ?>').classList.remove('hidden')"
-                      class="inline-flex items-center gap-1.5 font-semibold px-3 py-1.5 rounded-lg border transition-colors hover:bg-green-50"
-                      style="font-size:12px; color:#25D366; border-color:#d1fae5;">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.4A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-2.9.8.8-2.8-.2-.3A8 8 0 1 1 12 20z"/></svg>
-                Envoyer un message
-              </button>
+              <div class="inline-flex items-center gap-2">
+                <a href="<?= BASE_PATH ?>/admin/clients/<?= $client['id'] ?>"
+                   class="inline-flex items-center gap-1.5 font-semibold px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+                   style="font-size:12px;">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.5 12a3.5 3.5 0 11-7 0 3.5 3.5 0 017 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.5 12S6 5 12 5s9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7z"/></svg>
+                  Voir la fiche
+                </a>
+                <button type="button"
+                        onclick="document.getElementById('msg-modal-<?= $client['id'] ?>').classList.remove('hidden')"
+                        class="inline-flex items-center gap-1.5 font-semibold px-3 py-1.5 rounded-lg border transition-colors hover:bg-green-50"
+                        style="font-size:12px; color:#25D366; border-color:#d1fae5;">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.4A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-2.9.8.8-2.8-.2-.3A8 8 0 1 1 12 20z"/></svg>
+                  Message
+                </button>
+              </div>
             </td>
           </tr>
           <?php endforeach; ?>
@@ -146,15 +154,8 @@
       </table>
     </div>
 
-    <!-- Barre actions groupées + pagination -->
-    <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-4 border-t border-gray-100 bg-gray-50">
-      <div class="flex items-center gap-2 text-gray-500" style="font-size:13px;">
-        <span>0 client sélectionné</span>
-        <select class="border border-gray-200 rounded-lg px-3 py-2 focus:outline-none" style="font-size:12.5px;">
-          <option>Actions groupées</option>
-        </select>
-        <button type="button" class="text-white font-bold px-4 py-2 rounded-lg transition-opacity hover:opacity-90" style="background:#c8272c; font-size:12.5px;">APPLIQUER</button>
-      </div>
+    <!-- Pagination -->
+    <div class="flex flex-wrap items-center justify-end gap-3 px-5 py-4 border-t border-gray-100 bg-gray-50">
       <?php if ($totalPages > 1): ?>
         <div class="flex items-center gap-1.5">
           <?php

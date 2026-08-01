@@ -3,8 +3,11 @@
 namespace App\Controllers\Admin;
 
 use App\Core\Controller;
+use App\Core\Database;
 use App\Core\Middleware;
 use App\Models\User;
+use App\Models\Wallet;
+use App\Models\WalletTransaction;
 use App\Models\WhatsappMessage;
 
 class AdminClientController extends Controller
@@ -78,6 +81,167 @@ class AdminClientController extends Controller
 
         fclose($out);
         exit;
+    }
+
+    /**
+     * Fiche détail d'un client : informations, portefeuille, historique des
+     * transactions. Point d'entrée pour toutes les actions d'administration
+     * (modification, ajustement de solde, suppression).
+     */
+    public function show(int $id): void
+    {
+        Middleware::requireRole('admin');
+
+        $client = User::find($id);
+        if (!$client || $client['role'] !== 'client') {
+            $this->setFlash('error', 'Client introuvable.');
+            $this->redirect('/admin/clients');
+            return;
+        }
+
+        $wallet = Wallet::findByUser($id);
+        $page = max(1, (int) $this->input('page', 1));
+        $transactions = WalletTransaction::forUserPaginated($id, $page, 10);
+        $referralsCount = User::countReferrals($id);
+
+        $this->view('admin/clients/show', [
+            'title'          => trim($client['first_name'] . ' ' . $client['last_name']) . ' — Administration Le Commerce',
+            'pageTitle'      => 'Fiche client',
+            'client'         => $client,
+            'wallet'         => $wallet,
+            'transactions'   => $transactions,
+            'referralsCount' => $referralsCount,
+        ], 'admin');
+    }
+
+    /**
+     * Met à jour les informations d'un client (identité, segment, statut).
+     */
+    public function update(int $id): void
+    {
+        Middleware::requireRole('admin');
+        $this->verifyCsrf();
+
+        $client = User::find($id);
+        if (!$client || $client['role'] !== 'client') {
+            $this->setFlash('error', 'Client introuvable.');
+            $this->redirect('/admin/clients');
+            return;
+        }
+
+        $firstName = trim((string) $this->input('first_name', ''));
+        $lastName  = trim((string) $this->input('last_name', ''));
+        $phone     = User::normalizePhone(trim((string) $this->input('phone_whatsapp', '')));
+        $email     = trim((string) $this->input('email', ''));
+        $segment   = (string) $this->input('segment', $client['segment']);
+        $status    = (string) $this->input('status', $client['status']);
+
+        if ($firstName === '' || $lastName === '' || $phone === '') {
+            $this->setFlash('error', 'Le prénom, le nom et le téléphone WhatsApp sont obligatoires.');
+            $this->redirect('/admin/clients/' . $id);
+            return;
+        }
+
+        $existing = User::findByPhone($phone);
+        if ($existing && (int) $existing['id'] !== $id) {
+            $this->setFlash('error', 'Ce numéro WhatsApp est déjà utilisé par un autre client.');
+            $this->redirect('/admin/clients/' . $id);
+            return;
+        }
+
+        if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->setFlash('error', 'Adresse e-mail invalide.');
+            $this->redirect('/admin/clients/' . $id);
+            return;
+        }
+
+        User::update($id, [
+            'first_name'     => $firstName,
+            'last_name'      => $lastName,
+            'phone_whatsapp' => $phone,
+            'email'          => $email !== '' ? $email : null,
+            'segment'        => in_array($segment, ['nouveau', 'fidele', 'occasionnel'], true) ? $segment : $client['segment'],
+            'status'         => in_array($status, ['actif', 'inactif'], true) ? $status : $client['status'],
+        ]);
+
+        $this->setFlash('success', 'Fiche client mise à jour.');
+        $this->redirect('/admin/clients/' . $id);
+    }
+
+    /**
+     * Crédite ou débite manuellement le portefeuille d'un client (ex: geste
+     * commercial, correction). Opération atomique : le solde et la ligne
+     * d'historique sont écrits dans la même transaction SQL.
+     */
+    public function adjustWallet(int $id): void
+    {
+        Middleware::requireRole('admin');
+        $this->verifyCsrf();
+
+        $client = User::find($id);
+        $wallet = $client ? Wallet::findByUser($id) : null;
+        if (!$client || $client['role'] !== 'client' || !$wallet) {
+            $this->setFlash('error', 'Client ou portefeuille introuvable.');
+            $this->redirect('/admin/clients');
+            return;
+        }
+
+        $direction = (string) $this->input('direction', 'credit');
+        $amount    = round((float) $this->input('amount', 0), 2);
+        $label     = trim((string) $this->input('label', ''));
+
+        if ($amount <= 0) {
+            $this->setFlash('error', 'Le montant doit être supérieur à 0.');
+            $this->redirect('/admin/clients/' . $id);
+            return;
+        }
+        if ($direction === 'debit' && $amount > (float) $wallet['balance']) {
+            $this->setFlash('error', 'Le débit dépasse le solde actuel du client.');
+            $this->redirect('/admin/clients/' . $id);
+            return;
+        }
+
+        $pdo = Database::connection();
+        $pdo->beginTransaction();
+        try {
+            Wallet::adjustBalance($wallet['id'], $direction === 'debit' ? -$amount : $amount);
+            WalletTransaction::create([
+                'wallet_id'      => $wallet['id'],
+                'type'           => $direction === 'debit' ? 'debit' : 'recharge',
+                'amount'         => $amount,
+                'payment_method' => 'portefeuille',
+                'status'         => 'reussi',
+                'label'          => $label !== '' ? $label : ($direction === 'debit' ? 'Ajustement manuel (admin)' : 'Crédit manuel (admin)'),
+            ]);
+            $pdo->commit();
+            $this->setFlash('success', 'Solde du portefeuille mis à jour.');
+        } catch (\Throwable $e) {
+            $pdo->rollBack();
+            $this->setFlash('error', 'Une erreur est survenue, le solde n\'a pas été modifié.');
+        }
+
+        $this->redirect('/admin/clients/' . $id);
+    }
+
+    /**
+     * Supprime définitivement un compte client (portefeuille et historique
+     * associés supprimés en cascade par les contraintes de la base).
+     */
+    public function destroy(int $id): void
+    {
+        Middleware::requireRole('admin');
+        $this->verifyCsrf();
+
+        $client = User::find($id);
+        if (!$client || $client['role'] !== 'client') {
+            $this->setFlash('error', 'Client introuvable.');
+            $this->redirect('/admin/clients');
+            return;
+        }
+
+        User::delete($id);
+        $this->setFlash('success', $client['first_name'] . ' ' . $client['last_name'] . ' a été supprimé.');
+        $this->redirect('/admin/clients');
     }
 
     /**
