@@ -76,6 +76,56 @@ class Statistic extends Model
         return $stmt->fetchAll();
     }
 
+    /**
+     * Nouvelles inscriptions par jour sur les N derniers jours, avec le
+     * total cumulé de clients à chaque jour (pour le graphique du tableau
+     * de bord : courbe "Total" + courbe "Nouveaux").
+     */
+    public static function clientRegistrationsLastDays(int $days = 14): array
+    {
+        $stmt = self::db()->prepare(
+            "SELECT DATE(created_at) AS jour, COUNT(*) AS nouveaux
+             FROM users
+             WHERE role = 'client' AND created_at >= CURDATE() - INTERVAL :days DAY
+             GROUP BY DATE(created_at)
+             ORDER BY jour ASC"
+        );
+        $stmt->bindValue('days', $days, \PDO::PARAM_INT);
+        $stmt->execute();
+        $byDay = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $byDay[$row['jour']] = (int) $row['nouveaux'];
+        }
+
+        $countStmt = self::db()->prepare(
+            "SELECT COUNT(*) FROM users WHERE role = 'client' AND created_at < CURDATE() - INTERVAL :days DAY"
+        );
+        $countStmt->bindValue('days', $days, \PDO::PARAM_INT);
+        $countStmt->execute();
+        $running = (int) $countStmt->fetchColumn();
+
+        // Un point par jour du calendrier (même sans inscription ce jour-là),
+        // pour que la courbe reste lisible plutôt que de disparaître.
+        $result = [];
+        for ($i = $days - 1; $i >= 0; $i--) {
+            $jour = date('Y-m-d', strtotime("-{$i} days"));
+            $nouveaux = $byDay[$jour] ?? 0;
+            $running += $nouveaux;
+            $result[] = ['jour' => $jour, 'nouveaux' => $nouveaux, 'total' => $running];
+        }
+        return $result;
+    }
+
+    /**
+     * Répartition des clients par segment (nouveau / fidèle / occasionnel).
+     */
+    public static function clientsBySegment(): array
+    {
+        return self::db()->query(
+            "SELECT segment, COUNT(*) AS nb FROM users WHERE role = 'client' GROUP BY segment"
+        )->fetchAll();
+    }
+
     public static function topClientsBySpend(int $limit = 5): array
     {
         $stmt = self::db()->prepare(

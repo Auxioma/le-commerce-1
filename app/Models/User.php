@@ -90,6 +90,20 @@ class User extends Model
         ]);
     }
 
+    /**
+     * Derniers clients inscrits — pour le fil d'activité du tableau de bord.
+     */
+    public static function latestClients(int $limit = 5): array
+    {
+        $stmt = self::db()->prepare(
+            "SELECT id, first_name, last_name, created_at FROM users
+             WHERE role = 'client' ORDER BY created_at DESC LIMIT :limit"
+        );
+        $stmt->bindValue('limit', $limit, \PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
     public static function countAll(): int
     {
         return (int) self::db()->query("SELECT COUNT(*) FROM users WHERE role = 'client'")->fetchColumn();

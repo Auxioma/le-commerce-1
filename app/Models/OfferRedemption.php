@@ -149,6 +149,26 @@ class OfferRedemption extends Model
         return $stmt->fetchAll();
     }
 
+    /**
+     * Dernières offres validées en caisse, avec le nom du client et de
+     * l'offre — pour le fil d'activité du tableau de bord.
+     */
+    public static function latestUsedWithUser(int $limit = 5): array
+    {
+        $stmt = self::db()->prepare(
+            'SELECT r.used_at, o.title AS offer_title, u.first_name, u.last_name
+             FROM offer_redemptions r
+             JOIN offers o ON o.id = r.offer_id
+             JOIN users u ON u.id = r.user_id
+             WHERE r.status = "utilisee"
+             ORDER BY r.used_at DESC
+             LIMIT :limit'
+        );
+        $stmt->bindValue('limit', $limit, \PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
     public static function countUsedThisMonth(): int
     {
         return (int) self::db()->query(
