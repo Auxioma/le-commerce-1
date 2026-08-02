@@ -23,7 +23,6 @@ class AdminPlaceholderController extends Controller
         'etablissement' => 'Mon établissement',
         'services'      => 'Services du quotidien',
         'portefeuilles' => 'Portefeuille client',
-        'messages'      => 'Messages & WhatsApp',
         'reservations'  => 'Réservations',
     ];
 
@@ -45,12 +44,6 @@ class AdminPlaceholderController extends Controller
             'Recharges et offres dédiées',
             'Segmentation des clients fidèles',
             'Alertes et notifications personnalisées',
-        ],
-        'messages' => [
-            'Envoi WhatsApp simplifié',
-            'Templates et conversations',
-            'Historique des envois',
-            'Automatisations futures',
         ],
         'reservations' => [
             'Calendrier de réservation',
@@ -106,21 +99,6 @@ class AdminPlaceholderController extends Controller
                 'rechargesThisMonth' => WalletTransaction::countByType('recharge', 'this_month'),
                 'latestTransactions' => WalletTransaction::latestWithUser(5),
                 'topClients'         => Wallet::topByBalance(5),
-            ], 'admin');
-            return;
-        }
-
-        if ($section === 'messages') {
-            $this->view('admin/messages', [
-                'title'            => $label . ' — Administration Le Commerce',
-                'pageTitle'        => $label,
-                'contactTotal'     => ContactMessage::count(),
-                'unreadContacts'   => ContactMessage::countUnread(),
-                'whatsappTotal'    => WhatsappMessage::count(),
-                'whatsappOutgoing' => WhatsappMessage::countByDirection('sortant'),
-                'whatsappIncoming' => WhatsappMessage::countByDirection('entrant'),
-                'latestContacts'   => ContactMessage::latest(5),
-                'latestWhatsapps'  => WhatsappMessage::latest(5),
             ], 'admin');
             return;
         }

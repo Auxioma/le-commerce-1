@@ -23,4 +23,15 @@ class ContactMessage extends Model
         $stmt->execute();
         return $stmt->fetchAll();
     }
+
+    public static function allOrdered(): array
+    {
+        return self::db()->query('SELECT * FROM contact_messages ORDER BY created_at DESC')->fetchAll();
+    }
+
+    public static function markRead(int $id, bool $read = true): void
+    {
+        $stmt = self::db()->prepare('UPDATE contact_messages SET is_read = :read WHERE id = :id');
+        $stmt->execute(['read' => $read ? 1 : 0, 'id' => $id]);
+    }
 }
