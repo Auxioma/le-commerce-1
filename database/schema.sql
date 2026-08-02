@@ -206,6 +206,22 @@ CREATE TABLE contact_messages (
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------
+-- Employés
+-- ---------------------------------------------------------------------
+CREATE TABLE employees (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    first_name  VARCHAR(80) NOT NULL,
+    last_name   VARCHAR(80) NOT NULL,
+    email       VARCHAR(150) NULL,
+    phone       VARCHAR(20) NULL,
+    role        VARCHAR(80) NOT NULL,
+    status      ENUM('actif','inactif') NOT NULL DEFAULT 'actif',
+    hired_at    DATE NULL,
+    created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- ---------------------------------------------------------------------
 -- Données de démonstration
 -- ---------------------------------------------------------------------
 INSERT INTO users (first_name, last_name, phone_whatsapp, email, role, segment, status, loyalty_points, referral_code, geolocation_opt_in) VALUES

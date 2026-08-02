@@ -5,6 +5,7 @@ $sidebarSections = [
         '/admin/etablissement'=> ['Mon établissement', 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2M5 21h2m0 0h10M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h0a1 1 0 011 1v5'],
         '/admin/services'     => ['Services du quotidien', 'M9 3v2m6-2v2M4 7h16M5 7h14v12a2 2 0 01-2 2H7a2 2 0 01-2-2V7z'],
         '/admin/images'       => ['Photos du site', 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M6 4h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2z'],
+        '/admin/employes'     => ['Employés', 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'],
     ],
     'Clients' => [
         '/admin/clients'      => ['Clients inscrits', 'M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4zm6 0a4 4 0 10-4-4'],
@@ -26,7 +27,7 @@ $sidebarSections = [
     ],
 ];
 
-$implementedRoutes = ['/admin', '/admin/clients', '/admin/etablissement', '/admin/services', '/admin/images', '/admin/portefeuilles', '/admin/messages', '/admin/reservations', '/admin/offres', '/admin/offres/scanner', '/admin/sondages', '/admin/zonage', '/admin/avis-google', '/admin/statistiques', '/admin/facturation', '/admin/parametres'];
+$implementedRoutes = ['/admin', '/admin/clients', '/admin/etablissement', '/admin/services', '/admin/images', '/admin/employes', '/admin/portefeuilles', '/admin/messages', '/admin/reservations', '/admin/offres', '/admin/offres/scanner', '/admin/sondages', '/admin/zonage', '/admin/avis-google', '/admin/statistiques', '/admin/facturation', '/admin/parametres'];
 ?>
 <div id="admin-sidebar-backdrop" class="hidden fixed inset-0 bg-black/40 z-40 lg:hidden"></div>
 <aside id="admin-sidebar" class="fixed lg:sticky top-0 left-0 z-50 flex flex-col w-80 shrink-0 bg-slate-950 text-gray-300 h-screen overflow-y-auto -translate-x-full lg:translate-x-0 transition-transform duration-200 shadow-2xl">

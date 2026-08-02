@@ -35,6 +35,7 @@ use App\Controllers\Admin\AdminSettingsController;
 use App\Controllers\Admin\AdminImageController;
 use App\Controllers\Admin\AdminPlaceholderController;
 use App\Controllers\Admin\AdminMessageController;
+use App\Controllers\Admin\AdminEmployeeController;
 use App\Controllers\Client\ClientOfferController;
 use App\Controllers\Client\PollController;
 use App\Controllers\Client\ProximityController;
@@ -137,6 +138,13 @@ $router->post('/admin/images/{slug}/supprimer', AdminImageController::class, 'de
 $router->get('/admin/messages', AdminMessageController::class, 'index');
 $router->post('/admin/messages/whatsapp/{userId}', AdminMessageController::class, 'sendWhatsapp');
 $router->post('/admin/messages/contact/{id}/lu', AdminMessageController::class, 'toggleContactRead');
+
+// --- Employés ---
+$router->get('/admin/employes', AdminEmployeeController::class, 'index');
+$router->post('/admin/employes', AdminEmployeeController::class, 'store');
+$router->post('/admin/employes/{id}', AdminEmployeeController::class, 'update');
+$router->post('/admin/employes/{id}/statut', AdminEmployeeController::class, 'toggleStatus');
+$router->post('/admin/employes/{id}/supprimer', AdminEmployeeController::class, 'destroy');
 
 // Routes "prochainement" pour les autres sections du menu admin (Lots 6 à 10)
 // IMPORTANT : doit rester déclarée en dernier pour ne pas intercepter les routes ci-dessus
