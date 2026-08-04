@@ -1,5 +1,3 @@
-<?php use App\Core\Csrf; ?>
-
 <!-- En-tête -->
 <div class="mb-8">
   <h1 class="font-extrabold text-3xl text-ink mb-2">Bienvenue <?= htmlspecialchars($user['first_name']) ?> 👋</h1>
@@ -19,8 +17,8 @@
       <svg class="w-12 h-12 opacity-20" fill="currentColor" viewBox="0 0 24 24"><path d="M17 8H5c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm0 12H5V10h14v10zM6 13h12v2H6z"/></svg>
     </div>
     <a href="#recharger" class="inline-flex items-center justify-center w-full mt-4 bg-white text-emerald-600 font-bold text-sm px-4 py-2.5 rounded-lg hover:bg-emerald-50 transition-all">
-      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-      Recharger
+      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 22s7-7.5 7-13a7 7 0 10-14 0c0 5.5 7 13 7 13z"/><circle cx="12" cy="9" r="2.5"/></svg>
+      Comment recharger ?
     </a>
   </div>
 
@@ -65,78 +63,28 @@
 <!-- Section recharge + autres cartes -->
 <div class="grid lg:grid-cols-3 gap-6 mb-8">
 
-  <!-- Recharge -->
+  <!-- Comment recharger -->
   <div id="recharger" class="lg:col-span-2 bg-white border border-gray-100 rounded-2xl p-8 scroll-mt-20">
-    <h2 class="font-extrabold text-xl text-ink mb-1">Recharger mon portefeuille</h2>
-    <p class="text-gray-500 text-sm mb-6">Choisissez un montant ou saisissez le vôtre.</p>
+    <h2 class="font-extrabold text-xl text-ink mb-1">Comment recharger mon portefeuille ?</h2>
+    <p class="text-gray-500 text-sm mb-6">La recharge se fait directement en boutique, en toute simplicité.</p>
 
-    <form method="POST" action="<?= BASE_PATH ?>/mon-compte/recharger" id="recharge-form">
-      <?= Csrf::field() ?>
-
-      <!-- Montants prédéfinis -->
-      <div class="mb-6">
-        <p class="text-sm font-semibold text-ink mb-3">Montant</p>
-        <div class="grid grid-cols-3 sm:grid-cols-5 gap-3">
-          <?php foreach ([10, 20, 50, 100, 150] as $amount): ?>
-            <label class="relative cursor-pointer group">
-              <input type="radio" name="amount_choice" value="<?= $amount ?>" class="peer sr-only" <?= $amount === 50 ? 'checked' : '' ?>>
-              <div class="border-2 border-gray-200 peer-checked:border-brand-500 peer-checked:bg-brand-50 rounded-xl text-center py-3 px-2 font-bold text-sm transition-all group-hover:border-brand-300">
-                <?= $amount ?> €
-              </div>
-              <?php if ($amount === 50): ?>
-                <span class="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-brand-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">Populaire</span>
-              <?php endif; ?>
-            </label>
-          <?php endforeach; ?>
-          <label class="relative cursor-pointer group">
-            <input type="radio" name="amount_choice" value="autre" class="peer sr-only" id="amount-other-radio">
-            <div class="border-2 border-gray-200 peer-checked:border-brand-500 peer-checked:bg-brand-50 rounded-xl text-center py-3 px-2 font-bold text-xs transition-all group-hover:border-brand-300">
-              Autre
-            </div>
-          </label>
-        </div>
+    <div class="grid sm:grid-cols-3 gap-5">
+      <div class="flex flex-col items-center text-center gap-2 p-4 bg-gray-50 rounded-xl">
+        <span class="w-10 h-10 rounded-full bg-brand-500 text-white flex items-center justify-center font-bold">1</span>
+        <p class="text-sm font-semibold text-ink">Rendez-vous en caisse</p>
+        <p class="text-xs text-gray-500">Indiquez le montant que vous souhaitez ajouter et réglez en espèces ou par carte.</p>
       </div>
-
-      <!-- Montant personnalisé -->
-      <div id="custom-amount-wrapper" class="hidden mb-6">
-        <input type="number" name="custom_amount" min="5" max="500" step="1" 
-               placeholder="Montant (5 à 500 €)"
-               class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 transition-all">
+      <div class="flex flex-col items-center text-center gap-2 p-4 bg-gray-50 rounded-xl">
+        <span class="w-10 h-10 rounded-full bg-brand-500 text-white flex items-center justify-center font-bold">2</span>
+        <p class="text-sm font-semibold text-ink">Présentez votre QR Code</p>
+        <p class="text-xs text-gray-500">Notre équipe scanne votre code ou retrouve votre compte pour créditer votre portefeuille.</p>
       </div>
-
-      <!-- Bonus -->
-      <div class="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
-        <p class="text-sm font-semibold text-emerald-600 flex items-center gap-2">
-          🎁 <span id="bonus-hint">Bonus : +2 € offerts pour une recharge de 50 €</span>
-        </p>
+      <div class="flex flex-col items-center text-center gap-2 p-4 bg-gray-50 rounded-xl">
+        <span class="w-10 h-10 rounded-full bg-brand-500 text-white flex items-center justify-center font-bold">3</span>
+        <p class="text-sm font-semibold text-ink">Solde mis à jour aussitôt</p>
+        <p class="text-xs text-gray-500">Le montant apparaît immédiatement sur votre compte, prêt à être utilisé.</p>
       </div>
-
-      <!-- Mode de paiement -->
-      <div class="mb-6">
-        <p class="text-sm font-semibold text-ink mb-3">Mode de paiement</p>
-        <div class="grid grid-cols-2 gap-3">
-          <label class="relative cursor-pointer group">
-            <input type="radio" name="payment_method" value="carte_bancaire" class="peer sr-only" checked>
-            <div class="border-2 border-gray-200 peer-checked:border-brand-500 peer-checked:bg-brand-50 rounded-xl px-4 py-3 flex items-center gap-2 text-sm font-semibold text-ink transition-all group-hover:border-brand-300">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path stroke-linecap="round" d="M2 10h20"/></svg>
-              Carte
-            </div>
-          </label>
-          <label class="relative cursor-pointer group">
-            <input type="radio" name="payment_method" value="apple_pay" class="peer sr-only">
-            <div class="border-2 border-gray-200 peer-checked:border-brand-500 peer-checked:bg-brand-50 rounded-xl px-4 py-3 flex items-center gap-2 text-sm font-semibold text-ink transition-all group-hover:border-brand-300">
-              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17 2a5 5 0 00-4 2 4.5 4.5 0 00-1 3 4 4 0 003.5-2A5 5 0 0017 2zm-4.5 6.5c-1.2 0-2.6.9-3.5.9s-2-.9-3.4-.9C3.6 8.5 2 10.2 2 13c0 3.3 2.4 8 4.3 8 1 0 1.5-.7 2.7-.7s1.7.7 2.7.7c1.9 0 4.3-4.5 4.3-8-.1-3-2-4.5-3.5-4.5z"/></svg>
-              Pay
-            </div>
-          </label>
-        </div>
-      </div>
-
-      <!-- Bouton soumettre -->
-      <button type="submit" class="w-full bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg hover:shadow-xl">
-        Recharger mon portefeuille
-      </button>
-    </form>
+    </div>
   </div>
 
   <!-- Card promotionnelle -->
@@ -210,7 +158,7 @@
   <div class="grid sm:grid-cols-4 gap-6">
     <?php
       $steps = [
-          ['1', 'Rechargez votre compte', 'Ajoutez du crédit à votre compte en ligne ou directement au bar.'],
+          ['1', 'Rechargez votre compte', 'Ajoutez du crédit directement en caisse, en espèces ou par carte.'],
           ['2', 'Scannez votre QR Code', 'Présentez votre QR Code en caisse pour accéder à votre portefeuille.'],
           ['3', 'Payez en toute simplicité', 'Le montant de votre consommation est déduit automatiquement.'],
           ['4', 'Suivez vos dépenses', 'Consultez vos transactions et votre solde à tout moment.'],
@@ -225,14 +173,3 @@
     <?php endforeach; ?>
   </div>
 </div>
-
-<script>
-  document.querySelectorAll('input[name="amount_choice"]').forEach((radio) => {
-    radio.addEventListener('change', () => {
-      const wrapper = document.getElementById('custom-amount-wrapper');
-      const isOther = document.getElementById('amount-other-radio').checked;
-      wrapper.classList.toggle('hidden', !isOther);
-      document.querySelector('input[name="custom_amount"]').required = isOther;
-    });
-  });
-</script>

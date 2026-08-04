@@ -71,7 +71,6 @@ $router->post('/deconnexion', LogoutController::class, 'destroy');
 
 // --- Espace client (protégé, voir Middleware::requireAuth) ---
 $router->get('/mon-compte', ClientDashboardController::class, 'index');
-$router->post('/mon-compte/recharger', WalletController::class, 'recharge');
 $router->get('/mon-compte/transactions', WalletController::class, 'transactions');
 $router->get('/mon-compte/avantages', WalletController::class, 'rewards');
 $router->get('/mon-compte/parrainage', WalletController::class, 'referral');

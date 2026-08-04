@@ -186,9 +186,12 @@ class AdminClientController extends Controller
             return;
         }
 
-        $direction = (string) $this->input('direction', 'credit');
-        $amount    = round((float) $this->input('amount', 0), 2);
-        $label     = trim((string) $this->input('label', ''));
+        $direction     = (string) $this->input('direction', 'credit');
+        $amount        = round((float) $this->input('amount', 0), 2);
+        $label         = trim((string) $this->input('label', ''));
+        $paymentMethod = in_array($this->input('payment_method'), ['especes', 'carte_bancaire'], true)
+            ? $this->input('payment_method')
+            : 'especes';
 
         if ($amount <= 0) {
             $this->setFlash('error', 'Le montant doit être supérieur à 0.');
@@ -201,20 +204,33 @@ class AdminClientController extends Controller
             return;
         }
 
+        // Bonus fidélité : +2 € offerts pour une recharge en caisse de 50 €.
+        $bonus = ($direction === 'credit' && (int) $amount === 50) ? 2.0 : 0.0;
+
         $pdo = Database::connection();
         $pdo->beginTransaction();
         try {
-            Wallet::adjustBalance($wallet['id'], $direction === 'debit' ? -$amount : $amount);
+            Wallet::adjustBalance($wallet['id'], $direction === 'debit' ? -$amount : $amount + $bonus);
             WalletTransaction::create([
                 'wallet_id'      => $wallet['id'],
                 'type'           => $direction === 'debit' ? 'debit' : 'recharge',
                 'amount'         => $amount,
-                'payment_method' => 'portefeuille',
+                'payment_method' => $direction === 'debit' ? 'portefeuille' : $paymentMethod,
                 'status'         => 'reussi',
-                'label'          => $label !== '' ? $label : ($direction === 'debit' ? 'Ajustement manuel (admin)' : 'Crédit manuel (admin)'),
+                'label'          => $label !== '' ? $label : ($direction === 'debit' ? 'Ajustement manuel (admin)' : 'Recharge en caisse'),
             ]);
+            if ($bonus > 0) {
+                WalletTransaction::create([
+                    'wallet_id'      => $wallet['id'],
+                    'type'           => 'recharge',
+                    'amount'         => $bonus,
+                    'payment_method' => $paymentMethod,
+                    'status'         => 'reussi',
+                    'label'          => 'Bonus fidélité',
+                ]);
+            }
             $pdo->commit();
-            $this->setFlash('success', 'Solde du portefeuille mis à jour.');
+            $this->setFlash('success', 'Solde du portefeuille mis à jour.' . ($bonus > 0 ? ' (+' . $bonus . ' € de bonus fidélité offerts)' : ''));
         } catch (\Throwable $e) {
             $pdo->rollBack();
             $this->setFlash('error', 'Une erreur est survenue, le solde n\'a pas été modifié.');

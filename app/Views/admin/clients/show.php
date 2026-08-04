@@ -162,7 +162,8 @@ $typeStyles = ['recharge' => 'bg-green-100 text-green-800', 'debit' => 'bg-red-1
     <!-- Portefeuille -->
     <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-5">
       <p class="text-gray-500 font-semibold" style="font-size:12px;">Solde du portefeuille</p>
-      <p class="font-black text-ink mb-4" style="font-size:30px;"><?= number_format((float) ($wallet['balance'] ?? 0), 2, ',', ' ') ?> €</p>
+      <p class="font-black text-ink mb-1" style="font-size:30px;"><?= number_format((float) ($wallet['balance'] ?? 0), 2, ',', ' ') ?> €</p>
+      <p class="text-gray-400 mb-4" style="font-size:11.5px;">Le client paie en caisse, créditez le montant reçu ici.</p>
 
       <form method="POST" action="<?= BASE_PATH ?>/admin/clients/<?= $client['id'] ?>/wallet" class="space-y-3">
         <?= Csrf::field() ?>
@@ -175,7 +176,12 @@ $typeStyles = ['recharge' => 'bg-green-100 text-green-800', 'debit' => 'bg-red-1
           </label>
         </div>
         <input type="number" name="amount" step="0.01" min="0.01" required placeholder="Montant en €" class="form-input">
+        <select name="payment_method" class="form-select">
+          <option value="especes">Payé en espèces</option>
+          <option value="carte_bancaire">Payé par carte</option>
+        </select>
         <input type="text" name="label" placeholder="Motif (optionnel)" class="form-input">
+        <p class="text-gray-400" style="font-size:11px;">🎁 Une recharge de 50 € déclenche automatiquement +2 € de bonus fidélité.</p>
         <button type="submit" class="btn-primary w-full">Appliquer l'ajustement</button>
       </form>
     </div>
