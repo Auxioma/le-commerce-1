@@ -3,7 +3,7 @@ $heroEyebrow = 'LE BAR';
 $heroText = "Un comptoir convivial pour un café rapide, une bière entre amis ou une planche à partager, du matin jusqu'à la fermeture.";
 $heroActions = [
     ['href' => 'https://wa.me/' . str_replace(['+', ' '], '', $shop['whatsapp_href']), 'label' => 'Nous écrire sur WhatsApp', 'class' => 'btn-whatsapp'],
-    ['href' => BASE_PATH . '/contact', 'label' => 'Réserver une table', 'class' => 'btn-outline'],
+    ['href' => BASE_PATH . '/reservation', 'label' => 'Réserver une table', 'class' => 'btn-outline'],
 ];
 $heroSlug = 'hero_bar';
 require __DIR__ . '/../partials/page-hero.php';

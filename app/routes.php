@@ -14,6 +14,7 @@ use App\Controllers\PresseController;
 use App\Controllers\ActualitesController;
 use App\Controllers\ServicesController;
 use App\Controllers\ContactController;
+use App\Controllers\ReservationController;
 use App\Controllers\LegalController;
 use App\Controllers\Client\ClientDashboardController;
 use App\Controllers\Client\WalletController;
@@ -36,6 +37,7 @@ use App\Controllers\Admin\AdminImageController;
 use App\Controllers\Admin\AdminPlaceholderController;
 use App\Controllers\Admin\AdminMessageController;
 use App\Controllers\Admin\AdminEmployeeController;
+use App\Controllers\Admin\AdminReservationController;
 use App\Controllers\Client\ClientOfferController;
 use App\Controllers\Client\PollController;
 use App\Controllers\Client\ProximityController;
@@ -51,6 +53,8 @@ $router->get('/nos-services', ServicesController::class, 'index');
 $router->get('/actualites', ActualitesController::class, 'index');
 $router->get('/contact', ContactController::class, 'index');
 $router->post('/contact', ContactController::class, 'send');
+$router->get('/reservation', ReservationController::class, 'index');
+$router->post('/reservation', ReservationController::class, 'store');
 $router->get('/mentions-legales', LegalController::class, 'mentionsLegales');
 $router->get('/cgu', LegalController::class, 'cgu');
 $router->get('/cgv', LegalController::class, 'cgv');
@@ -145,6 +149,11 @@ $router->post('/admin/employes', AdminEmployeeController::class, 'store');
 $router->post('/admin/employes/{id}', AdminEmployeeController::class, 'update');
 $router->post('/admin/employes/{id}/statut', AdminEmployeeController::class, 'toggleStatus');
 $router->post('/admin/employes/{id}/supprimer', AdminEmployeeController::class, 'destroy');
+
+// --- Réservations ---
+$router->get('/admin/reservations', AdminReservationController::class, 'index');
+$router->post('/admin/reservations/{id}/statut', AdminReservationController::class, 'updateStatus');
+$router->post('/admin/reservations/{id}/supprimer', AdminReservationController::class, 'destroy');
 
 // Routes "prochainement" pour les autres sections du menu admin (Lots 6 à 10)
 // IMPORTANT : doit rester déclarée en dernier pour ne pas intercepter les routes ci-dessus

@@ -4,14 +4,12 @@ namespace App\Controllers\Admin;
 
 use App\Core\Controller;
 use App\Core\Middleware;
-use App\Models\ContactMessage;
 use App\Models\Offer;
 use App\Models\OfferRedemption;
 use App\Models\ProximityCampaign;
 use App\Models\User;
 use App\Models\Wallet;
 use App\Models\WalletTransaction;
-use App\Models\WhatsappMessage;
 
 class AdminPlaceholderController extends Controller
 {
@@ -23,7 +21,6 @@ class AdminPlaceholderController extends Controller
         'etablissement' => 'Mon établissement',
         'services'      => 'Services du quotidien',
         'portefeuilles' => 'Portefeuille client',
-        'reservations'  => 'Réservations',
     ];
 
     private const SECTION_FEATURES = [
@@ -44,12 +41,6 @@ class AdminPlaceholderController extends Controller
             'Recharges et offres dédiées',
             'Segmentation des clients fidèles',
             'Alertes et notifications personnalisées',
-        ],
-        'reservations' => [
-            'Calendrier de réservation',
-            'Gestion des créneaux disponibles',
-            'Confirmations et rappels',
-            'Statistiques de fréquentation',
         ],
     ];
 
@@ -99,23 +90,6 @@ class AdminPlaceholderController extends Controller
                 'rechargesThisMonth' => WalletTransaction::countByType('recharge', 'this_month'),
                 'latestTransactions' => WalletTransaction::latestWithUser(5),
                 'topClients'         => Wallet::topByBalance(5),
-            ], 'admin');
-            return;
-        }
-
-        if ($section === 'reservations') {
-            $latestContacts = ContactMessage::latest(5);
-            $latestWhatsapps = WhatsappMessage::latest(5);
-            $messageDemandCount = ContactMessage::count() + WhatsappMessage::countByDirection('entrant');
-
-            $this->view('admin/reservations', [
-                'title'              => $label . ' — Administration Le Commerce',
-                'pageTitle'          => $label,
-                'contactTotal'       => ContactMessage::count(),
-                'whatsappTotal'      => WhatsappMessage::countByDirection('entrant'),
-                'messageDemandCount' => $messageDemandCount,
-                'latestContacts'     => $latestContacts,
-                'latestWhatsapps'    => $latestWhatsapps,
             ], 'admin');
             return;
         }

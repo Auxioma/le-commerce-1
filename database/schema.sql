@@ -206,6 +206,23 @@ CREATE TABLE contact_messages (
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------
+-- Réservations de table
+-- ---------------------------------------------------------------------
+CREATE TABLE reservations (
+    id                INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name              VARCHAR(120) NOT NULL,
+    phone             VARCHAR(20) NOT NULL,
+    email             VARCHAR(150) NULL,
+    party_size        TINYINT UNSIGNED NOT NULL DEFAULT 2,
+    reservation_date  DATE NOT NULL,
+    reservation_time  TIME NOT NULL,
+    note              VARCHAR(255) NULL,
+    status            ENUM('en_attente','confirmee','annulee') NOT NULL DEFAULT 'en_attente',
+    created_at        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- ---------------------------------------------------------------------
 -- Employés
 -- ---------------------------------------------------------------------
 CREATE TABLE employees (
