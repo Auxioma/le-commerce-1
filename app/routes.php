@@ -38,7 +38,9 @@ use App\Controllers\Admin\AdminPlaceholderController;
 use App\Controllers\Admin\AdminMessageController;
 use App\Controllers\Admin\AdminEmployeeController;
 use App\Controllers\Admin\AdminReservationController;
+use App\Controllers\Admin\AdminLotteryController;
 use App\Controllers\Client\ClientOfferController;
+use App\Controllers\Client\ClientLotteryController;
 use App\Controllers\Client\PollController;
 use App\Controllers\Client\ProximityController;
 
@@ -74,6 +76,8 @@ $router->get('/mon-compte/transactions', WalletController::class, 'transactions'
 $router->get('/mon-compte/avantages', WalletController::class, 'rewards');
 $router->get('/mon-compte/parrainage', WalletController::class, 'referral');
 $router->get('/mon-compte/offres', ClientOfferController::class, 'index');
+$router->get('/mon-compte/loterie', ClientLotteryController::class, 'index');
+$router->post('/mon-compte/loterie/{id}/participer', ClientLotteryController::class, 'participate');
 $router->get('/mon-compte/sondages', PollController::class, 'index');
 $router->get('/mon-compte/sondages/{id}', PollController::class, 'show');
 $router->post('/mon-compte/sondages/{id}/voter', PollController::class, 'vote');
@@ -154,6 +158,14 @@ $router->post('/admin/employes/{id}/supprimer', AdminEmployeeController::class, 
 $router->get('/admin/reservations', AdminReservationController::class, 'index');
 $router->post('/admin/reservations/{id}/statut', AdminReservationController::class, 'updateStatus');
 $router->post('/admin/reservations/{id}/supprimer', AdminReservationController::class, 'destroy');
+
+// --- Loterie ---
+$router->get('/admin/loterie', AdminLotteryController::class, 'index');
+$router->get('/admin/loterie/creer', AdminLotteryController::class, 'create');
+$router->post('/admin/loterie', AdminLotteryController::class, 'store');
+$router->post('/admin/loterie/{id}/statut', AdminLotteryController::class, 'toggleStatus');
+$router->post('/admin/loterie/{id}/tirage', AdminLotteryController::class, 'draw');
+$router->post('/admin/loterie/{id}/supprimer', AdminLotteryController::class, 'destroy');
 
 // Routes "prochainement" pour les autres sections du menu admin (Lots 6 à 10)
 // IMPORTANT : doit rester déclarée en dernier pour ne pas intercepter les routes ci-dessus

@@ -9,6 +9,7 @@ $clientNav = [
     '/mon-compte/avantages'     => ['Mes avantages', 'M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z', true],
     '/mon-compte/offres'        => ['Mes offres', 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', true],
     '/mon-compte/sondages'      => ['Sondages & Votes', 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14', true],
+    '/mon-compte/loterie'       => ['Loterie', 'M12 8c-1.5-3-6-3-6 0s4.5 3 6 6c1.5-3 6-3 6-6s-4.5-3-6 0z', true],
     '/mon-compte/parrainage'    => ['Parrainage', 'M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4zm6 0a4 4 0 10-4-4', true],
     '/mon-compte/informations'  => ['Mes informations', 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z', false],
     '/mon-compte/notifications' => ['Notifications', 'M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2a2 2 0 01-.6 1.4L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9', false],
