@@ -7,10 +7,11 @@ use App\Core\Model;
 class User extends Model
 {
     protected static string $table = 'users';
+    protected static bool $softDeletes = true;
 
     public static function findByPhone(string $phone): ?array
     {
-        $stmt = self::db()->prepare('SELECT * FROM users WHERE phone_whatsapp = :phone LIMIT 1');
+        $stmt = self::db()->prepare('SELECT * FROM users WHERE phone_whatsapp = :phone AND deleted_at IS NULL LIMIT 1');
         $stmt->execute(['phone' => $phone]);
         $row = $stmt->fetch();
         return $row ?: null;
@@ -23,7 +24,7 @@ class User extends Model
 
     public static function emailExists(string $email): bool
     {
-        $stmt = self::db()->prepare('SELECT 1 FROM users WHERE email = :email LIMIT 1');
+        $stmt = self::db()->prepare('SELECT 1 FROM users WHERE email = :email AND deleted_at IS NULL LIMIT 1');
         $stmt->execute(['email' => $email]);
         return (bool) $stmt->fetchColumn();
     }
@@ -43,14 +44,14 @@ class User extends Model
 
     public static function countReferrals(int $userId): int
     {
-        $stmt = self::db()->prepare("SELECT COUNT(*) FROM users WHERE referred_by = :id");
+        $stmt = self::db()->prepare("SELECT COUNT(*) FROM users WHERE referred_by = :id AND deleted_at IS NULL");
         $stmt->execute(['id' => $userId]);
         return (int) $stmt->fetchColumn();
     }
 
     public static function findByReferralCode(string $code): ?array
     {
-        $stmt = self::db()->prepare('SELECT * FROM users WHERE referral_code = :code LIMIT 1');
+        $stmt = self::db()->prepare('SELECT * FROM users WHERE referral_code = :code AND deleted_at IS NULL LIMIT 1');
         $stmt->execute(['code' => $code]);
         $row = $stmt->fetch();
         return $row ?: null;
@@ -64,7 +65,7 @@ class User extends Model
     {
         $stmt = self::db()->query(
             "SELECT id, first_name, last_name, phone_whatsapp FROM users
-             WHERE role = 'client' AND status = 'actif' ORDER BY first_name ASC"
+             WHERE role = 'client' AND status = 'actif' AND deleted_at IS NULL ORDER BY first_name ASC"
         );
         return $stmt->fetchAll();
     }
@@ -97,7 +98,7 @@ class User extends Model
     {
         $stmt = self::db()->prepare(
             "SELECT id, first_name, last_name, created_at FROM users
-             WHERE role = 'client' ORDER BY created_at DESC LIMIT :limit"
+             WHERE role = 'client' AND deleted_at IS NULL ORDER BY created_at DESC LIMIT :limit"
         );
         $stmt->bindValue('limit', $limit, \PDO::PARAM_INT);
         $stmt->execute();
@@ -106,13 +107,13 @@ class User extends Model
 
     public static function countAll(): int
     {
-        return (int) self::db()->query("SELECT COUNT(*) FROM users WHERE role = 'client'")->fetchColumn();
+        return (int) self::db()->query("SELECT COUNT(*) FROM users WHERE role = 'client' AND deleted_at IS NULL")->fetchColumn();
     }
 
     public static function countThisMonth(): int
     {
         return (int) self::db()->query(
-            "SELECT COUNT(*) FROM users WHERE role = 'client' AND MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE())"
+            "SELECT COUNT(*) FROM users WHERE role = 'client' AND deleted_at IS NULL AND MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE())"
         )->fetchColumn();
     }
 
@@ -124,7 +125,7 @@ class User extends Model
      */
     public static function paginateClients(array $filters, int $page = 1, int $perPage = 8): array
     {
-        $where  = ["role = 'client'"];
+        $where  = ["role = 'client'", 'deleted_at IS NULL'];
         $params = [];
 
         if (!empty($filters['q'])) {

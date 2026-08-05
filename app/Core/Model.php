@@ -13,6 +13,13 @@ abstract class Model
     protected static string $table = '';
     protected static string $primaryKey = 'id';
 
+    /**
+     * Quand true, delete() ne supprime plus la ligne mais renseigne
+     * deleted_at ; all()/find()/where() masquent alors les lignes supprimées.
+     * La table doit posséder une colonne deleted_at DATETIME NULL.
+     */
+    protected static bool $softDeletes = false;
+
     protected static function db(): PDO
     {
         return Database::connection();
@@ -20,13 +27,22 @@ abstract class Model
 
     public static function all(string $orderBy = 'id DESC'): array
     {
-        $stmt = self::db()->query('SELECT * FROM ' . static::$table . ' ORDER BY ' . $orderBy);
+        $sql = 'SELECT * FROM ' . static::$table;
+        if (static::$softDeletes) {
+            $sql .= ' WHERE deleted_at IS NULL';
+        }
+        $sql .= ' ORDER BY ' . $orderBy;
+        $stmt = self::db()->query($sql);
         return $stmt->fetchAll();
     }
 
     public static function find(int $id): ?array
     {
-        $stmt = self::db()->prepare('SELECT * FROM ' . static::$table . ' WHERE ' . static::$primaryKey . ' = :id LIMIT 1');
+        $sql = 'SELECT * FROM ' . static::$table . ' WHERE ' . static::$primaryKey . ' = :id';
+        if (static::$softDeletes) {
+            $sql .= ' AND deleted_at IS NULL';
+        }
+        $stmt = self::db()->prepare($sql . ' LIMIT 1');
         $stmt->execute(['id' => $id]);
         $row = $stmt->fetch();
         return $row ?: null;
@@ -34,7 +50,11 @@ abstract class Model
 
     public static function where(string $column, $value, string $operator = '='): array
     {
-        $stmt = self::db()->prepare("SELECT * FROM " . static::$table . " WHERE {$column} {$operator} :value");
+        $sql = "SELECT * FROM " . static::$table . " WHERE {$column} {$operator} :value";
+        if (static::$softDeletes) {
+            $sql .= ' AND deleted_at IS NULL';
+        }
+        $stmt = self::db()->prepare($sql);
         $stmt->execute(['value' => $value]);
         return $stmt->fetchAll();
     }
@@ -69,12 +89,34 @@ abstract class Model
 
     public static function delete(int $id): bool
     {
+        if (static::$softDeletes) {
+            $stmt = self::db()->prepare(
+                'UPDATE ' . static::$table . ' SET deleted_at = NOW() WHERE ' . static::$primaryKey . ' = :id'
+            );
+            return $stmt->execute(['id' => $id]);
+        }
+
         $stmt = self::db()->prepare('DELETE FROM ' . static::$table . ' WHERE ' . static::$primaryKey . ' = :id');
+        return $stmt->execute(['id' => $id]);
+    }
+
+    /**
+     * Réhabilite une ligne soft-supprimée.
+     */
+    public static function restore(int $id): bool
+    {
+        $stmt = self::db()->prepare(
+            'UPDATE ' . static::$table . ' SET deleted_at = NULL WHERE ' . static::$primaryKey . ' = :id'
+        );
         return $stmt->execute(['id' => $id]);
     }
 
     public static function count(): int
     {
-        return (int) self::db()->query('SELECT COUNT(*) FROM ' . static::$table)->fetchColumn();
+        $sql = 'SELECT COUNT(*) FROM ' . static::$table;
+        if (static::$softDeletes) {
+            $sql .= ' WHERE deleted_at IS NULL';
+        }
+        return (int) self::db()->query($sql)->fetchColumn();
     }
 }

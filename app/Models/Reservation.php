@@ -7,6 +7,7 @@ use App\Core\Model;
 class Reservation extends Model
 {
     protected static string $table = 'reservations';
+    protected static bool $softDeletes = true;
 
     /**
      * Liste filtrable (statut, date), triée par date/heure de réservation.
@@ -15,7 +16,7 @@ class Reservation extends Model
      */
     public static function filtered(array $filters = []): array
     {
-        $where  = [];
+        $where  = ['deleted_at IS NULL'];
         $params = [];
 
         if (!empty($filters['status']) && $filters['status'] !== 'tous') {
@@ -27,10 +28,7 @@ class Reservation extends Model
             $params['date'] = $filters['date'];
         }
 
-        $sql = 'SELECT * FROM reservations';
-        if ($where) {
-            $sql .= ' WHERE ' . implode(' AND ', $where);
-        }
+        $sql = 'SELECT * FROM reservations WHERE ' . implode(' AND ', $where);
         $sql .= ' ORDER BY reservation_date ASC, reservation_time ASC';
 
         $stmt = self::db()->prepare($sql);
@@ -40,7 +38,7 @@ class Reservation extends Model
 
     public static function countByStatus(string $status): int
     {
-        $stmt = self::db()->prepare('SELECT COUNT(*) FROM reservations WHERE status = :status');
+        $stmt = self::db()->prepare('SELECT COUNT(*) FROM reservations WHERE status = :status AND deleted_at IS NULL');
         $stmt->execute(['status' => $status]);
         return (int) $stmt->fetchColumn();
     }
@@ -51,7 +49,7 @@ class Reservation extends Model
     public static function countUpcoming(): int
     {
         $stmt = self::db()->query(
-            "SELECT COUNT(*) FROM reservations WHERE reservation_date >= CURDATE() AND status != 'annulee'"
+            "SELECT COUNT(*) FROM reservations WHERE reservation_date >= CURDATE() AND status != 'annulee' AND deleted_at IS NULL"
         );
         return (int) $stmt->fetchColumn();
     }

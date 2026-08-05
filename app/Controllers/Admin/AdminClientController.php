@@ -240,8 +240,9 @@ class AdminClientController extends Controller
     }
 
     /**
-     * Supprime définitivement un compte client (portefeuille et historique
-     * associés supprimés en cascade par les contraintes de la base).
+     * Suppression douce d'un compte client : la ligne est marquée
+     * deleted_at (portefeuille et historique conservés, le compte disparaît
+     * des listes et ne peut plus se connecter).
      */
     public function destroy(int $id): void
     {

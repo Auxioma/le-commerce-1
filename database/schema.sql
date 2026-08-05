@@ -26,6 +26,7 @@ CREATE TABLE users (
     last_activity_at DATETIME NULL,
     created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at      DATETIME NULL DEFAULT NULL,
     FOREIGN KEY (referred_by) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
@@ -162,7 +163,8 @@ CREATE TABLE google_reviews (
     rating       TINYINT UNSIGNED NOT NULL,
     comment      TEXT NULL,
     published_at DATETIME NOT NULL,
-    created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at   DATETIME NULL DEFAULT NULL
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------
@@ -219,7 +221,8 @@ CREATE TABLE reservations (
     note              VARCHAR(255) NULL,
     status            ENUM('en_attente','confirmee','annulee') NOT NULL DEFAULT 'en_attente',
     created_at        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_at        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at        DATETIME NULL DEFAULT NULL
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------
@@ -235,6 +238,7 @@ CREATE TABLE lotteries (
     winner_user_id INT UNSIGNED NULL,
     drawn_at       DATETIME NULL,
     created_at     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at     DATETIME NULL DEFAULT NULL,
     FOREIGN KEY (winner_user_id) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
@@ -262,7 +266,8 @@ CREATE TABLE employees (
     status      ENUM('actif','inactif') NOT NULL DEFAULT 'actif',
     hired_at    DATE NULL,
     created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at  DATETIME NULL DEFAULT NULL
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------

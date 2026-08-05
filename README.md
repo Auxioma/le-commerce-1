@@ -124,6 +124,11 @@ mysql -u root -p < database/migration_lot7_proximity_demo.sql
 # 2sexies. Appliquer la table des paramètres du Lot 10
 mysql -u root -p < database/migration_lot10_settings.sql
 
+# 2septies. Base déjà existante uniquement : ajoute deleted_at (soft delete)
+#           sur users/employees/lotteries/reservations/google_reviews
+#           (inutile sur une base fraîche, schema.sql l'inclut déjà)
+mysql -u root -p < database/migration_lot14_soft_deletes.sql
+
 # 3. Configurer la connexion DB (variables d'environnement, ou éditez
 #    directement config/database.php)
 export DB_HOST=127.0.0.1

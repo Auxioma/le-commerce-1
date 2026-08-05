@@ -55,7 +55,7 @@ class Statistic extends Model
         $stmt = self::db()->prepare(
             "SELECT DATE_FORMAT(created_at, '%Y-%m') AS mois, COUNT(*) AS nb
              FROM users
-             WHERE role = 'client' AND created_at >= CURDATE() - INTERVAL :months MONTH
+             WHERE role = 'client' AND deleted_at IS NULL AND created_at >= CURDATE() - INTERVAL :months MONTH
              GROUP BY mois
              ORDER BY mois ASC"
         );
@@ -86,7 +86,7 @@ class Statistic extends Model
         $stmt = self::db()->prepare(
             "SELECT DATE(created_at) AS jour, COUNT(*) AS nouveaux
              FROM users
-             WHERE role = 'client' AND created_at >= CURDATE() - INTERVAL :days DAY
+             WHERE role = 'client' AND deleted_at IS NULL AND created_at >= CURDATE() - INTERVAL :days DAY
              GROUP BY DATE(created_at)
              ORDER BY jour ASC"
         );
@@ -98,7 +98,7 @@ class Statistic extends Model
         }
 
         $countStmt = self::db()->prepare(
-            "SELECT COUNT(*) FROM users WHERE role = 'client' AND created_at < CURDATE() - INTERVAL :days DAY"
+            "SELECT COUNT(*) FROM users WHERE role = 'client' AND deleted_at IS NULL AND created_at < CURDATE() - INTERVAL :days DAY"
         );
         $countStmt->bindValue('days', $days, \PDO::PARAM_INT);
         $countStmt->execute();
@@ -122,7 +122,7 @@ class Statistic extends Model
     public static function clientsBySegment(): array
     {
         return self::db()->query(
-            "SELECT segment, COUNT(*) AS nb FROM users WHERE role = 'client' GROUP BY segment"
+            "SELECT segment, COUNT(*) AS nb FROM users WHERE role = 'client' AND deleted_at IS NULL GROUP BY segment"
         )->fetchAll();
     }
 
@@ -133,7 +133,7 @@ class Statistic extends Model
              FROM users u
              JOIN wallets w ON w.user_id = u.id
              LEFT JOIN wallet_transactions wt ON wt.wallet_id = w.id AND wt.type = 'debit' AND wt.status = 'reussi'
-             WHERE u.role = 'client'
+             WHERE u.role = 'client' AND u.deleted_at IS NULL
              GROUP BY u.id
              ORDER BY total_spent DESC
              LIMIT :limit"
