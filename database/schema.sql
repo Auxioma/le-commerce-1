@@ -255,6 +255,19 @@ CREATE TABLE lottery_entries (
 ) ENGINE=InnoDB;
 
 -- ---------------------------------------------------------------------
+-- Dernière position GPS connue des clients (géolocalisation opt-in),
+-- utilisée par la carte "Clients à proximité" du back-office.
+-- ---------------------------------------------------------------------
+CREATE TABLE user_locations (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id     INT UNSIGNED NOT NULL UNIQUE,
+    latitude    DECIMAL(10,7) NOT NULL,
+    longitude   DECIMAL(10,7) NOT NULL,
+    updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- ---------------------------------------------------------------------
 -- Employés
 -- ---------------------------------------------------------------------
 CREATE TABLE employees (

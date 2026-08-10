@@ -14,6 +14,13 @@ class ContactMessage extends Model
         return (int) $stmt->fetchColumn();
     }
 
+    public static function countToday(): int
+    {
+        return (int) self::db()->query(
+            'SELECT COUNT(*) FROM contact_messages WHERE DATE(created_at) = CURDATE()'
+        )->fetchColumn();
+    }
+
     public static function latest(int $limit = 5): array
     {
         $stmt = self::db()->prepare(

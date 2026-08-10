@@ -182,6 +182,11 @@ class OfferRedemption extends Model
         return (int) self::db()->query('SELECT COUNT(DISTINCT user_id) FROM offer_redemptions')->fetchColumn();
     }
 
+    public static function countAll(): int
+    {
+        return (int) self::db()->query('SELECT COUNT(*) FROM offer_redemptions')->fetchColumn();
+    }
+
     /**
      * Économies estimées offertes aux clients (somme de la valeur des
      * offres utilisées — le champ `value` sert d'estimation en euros pour

@@ -16,4 +16,11 @@ class GoogleReview extends Model
         $stmt->execute();
         return $stmt->fetchAll();
     }
+
+    public static function countThisMonth(): int
+    {
+        return (int) self::db()->query(
+            "SELECT COUNT(*) FROM google_reviews WHERE deleted_at IS NULL AND MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE())"
+        )->fetchColumn();
+    }
 }

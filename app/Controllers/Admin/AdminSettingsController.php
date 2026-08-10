@@ -48,6 +48,9 @@ class AdminSettingsController extends Controller
             'legal_hebergeur_nom'         => trim((string) $this->input('legal_hebergeur_nom', '')),
             'legal_hebergeur_adresse'     => trim((string) $this->input('legal_hebergeur_adresse', '')),
             'legal_hebergeur_telephone'   => trim((string) $this->input('legal_hebergeur_telephone', '')),
+
+            'ga4_property_id'          => trim((string) $this->input('ga4_property_id', '')),
+            'ga4_service_account_json' => trim((string) $this->input('ga4_service_account_json', '')),
         ];
 
         if ($data['shop_name'] === '' || $data['shop_email'] === '' || !filter_var($data['shop_email'], FILTER_VALIDATE_EMAIL)) {

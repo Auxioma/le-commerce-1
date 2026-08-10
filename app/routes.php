@@ -34,6 +34,7 @@ use App\Controllers\Admin\AdminStatisticsController;
 use App\Controllers\Admin\AdminBillingController;
 use App\Controllers\Admin\AdminSettingsController;
 use App\Controllers\Admin\AdminImageController;
+use App\Controllers\Admin\AdminGoogleAnalyticsController;
 use App\Controllers\Admin\AdminPlaceholderController;
 use App\Controllers\Admin\AdminMessageController;
 use App\Controllers\Admin\AdminEmployeeController;
@@ -130,6 +131,7 @@ $router->post('/admin/avis-google', AdminReviewController::class, 'store');
 $router->post('/admin/avis-google/{id}/supprimer', AdminReviewController::class, 'destroy');
 
 $router->get('/admin/statistiques', AdminStatisticsController::class, 'index');
+$router->get('/admin/google-analytics', AdminGoogleAnalyticsController::class, 'index');
 
 $router->get('/admin/facturation', AdminBillingController::class, 'index');
 $router->get('/admin/facturation/{id}', AdminBillingController::class, 'show');

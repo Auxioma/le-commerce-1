@@ -135,6 +135,13 @@ class User extends Model
         )->fetchColumn();
     }
 
+    public static function countThisWeek(): int
+    {
+        return (int) self::db()->query(
+            "SELECT COUNT(*) FROM users WHERE role = 'client' AND deleted_at IS NULL AND created_at >= CURDATE() - INTERVAL 7 DAY"
+        )->fetchColumn();
+    }
+
     /**
      * Derniers clients inscrits avec email — pour la section inscriptions récentes du dashboard.
      */

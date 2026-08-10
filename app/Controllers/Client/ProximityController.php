@@ -7,6 +7,7 @@ use App\Core\Middleware;
 use App\Models\Offer;
 use App\Models\OfferRedemption;
 use App\Models\ProximityCampaign;
+use App\Models\UserLocation;
 
 class ProximityController extends Controller
 {
@@ -32,6 +33,10 @@ class ProximityController extends Controller
             $this->json(['match' => false, 'reason' => 'position_invalide']);
             return;
         }
+
+        // Mémorise la dernière position connue (pour la carte "Clients à
+        // proximité" du back-office), uniquement pour les clients opt-in.
+        UserLocation::upsert((int) $user['id'], $lat, $lng);
 
         $shopLat = (float) $this->sharedData['shop']['latitude'];
         $shopLng = (float) $this->sharedData['shop']['longitude'];

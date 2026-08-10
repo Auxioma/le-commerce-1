@@ -15,6 +15,13 @@ class WhatsappMessage extends Model
         return (int) $stmt->fetchColumn();
     }
 
+    public static function countSentToday(): int
+    {
+        return (int) self::db()->query(
+            "SELECT COUNT(*) FROM whatsapp_messages WHERE direction = 'sortant' AND DATE(sent_at) = CURDATE()"
+        )->fetchColumn();
+    }
+
     public static function latest(int $limit = 5): array
     {
         $stmt = self::db()->prepare(

@@ -177,6 +177,29 @@ require __DIR__ . '/../../partials/admin-page-header.php';
       </div>
     </div>
 
+    <div class="card card-md">
+      <h2 class="font-bold text-ink mb-4">Google Analytics (GA4)</h2>
+      <p class="text-sm text-gray-500 mb-4">
+        Ces informations alimentent la page <a href="<?= BASE_PATH ?>/admin/google-analytics" class="text-brand-500 font-semibold hover:underline">Google Analytics</a> du back-office.
+        Créez un <a href="https://console.cloud.google.com/iam-admin/serviceaccounts" target="_blank" rel="noopener" class="text-brand-500 hover:underline">compte de service Google Cloud</a>,
+        téléchargez sa clé au format JSON, puis ajoutez son adresse e-mail (<code>...@...iam.gserviceaccount.com</code>) comme utilisateur
+        « Lecteur » dans les paramètres d'administration de votre propriété GA4.
+      </p>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-semibold text-ink mb-1.5">Identifiant de propriété GA4 (Property ID)</label>
+          <input type="text" name="ga4_property_id" placeholder="Ex : 123456789"
+                 value="<?= htmlspecialchars(\App\Models\Settings::get('ga4_property_id', '')) ?>" class="form-input">
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-ink mb-1.5">Clé du compte de service (contenu JSON)</label>
+          <textarea name="ga4_service_account_json" rows="6" placeholder='{"type": "service_account", "private_key": "...", "client_email": "..."}'
+                    class="form-input font-mono text-xs"><?= htmlspecialchars(\App\Models\Settings::get('ga4_service_account_json', '')) ?></textarea>
+          <p class="text-xs text-gray-400 mt-1">Collez ici le contenu complet du fichier .json téléchargé depuis Google Cloud Console.</p>
+        </div>
+      </div>
+    </div>
+
     <button type="submit" class="btn-primary w-full">
       Enregistrer les modifications
     </button>
