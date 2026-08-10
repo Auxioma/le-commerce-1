@@ -31,6 +31,10 @@ class RegisterController extends Controller
         $email     = trim((string) $this->input('email', ''));
         $password  = (string) $this->input('password', '');
         $geoOptIn  = $this->input('geolocation_opt_in') ? 1 : 0;
+        $source    = (string) $this->input('registration_source', 'bar');
+        if (!array_key_exists($source, User::SOURCE_LABELS)) {
+            $source = 'bar';
+        }
 
         $errors = [];
 
@@ -58,7 +62,7 @@ class RegisterController extends Controller
             $this->view('auth/register', [
                 'title'  => 'Créer mon compte — Le Commerce',
                 'errors' => $errors,
-                'old'    => compact('firstName', 'lastName', 'phone', 'email'),
+                'old'    => compact('firstName', 'lastName', 'phone', 'email', 'source'),
             ], 'auth');
             return;
         }
@@ -70,6 +74,7 @@ class RegisterController extends Controller
             'email'          => $email,
             'password'       => $password,
             'geolocation_opt_in' => $geoOptIn,
+            'registration_source' => $source,
         ]);
 
         Wallet::createForUser($userId);

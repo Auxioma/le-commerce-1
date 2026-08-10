@@ -84,6 +84,24 @@ class LotteryEntry extends Model
         return $row ?: null;
     }
 
+    /**
+     * Derniers tickets générés, avec le nom du client — pour le fil
+     * d'activité du tableau de bord.
+     */
+    public static function latestWithUser(int $limit = 3): array
+    {
+        $stmt = self::db()->prepare(
+            'SELECT e.*, u.first_name, u.last_name
+             FROM lottery_entries e
+             JOIN users u ON u.id = e.user_id
+             ORDER BY e.created_at DESC
+             LIMIT :limit'
+        );
+        $stmt->bindValue('limit', $limit, \PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
     public static function forUser(int $userId): array
     {
         $stmt = self::db()->prepare(

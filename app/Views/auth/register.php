@@ -43,6 +43,16 @@
       <?php if (isset($errors['password'])): ?><p class="text-brand-500 text-xs mt-1"><?= htmlspecialchars($errors['password']) ?></p><?php endif; ?>
     </div>
 
+    <div>
+      <label class="block text-sm font-semibold text-ink mb-1.5">Comment nous avez-vous connu ?</label>
+      <select name="registration_source" class="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500">
+        <?php $selectedSource = $old['source'] ?? 'bar'; ?>
+        <?php foreach (\App\Models\User::SOURCE_LABELS as $value => $label): ?>
+          <option value="<?= htmlspecialchars($value) ?>" <?= $selectedSource === $value ? 'selected' : '' ?>><?= htmlspecialchars($label) ?></option>
+        <?php endforeach; ?>
+      </select>
+    </div>
+
     <label class="flex items-start gap-2.5 text-sm text-gray-600">
       <input type="checkbox" name="geolocation_opt_in" value="1" class="mt-0.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500/30">
       Je souhaite recevoir des offres exclusives lorsque je suis à proximité du Commerce.

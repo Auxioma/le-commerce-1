@@ -53,4 +53,11 @@ class Reservation extends Model
         );
         return (int) $stmt->fetchColumn();
     }
+
+    public static function countToday(): int
+    {
+        return (int) self::db()->query(
+            "SELECT COUNT(*) FROM reservations WHERE reservation_date = CURDATE() AND status != 'annulee' AND deleted_at IS NULL"
+        )->fetchColumn();
+    }
 }

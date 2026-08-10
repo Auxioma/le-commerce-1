@@ -46,4 +46,28 @@ class Lottery extends Model
         $stmt->execute(['status' => $status]);
         return (int) $stmt->fetchColumn();
     }
+
+    /**
+     * Prochaine loterie active (la plus proche de sa fin).
+     */
+    public static function nextActive(): ?array
+    {
+        $stmt = self::db()->query(
+            "SELECT * FROM lotteries WHERE status = 'active' AND ends_at >= CURDATE() AND deleted_at IS NULL ORDER BY ends_at ASC LIMIT 1"
+        );
+        $row = $stmt->fetch();
+        return $row ?: null;
+    }
+
+    public static function totalEntries(): int
+    {
+        return (int) self::db()->query('SELECT COUNT(*) FROM lottery_entries')->fetchColumn();
+    }
+
+    public static function totalEntriesToday(): int
+    {
+        return (int) self::db()->query(
+            "SELECT COUNT(*) FROM lottery_entries WHERE DATE(created_at) = CURDATE()"
+        )->fetchColumn();
+    }
 }

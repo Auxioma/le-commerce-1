@@ -9,6 +9,14 @@ class User extends Model
     protected static string $table = 'users';
     protected static bool $softDeletes = true;
 
+    public const SOURCE_LABELS = [
+        'bar'           => 'Bar',
+        'tabac'         => 'Tabac',
+        'jeux_services' => 'Jeux & Services',
+        'pmu'           => 'PMU',
+        'nirio'         => 'NIRIO',
+    ];
+
     public static function findByPhone(string $phone): ?array
     {
         $stmt = self::db()->prepare('SELECT * FROM users WHERE phone_whatsapp = :phone AND deleted_at IS NULL LIMIT 1');
@@ -88,6 +96,9 @@ class User extends Model
             'status'         => 'actif',
             'referral_code'  => strtoupper(substr($data['first_name'], 0, 4)) . random_int(1000, 9999),
             'geolocation_opt_in' => (int) ($data['geolocation_opt_in'] ?? 0),
+            'registration_source' => array_key_exists($data['registration_source'] ?? '', self::SOURCE_LABELS)
+                ? $data['registration_source']
+                : 'bar',
         ]);
     }
 
@@ -115,6 +126,40 @@ class User extends Model
         return (int) self::db()->query(
             "SELECT COUNT(*) FROM users WHERE role = 'client' AND deleted_at IS NULL AND MONTH(created_at) = MONTH(CURDATE()) AND YEAR(created_at) = YEAR(CURDATE())"
         )->fetchColumn();
+    }
+
+    public static function countToday(): int
+    {
+        return (int) self::db()->query(
+            "SELECT COUNT(*) FROM users WHERE role = 'client' AND deleted_at IS NULL AND DATE(created_at) = CURDATE()"
+        )->fetchColumn();
+    }
+
+    /**
+     * Derniers clients inscrits avec email — pour la section inscriptions récentes du dashboard.
+     */
+    public static function latestClientsWithEmail(int $limit = 5): array
+    {
+        $stmt = self::db()->prepare(
+            "SELECT id, first_name, last_name, email, segment, created_at FROM users
+             WHERE role = 'client' AND deleted_at IS NULL ORDER BY created_at DESC LIMIT :limit"
+        );
+        $stmt->bindValue('limit', $limit, \PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * Répartition des clients par outil/service d'inscription (Bar, Tabac,
+     * Jeux & Services, PMU, NIRIO) — pour le graphique du tableau de bord.
+     */
+    public static function registrationsBySource(): array
+    {
+        return self::db()->query(
+            "SELECT registration_source, COUNT(*) AS nb FROM users
+             WHERE role = 'client' AND deleted_at IS NULL
+             GROUP BY registration_source"
+        )->fetchAll();
     }
 
     /**

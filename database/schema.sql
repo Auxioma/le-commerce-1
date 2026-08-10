@@ -23,6 +23,7 @@ CREATE TABLE users (
     referral_code   VARCHAR(20)  NULL UNIQUE,
     referred_by     INT UNSIGNED NULL,
     geolocation_opt_in TINYINT(1) NOT NULL DEFAULT 0,
+    registration_source ENUM('bar','tabac','jeux_services','pmu','nirio') NOT NULL DEFAULT 'bar',
     last_activity_at DATETIME NULL,
     created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -273,12 +274,12 @@ CREATE TABLE employees (
 -- ---------------------------------------------------------------------
 -- Données de démonstration
 -- ---------------------------------------------------------------------
-INSERT INTO users (first_name, last_name, phone_whatsapp, email, role, segment, status, loyalty_points, referral_code, geolocation_opt_in) VALUES
-('Jean', 'Martin', '0612345678', 'jean.martin@example.com', 'client', 'fidele', 'actif', 120, 'JEAN2024', 1),
-('Sophie', 'Petit', '0723456789', 'sophie.petit@example.com', 'client', 'nouveau', 'actif', 20, 'SOPH2024', 1),
-('Lucas', 'Dubois', '0645678901', 'lucas.dubois@example.com', 'client', 'fidele', 'actif', 95, 'LUCA2024', 0),
-('Claire', 'Bernard', '0789012345', 'claire.bernard@example.com', 'client', 'nouveau', 'actif', 15, 'CLAI2024', 1),
-('Admin', 'Le Commerce', '0235905016', 'lecommercetabac@gmail.com', 'admin', 'fidele', 'actif', 0, NULL, 0);
+INSERT INTO users (first_name, last_name, phone_whatsapp, email, role, segment, status, loyalty_points, referral_code, geolocation_opt_in, registration_source) VALUES
+('Jean', 'Martin', '0612345678', 'jean.martin@example.com', 'client', 'fidele', 'actif', 120, 'JEAN2024', 1, 'tabac'),
+('Sophie', 'Petit', '0723456789', 'sophie.petit@example.com', 'client', 'nouveau', 'actif', 20, 'SOPH2024', 1, 'bar'),
+('Lucas', 'Dubois', '0645678901', 'lucas.dubois@example.com', 'client', 'fidele', 'actif', 95, 'LUCA2024', 0, 'pmu'),
+('Claire', 'Bernard', '0789012345', 'claire.bernard@example.com', 'client', 'nouveau', 'actif', 15, 'CLAI2024', 1, 'nirio'),
+('Admin', 'Le Commerce', '0235905016', 'lecommercetabac@gmail.com', 'admin', 'fidele', 'actif', 0, NULL, 0, 'bar');
 
 INSERT INTO wallets (user_id, balance, qr_code) VALUES
 (1, 58.40, 'QR-JEAN-MARTIN-001'),
