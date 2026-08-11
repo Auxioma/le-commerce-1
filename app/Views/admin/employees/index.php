@@ -1,12 +1,12 @@
 <?php use App\Core\Csrf; ?>
 
 <!-- En-tête -->
-<div class="flex items-start justify-between mb-6 gap-4 flex-wrap">
+<div class="flex items-start justify-between mb-6 gap-y-4 gap-x-4 flex-wrap">
   <div>
     <h1 class="font-extrabold text-ink" style="font-size:22px; letter-spacing:-0.5px;">Employés</h1>
     <p class="text-gray-500 mt-1" style="font-size:13px;">Gérez la liste de votre équipe.</p>
   </div>
-  <div class="flex items-center gap-3 shrink-0">
+  <div class="flex items-center gap-3 shrink-0 flex-wrap">
     <div class="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4zm6 0a4 4 0 10-4-4"/></svg>
       <div>
@@ -49,7 +49,7 @@
             $initials = mb_strtoupper(mb_substr($e['first_name'], 0, 1) . mb_substr($e['last_name'], 0, 1));
           ?>
             <tr class="hover:bg-gray-50 transition-colors">
-              <td class="px-5 py-3.5 whitespace-nowrap">
+              <td class="px-5 py-3.5">
                 <div class="flex items-center gap-3">
                   <div class="w-9 h-9 rounded-full <?= $avatarColors[$colorIdx] ?> flex items-center justify-center shrink-0">
                     <span class="text-white font-bold" style="font-size:12px;"><?= htmlspecialchars($initials) ?></span>
@@ -58,8 +58,8 @@
                 </div>
               </td>
               <td class="px-5 py-3.5 whitespace-nowrap text-gray-600" style="font-size:13px;"><?= htmlspecialchars($e['role']) ?></td>
-              <td class="px-5 py-3.5 whitespace-nowrap text-gray-500" style="font-size:12.5px;">
-                <?php if ($e['phone']): ?><p><?= htmlspecialchars($e['phone']) ?></p><?php endif; ?>
+              <td class="px-5 py-3.5 text-gray-500 break-all" style="font-size:12.5px;">
+                <?php if ($e['phone']): ?><p class="whitespace-nowrap"><?= htmlspecialchars($e['phone']) ?></p><?php endif; ?>
                 <?php if ($e['email']): ?><p class="text-gray-400"><?= htmlspecialchars($e['email']) ?></p><?php endif; ?>
                 <?php if (!$e['phone'] && !$e['email']): ?>—<?php endif; ?>
               </td>
@@ -76,8 +76,15 @@
               </td>
               <td class="px-5 py-3.5 whitespace-nowrap text-right">
                 <div class="inline-flex items-center gap-2">
-                  <button type="button" onclick="document.getElementById('employee-edit-modal-<?= $e['id'] ?>').classList.remove('hidden')"
-                          class="inline-flex items-center gap-1.5 font-semibold px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors" style="font-size:12px;">
+                  <button type="button" class="js-edit-employee inline-flex items-center gap-1.5 font-semibold px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors" style="font-size:12px;"
+                          data-id="<?= $e['id'] ?>"
+                          data-first-name="<?= htmlspecialchars($e['first_name'], ENT_QUOTES) ?>"
+                          data-last-name="<?= htmlspecialchars($e['last_name'], ENT_QUOTES) ?>"
+                          data-role="<?= htmlspecialchars($e['role'], ENT_QUOTES) ?>"
+                          data-phone="<?= htmlspecialchars($e['phone'] ?? '', ENT_QUOTES) ?>"
+                          data-email="<?= htmlspecialchars($e['email'] ?? '', ENT_QUOTES) ?>"
+                          data-hired-at="<?= htmlspecialchars($e['hired_at'] ?? '', ENT_QUOTES) ?>"
+                          data-status="<?= htmlspecialchars($e['status'], ENT_QUOTES) ?>">
                     Modifier
                   </button>
                   <form method="POST" action="<?= BASE_PATH ?>/admin/employes/<?= $e['id'] ?>/supprimer"
@@ -101,16 +108,16 @@
     <h3 class="font-extrabold text-ink mb-4" style="font-size:16px;">Ajouter un employé</h3>
     <form method="POST" action="<?= BASE_PATH ?>/admin/employes" class="space-y-3">
       <?= Csrf::field() ?>
-      <div class="grid grid-cols-2 gap-3">
+      <div class="grid sm:grid-cols-2 gap-3">
         <input type="text" name="first_name" required placeholder="Prénom" class="form-input">
         <input type="text" name="last_name" required placeholder="Nom" class="form-input">
       </div>
       <input type="text" name="role" required placeholder="Poste (ex: Serveur, Caissier...)" class="form-input">
-      <div class="grid grid-cols-2 gap-3">
+      <div class="grid sm:grid-cols-2 gap-3">
         <input type="text" name="phone" placeholder="Téléphone" class="form-input">
         <input type="email" name="email" placeholder="E-mail" class="form-input">
       </div>
-      <div class="grid grid-cols-2 gap-3">
+      <div class="grid sm:grid-cols-2 gap-3">
         <div>
           <label class="block text-xs font-semibold text-gray-500 mb-1">Date d'embauche</label>
           <input type="date" name="hired_at" class="form-input">
@@ -132,41 +139,62 @@
   </div>
 </div>
 
-<!-- Modales : modifier -->
-<?php foreach ($employees as $e): ?>
-  <div id="employee-edit-modal-<?= $e['id'] ?>" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-    <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
-      <h3 class="font-extrabold text-ink mb-4" style="font-size:16px;">Modifier <?= htmlspecialchars($e['first_name']) ?></h3>
-      <form method="POST" action="<?= BASE_PATH ?>/admin/employes/<?= $e['id'] ?>" class="space-y-3">
-        <?= Csrf::field() ?>
-        <div class="grid grid-cols-2 gap-3">
-          <input type="text" name="first_name" required value="<?= htmlspecialchars($e['first_name']) ?>" class="form-input">
-          <input type="text" name="last_name" required value="<?= htmlspecialchars($e['last_name']) ?>" class="form-input">
+<!-- Modale unique de modification, réutilisée pour tous les employés et remplie en JS -->
+<div id="employee-edit-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+  <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
+    <h3 id="employee-edit-title" class="font-extrabold text-ink mb-4" style="font-size:16px;">Modifier l'employé</h3>
+    <form id="employee-edit-form" method="POST" action="<?= BASE_PATH ?>/admin/employes/0" class="space-y-3">
+      <?= Csrf::field() ?>
+      <div class="grid sm:grid-cols-2 gap-3">
+        <input type="text" name="first_name" required class="form-input">
+        <input type="text" name="last_name" required class="form-input">
+      </div>
+      <input type="text" name="role" required class="form-input">
+      <div class="grid sm:grid-cols-2 gap-3">
+        <input type="text" name="phone" placeholder="Téléphone" class="form-input">
+        <input type="email" name="email" placeholder="E-mail" class="form-input">
+      </div>
+      <div class="grid sm:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-gray-500 mb-1">Date d'embauche</label>
+          <input type="date" name="hired_at" class="form-input">
         </div>
-        <input type="text" name="role" required value="<?= htmlspecialchars($e['role']) ?>" class="form-input">
-        <div class="grid grid-cols-2 gap-3">
-          <input type="text" name="phone" value="<?= htmlspecialchars($e['phone'] ?? '') ?>" placeholder="Téléphone" class="form-input">
-          <input type="email" name="email" value="<?= htmlspecialchars($e['email'] ?? '') ?>" placeholder="E-mail" class="form-input">
+        <div>
+          <label class="block text-xs font-semibold text-gray-500 mb-1">Statut</label>
+          <select name="status" class="form-select">
+            <option value="actif">Actif</option>
+            <option value="inactif">Inactif</option>
+          </select>
         </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-semibold text-gray-500 mb-1">Date d'embauche</label>
-            <input type="date" name="hired_at" value="<?= htmlspecialchars($e['hired_at'] ?? '') ?>" class="form-input">
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-gray-500 mb-1">Statut</label>
-            <select name="status" class="form-select">
-              <option value="actif" <?= $e['status'] === 'actif' ? 'selected' : '' ?>>Actif</option>
-              <option value="inactif" <?= $e['status'] === 'inactif' ? 'selected' : '' ?>>Inactif</option>
-            </select>
-          </div>
-        </div>
-        <div class="flex gap-2 justify-end pt-2">
-          <button type="button" onclick="document.getElementById('employee-edit-modal-<?= $e['id'] ?>').classList.add('hidden')"
-                  class="px-4 py-2.5 font-semibold text-gray-500 hover:text-ink transition-colors" style="font-size:13px;">Annuler</button>
-          <button type="submit" class="btn-primary">Enregistrer</button>
-        </div>
-      </form>
-    </div>
+      </div>
+      <div class="flex gap-2 justify-end pt-2">
+        <button type="button" onclick="document.getElementById('employee-edit-modal').classList.add('hidden')"
+                class="px-4 py-2.5 font-semibold text-gray-500 hover:text-ink transition-colors" style="font-size:13px;">Annuler</button>
+        <button type="submit" class="btn-primary">Enregistrer</button>
+      </div>
+    </form>
   </div>
-<?php endforeach; ?>
+</div>
+
+<script>
+(function () {
+  var modal = document.getElementById('employee-edit-modal');
+  var form = document.getElementById('employee-edit-form');
+  var title = document.getElementById('employee-edit-title');
+
+  document.querySelectorAll('.js-edit-employee').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      form.action = '<?= BASE_PATH ?>/admin/employes/' + btn.dataset.id;
+      form.first_name.value = btn.dataset.firstName || '';
+      form.last_name.value = btn.dataset.lastName || '';
+      form.role.value = btn.dataset.role || '';
+      form.phone.value = btn.dataset.phone || '';
+      form.email.value = btn.dataset.email || '';
+      form.hired_at.value = btn.dataset.hiredAt || '';
+      form.status.value = btn.dataset.status || 'actif';
+      title.textContent = 'Modifier ' + btn.dataset.firstName;
+      modal.classList.remove('hidden');
+    });
+  });
+})();
+</script>

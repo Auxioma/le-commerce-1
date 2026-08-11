@@ -24,21 +24,6 @@ class AdminSettingsController extends Controller
         $this->verifyCsrf();
 
         $data = [
-            'shop_name'        => trim((string) $this->input('shop_name', '')),
-            'shop_address'     => trim((string) $this->input('shop_address', '')),
-            'shop_zipcode'     => trim((string) $this->input('shop_zipcode', '')),
-            'shop_city'        => trim((string) $this->input('shop_city', '')),
-            'shop_phone'       => trim((string) $this->input('shop_phone', '')),
-            'shop_whatsapp'    => trim((string) $this->input('shop_whatsapp', '')),
-            'shop_email'       => trim((string) $this->input('shop_email', '')),
-            'hours_lun_sam'    => trim((string) $this->input('hours_lun_sam', '')),
-            'hours_dim'        => trim((string) $this->input('hours_dim', '')),
-            'social_facebook'  => trim((string) $this->input('social_facebook', '')),
-            'social_instagram' => trim((string) $this->input('social_instagram', '')),
-            'latitude'         => trim((string) $this->input('latitude', '')),
-            'longitude'        => trim((string) $this->input('longitude', '')),
-            'streetview_embed_url' => trim((string) $this->input('streetview_embed_url', '')),
-
             'legal_forme_juridique'       => trim((string) $this->input('legal_forme_juridique', '')),
             'legal_capital_social'        => trim((string) $this->input('legal_capital_social', '')),
             'legal_siret'                 => trim((string) $this->input('legal_siret', '')),
@@ -52,12 +37,6 @@ class AdminSettingsController extends Controller
             'ga4_property_id'          => trim((string) $this->input('ga4_property_id', '')),
             'ga4_service_account_json' => trim((string) $this->input('ga4_service_account_json', '')),
         ];
-
-        if ($data['shop_name'] === '' || $data['shop_email'] === '' || !filter_var($data['shop_email'], FILTER_VALIDATE_EMAIL)) {
-            $this->setFlash('error', 'Le nom et une adresse e-mail valide sont obligatoires.');
-            $this->redirect('/admin/parametres');
-            return;
-        }
 
         Settings::updateMany($data);
 

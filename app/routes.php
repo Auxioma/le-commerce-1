@@ -36,6 +36,8 @@ use App\Controllers\Admin\AdminSettingsController;
 use App\Controllers\Admin\AdminImageController;
 use App\Controllers\Admin\AdminGoogleAnalyticsController;
 use App\Controllers\Admin\AdminPlaceholderController;
+use App\Controllers\Admin\AdminEstablishmentController;
+use App\Controllers\Admin\AdminServiceController;
 use App\Controllers\Admin\AdminMessageController;
 use App\Controllers\Admin\AdminEmployeeController;
 use App\Controllers\Admin\AdminReservationController;
@@ -94,6 +96,8 @@ $router->post('/admin/connexion', AdminLoginController::class, 'store');
 
 // --- Back-office (protégé, voir Middleware::requireRole('admin')) ---
 $router->get('/admin', AdminDashboardController::class, 'index');
+$router->get('/admin/etablissement', AdminEstablishmentController::class, 'index');
+$router->post('/admin/etablissement', AdminEstablishmentController::class, 'update');
 $router->get('/admin/clients', AdminClientController::class, 'index');
 $router->get('/admin/clients/export', AdminClientController::class, 'export');
 $router->get('/admin/clients/{id}', AdminClientController::class, 'show');
@@ -101,6 +105,15 @@ $router->post('/admin/clients/{id}', AdminClientController::class, 'update');
 $router->post('/admin/clients/{id}/wallet', AdminClientController::class, 'adjustWallet');
 $router->post('/admin/clients/{id}/supprimer', AdminClientController::class, 'destroy');
 $router->post('/admin/clients/{id}/message', AdminClientController::class, 'sendMessage');
+
+// --- Services du quotidien (catalogue affiché sur /nos-services) ---
+$router->get('/admin/services', AdminServiceController::class, 'index');
+$router->get('/admin/services/creer', AdminServiceController::class, 'create');
+$router->post('/admin/services', AdminServiceController::class, 'store');
+$router->get('/admin/services/{id}/modifier', AdminServiceController::class, 'edit');
+$router->post('/admin/services/{id}', AdminServiceController::class, 'update');
+$router->post('/admin/services/{id}/statut', AdminServiceController::class, 'toggleStatus');
+$router->post('/admin/services/{id}/supprimer', AdminServiceController::class, 'destroy');
 
 // --- Offres & Avantages (Lot 6) ---
 $router->get('/admin/offres', AdminOfferController::class, 'index');

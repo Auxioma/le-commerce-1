@@ -105,7 +105,7 @@ function timeAgo(string $datetime): string {
 </div>
 
 <!-- Graphiques + Répartition + Activité -->
-<div class="grid lg:grid-cols-3 gap-5 mb-6">
+<div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
   <!-- Graphique inscriptions -->
   <div class="card card-md">
     <div class="flex items-center justify-between mb-4">
@@ -171,7 +171,7 @@ function timeAgo(string $datetime): string {
           </li>
         <?php endforeach; ?>
       </ul>
-      <a href="#" class="text-xs text-brand-500 font-semibold mt-4 inline-block hover:underline">Voir toutes les activités</a>
+      <a href="<?= BASE_PATH ?>/admin/clients" class="text-xs text-brand-500 font-semibold mt-4 inline-block hover:underline">Voir tous les clients</a>
     <?php endif; ?>
   </div>
 </div>
@@ -205,7 +205,7 @@ function timeAgo(string $datetime): string {
 </div>
 
 <!-- Section basse : 4 colonnes -->
-<div class="grid lg:grid-cols-4 gap-5">
+<div class="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
 
   <!-- Inscriptions récentes -->
   <div class="card card-md">

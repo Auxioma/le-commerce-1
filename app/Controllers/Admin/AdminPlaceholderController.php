@@ -4,10 +4,6 @@ namespace App\Controllers\Admin;
 
 use App\Core\Controller;
 use App\Core\Middleware;
-use App\Models\Offer;
-use App\Models\OfferRedemption;
-use App\Models\ProximityCampaign;
-use App\Models\User;
 use App\Models\Wallet;
 use App\Models\WalletTransaction;
 
@@ -18,24 +14,10 @@ class AdminPlaceholderController extends Controller
      * Toute section absente de cette liste renvoie une 404 classique.
      */
     private const SECTIONS = [
-        'etablissement' => 'Mon établissement',
-        'services'      => 'Services du quotidien',
         'portefeuilles' => 'Portefeuille client',
     ];
 
     private const SECTION_FEATURES = [
-        'etablissement' => [
-            'Fiches établissement enrichies',
-            'Gestion des horaires et coordonnées',
-            'Création de vitrine et visuels',
-            'Mise en avant des services proposés',
-        ],
-        'services' => [
-            'Catalogue de services rapides',
-            'Gestion des catégories et tarifs',
-            'Disponibilités en temps réel',
-            'Recommandations pour vos clients',
-        ],
         'portefeuilles' => [
             'Solde et historique de consommation',
             'Recharges et offres dédiées',
@@ -55,31 +37,6 @@ class AdminPlaceholderController extends Controller
         }
 
         $label = self::SECTIONS[$section];
-
-        if ($section === 'etablissement') {
-            $this->view('admin/establishment', [
-                'title'            => $label . ' — Administration Le Commerce',
-                'pageTitle'        => $label,
-                'activeOffers'     => Offer::countByStatus('active'),
-                'redemptionsThisMonth' => OfferRedemption::countUsedThisMonth(),
-                'savingsEstimate'  => OfferRedemption::sumSavings(),
-                'totalClients'     => User::countAll(),
-            ], 'admin');
-            return;
-        }
-
-        if ($section === 'services') {
-            $this->view('admin/services', [
-                'title'             => $label . ' — Administration Le Commerce',
-                'pageTitle'         => $label,
-                'activeOffers'      => Offer::countByStatus('active'),
-                'newOffers'         => Offer::countCreatedThisMonth(),
-                'activeCampaigns'   => ProximityCampaign::countByStatus('active'),
-                'totalClients'      => User::countAll(),
-                'activeOffersList'  => Offer::listWithUsage('active'),
-            ], 'admin');
-            return;
-        }
 
         if ($section === 'portefeuilles') {
             $this->view('admin/wallets', [
