@@ -1,7 +1,7 @@
 # Rapport de travaux — Projet Le Commerce
 **Date :** 10 août 2026  
 **Intervenant :** Devin (agent Cognition)  
-**Objet :** Refonte du tableau de bord administrateur et mise en place de la source d'inscription par outil
+**Objet :** Refonte du tableau de bord administrateur, mise en place de la source d'inscription par outil, et intégration du module Google Analytics (Lot 16)
 
 ---
 
@@ -47,7 +47,36 @@ Le graphique "Répartition des inscriptions par outil" (Bar, Tabac, Jeux & Servi
 - Le graphique du dashboard utilise des données réelles.
 - Mise à jour du schéma pour les nouvelles installations.
 
-### 2.3 Autres améliorations techniques
+### 2.3 Intégration Google Analytics (Lot 16)
+
+**Fichiers créés et modifiés :**
+- `database/migration_lot16_google_analytics.sql` (créé)
+- `database/schema.sql` (mise à jour)
+- `app/Core/GoogleAnalyticsClient.php` (client GA4 natif sans Composer : JWT + OAuth2 + Data API)
+- `app/Controllers/Admin/AdminGoogleAnalyticsController.php` (créé)
+- `app/Views/admin/google-analytics/index.php` (créé)
+- `app/Controllers/Admin/AdminSettingsController.php` (sauvegarde des paramètres GA4)
+- `app/Views/admin/settings/index.php` (champs Property ID + clé JSON compte de service)
+- `app/Views/partials/admin-sidebar.php` (item Google Analytics)
+- `app/Models/UserLocation.php` (créé)
+- `app/Controllers/Client/ProximityController.php` (enregistrement des positions)
+- `app/Models/User.php`, `WhatsappMessage.php`, `ContactMessage.php`, `GoogleReview.php`, `OfferRedemption.php` (méthodes de comptage)
+- `app/routes.php`
+- `public/assets/css/app.css` (rebuild Tailwind)
+
+**Apports :**
+- Nouvelle table `user_locations` pour stocker la dernière position GPS des clients opt-in.
+- Enregistrement automatique de la position à chaque `ProximityController::check()`.
+- Client GA4 100% PHP natif (sans Composer) : génération JWT RS256, échange OAuth2, appels `runReport` à l'API GA4 Data.
+- Page `/admin/google-analytics` affichant :
+  - 12 KPIs métier (clients, portefeuilles, réservations, offres, loterie, messages, WhatsApp, avis, proximité, nouveaux clients semaine)
+  - Carte Leaflet des clients à proximité (gratuit, sans clé API)
+  - Panneau d'actions rapides et de communication WhatsApp
+  - Blocs d'offres, rechargements, utilisation QR Codes, et données Google Analytics réelles
+- Paramètres GA4 (`ga4_property_id` et `ga4_service_account_json`) intégrés à `/admin/parametres`.
+- Sidebar admin complétée.
+
+### 2.4 Autres améliorations techniques
 
 - `app/Models/Lottery.php` : ajout de `nextActive()`, `totalEntries()`, `totalEntriesToday()`.
 - `app/Models/LotteryEntry.php` : ajout de `latestWithUser()` pour alimenter le fil d'activité avec de vraies participations loterie (remplace le ticket fictif codé en dur).
@@ -62,26 +91,28 @@ Le graphique "Répartition des inscriptions par outil" (Bar, Tabac, Jeux & Servi
 
 ```bash
 mysql -u root -p le_commerce < database/migration_lot15_registration_source.sql
+mysql -u root -p le_commerce < database/migration_lot16_google_analytics.sql
 ```
 
-Cette migration ajoute la colonne `registration_source` à la table `users`. Sans elle, le dashboard retournera une erreur SQL.
+La première migration ajoute la colonne `registration_source` à la table `users`. Sans elle, le dashboard retournera une erreur SQL.  
+La seconde crée la table `user_locations` et initialise les clés de paramétrage GA4 (`ga4_property_id`, `ga4_service_account_json`). Elle crée la table `settings` si elle n'existe pas encore, afin de rester autonome.
 
-**Remarque :** les clients déjà existants se verront attribuer la valeur par défaut `bar`. Il est possible de les réassigner manuellement en base si besoin.
+**Remarques :**
+- Les clients déjà existants se verront attribuer la valeur par défaut `bar` pour `registration_source`. Il est possible de les réassigner manuellement en base si besoin.
+- Pour activer l'affichage des données GA4, il faut configurer dans `/admin/parametres` le Property ID et la clé JSON d'un compte de service autorisé en lecture sur la propriété GA4.
 
 ---
 
-## 4. Tentative de push Git
+## 4. Push Git
 
-Un commit a été créé et validé :
+Deux commits ont été créés et poussés avec succès sur `https://github.com/CedricTiako/le-commerce.git` :
 
 ```
 [main adae29b] Ajouter la source d'inscription (Bar/Tabac/Jeux/PMU/NIRIO) et peaufiner le dashboard admin.
- 11 files changed, 490 insertions(+), 248 deletions(-)
+[main a397c95] Lot 16: Google Analytics dashboard, settings, user_locations, and GA4 client.
 ```
 
-Le push vers `https://github.com/CedricTiako/le-commerce.git` a échoué avec une erreur **403** (permission refusée pour le compte `sikamloic`).
-
-**Action à mener :** configurer le compte ou remote autorisé, ou fournir les credentials appropriés.
+Le second push a été réalisé après résolution des droits d'accès. Le dépôt distant est maintenant à jour.
 
 ---
 
@@ -107,12 +138,17 @@ Ces éléments n'ont pas été impactés par les travaux actuels.
 
 ## 7. Synthèse
 
-Le tableau de bord administrateur est maintenant conforme visuellement et fonctionnellement à la maquette cible, avec des données réelles pour le graphique de répartition par outil et le fil d'activité. L'ajout du champ `registration_source` apporte une base fiable pour suivre l'origine des inscriptions clients.
+Le tableau de bord administrateur est maintenant conforme visuellement et fonctionnellement à la maquette cible, avec des données réelles pour le graphique de répartition par outil et le fil d'activité. L'ajout du champ `registration_source` apporte une base fiable pour suivre l'origine des inscriptions clients. Le module Google Analytics (Lot 16) ajoute un écran de pilotage complet, un client GA4 natif PHP sans dépendance Composer, et l'enregistrement géographique des clients opt-in.
 
 **Livrables :**
 - Dashboard admin refondu
-- Migration SQL Lot 15
+- Migration SQL Lot 15 (source d'inscription)
+- Migration SQL Lot 16 (Google Analytics)
 - Schéma mis à jour
 - Formulaire d'inscription enrichi
+- Page `/admin/google-analytics` complète
+- Client GA4 natif (`App\Core\GoogleAnalyticsClient`)
+- Modèle `UserLocation` et intégration proximité
+- Paramètres GA4 dans `/admin/parametres`
 - CSS recompilé
-- Commit `adae29b` en attente de push
+- Commits `adae29b` et `a397c95` poussés sur `main`

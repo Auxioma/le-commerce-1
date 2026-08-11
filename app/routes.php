@@ -143,10 +143,16 @@ $router->get('/admin/images', AdminImageController::class, 'index');
 $router->post('/admin/images', AdminImageController::class, 'store');
 $router->post('/admin/images/{slug}/supprimer', AdminImageController::class, 'destroy');
 
-// --- Messages (boîte de réception : contact + WhatsApp) ---
+// --- Messages (boîte de réception omnicanale : contact, SMS, WhatsApp) ---
 $router->get('/admin/messages', AdminMessageController::class, 'index');
+$router->post('/admin/messages/nouveau', AdminMessageController::class, 'newConversation');
 $router->post('/admin/messages/whatsapp/{userId}', AdminMessageController::class, 'sendWhatsapp');
+$router->post('/admin/messages/sms/{userId}', AdminMessageController::class, 'sendSms');
 $router->post('/admin/messages/contact/{id}/lu', AdminMessageController::class, 'toggleContactRead');
+$router->post('/admin/messages/programmes/{id}/annuler', AdminMessageController::class, 'cancelScheduled');
+$router->post('/admin/messages/clients/{userId}/etiquettes', AdminMessageController::class, 'addLabel');
+$router->post('/admin/messages/etiquettes/{id}/supprimer', AdminMessageController::class, 'removeLabel');
+$router->post('/admin/messages/clients/{userId}/notes', AdminMessageController::class, 'addNote');
 
 // --- Employés ---
 $router->get('/admin/employes', AdminEmployeeController::class, 'index');

@@ -129,6 +129,10 @@ mysql -u root -p < database/migration_lot10_settings.sql
 #           (inutile sur une base fraîche, schema.sql l'inclut déjà)
 mysql -u root -p < database/migration_lot14_soft_deletes.sql
 
+# 2octies. Messagerie CRM du Lot 17 (SMS, messages programmés, étiquettes
+#          clients, notes internes)
+mysql -u root -p < database/migration_lot17_messages_crm.sql
+
 # 3. Configurer la connexion DB (variables d'environnement, ou éditez
 #    directement config/database.php)
 export DB_HOST=127.0.0.1
