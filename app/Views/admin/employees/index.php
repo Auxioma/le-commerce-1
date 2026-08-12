@@ -39,6 +39,7 @@
             <th class="px-5 py-3 text-left font-bold text-gray-500 uppercase" style="font-size:11px; letter-spacing:0.5px;">Contact</th>
             <th class="px-5 py-3 text-left font-bold text-gray-500 uppercase" style="font-size:11px; letter-spacing:0.5px;">Embauché le</th>
             <th class="px-5 py-3 text-left font-bold text-gray-500 uppercase" style="font-size:11px; letter-spacing:0.5px;">Statut</th>
+            <th class="px-5 py-3 text-left font-bold text-gray-500 uppercase" style="font-size:11px; letter-spacing:0.5px;">Accès back-office</th>
             <th class="px-5 py-3 text-right font-bold text-gray-500 uppercase" style="font-size:11px; letter-spacing:0.5px;">Actions</th>
           </tr>
         </thead>
@@ -74,6 +75,13 @@
                   </button>
                 </form>
               </td>
+              <td class="px-5 py-3.5 whitespace-nowrap">
+                <?php if ($e['user_id']): ?>
+                  <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-600">Actif</span>
+                <?php else: ?>
+                  <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-gray-400">Aucun</span>
+                <?php endif; ?>
+              </td>
               <td class="px-5 py-3.5 whitespace-nowrap text-right">
                 <div class="inline-flex items-center gap-2">
                   <button type="button" class="js-edit-employee inline-flex items-center gap-1.5 font-semibold px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors" style="font-size:12px;"
@@ -84,7 +92,8 @@
                           data-phone="<?= htmlspecialchars($e['phone'] ?? '', ENT_QUOTES) ?>"
                           data-email="<?= htmlspecialchars($e['email'] ?? '', ENT_QUOTES) ?>"
                           data-hired-at="<?= htmlspecialchars($e['hired_at'] ?? '', ENT_QUOTES) ?>"
-                          data-status="<?= htmlspecialchars($e['status'], ENT_QUOTES) ?>">
+                          data-status="<?= htmlspecialchars($e['status'], ENT_QUOTES) ?>"
+                          data-has-account="<?= $e['user_id'] ? '1' : '0' ?>">
                     Modifier
                   </button>
                   <form method="POST" action="<?= BASE_PATH ?>/admin/employes/<?= $e['id'] ?>/supprimer"
@@ -130,6 +139,14 @@
           </select>
         </div>
       </div>
+      <div class="bg-gray-50 rounded-xl p-3 space-y-2">
+        <label class="flex items-center gap-2 text-sm text-gray-700">
+          <input type="checkbox" name="grant_access" value="1" class="rounded border-gray-300 text-brand-500 focus:ring-brand-500/30">
+          Donner un accès de connexion au back-office
+        </label>
+        <input type="password" name="password" placeholder="Mot de passe" autocomplete="new-password" class="form-input">
+        <p class="text-xs text-gray-400">Nécessite un e-mail et un téléphone renseignés ci-dessus. L'employé pourra se connecter sur /admin/connexion avec les mêmes écrans que l'administrateur.</p>
+      </div>
       <div class="flex gap-2 justify-end pt-2">
         <button type="button" onclick="document.getElementById('employee-add-modal').classList.add('hidden')"
                 class="px-4 py-2.5 font-semibold text-gray-500 hover:text-ink transition-colors" style="font-size:13px;">Annuler</button>
@@ -167,6 +184,14 @@
           </select>
         </div>
       </div>
+      <div class="bg-gray-50 rounded-xl p-3 space-y-2">
+        <label class="flex items-center gap-2 text-sm text-gray-700">
+          <input type="checkbox" name="grant_access" value="1" id="employee-edit-grant-access" class="rounded border-gray-300 text-brand-500 focus:ring-brand-500/30">
+          Donner un accès de connexion au back-office
+        </label>
+        <input type="password" name="password" id="employee-edit-password" placeholder="Mot de passe" autocomplete="new-password" class="form-input">
+        <p id="employee-edit-password-hint" class="text-xs text-gray-400">Laisser vide pour conserver le mot de passe actuel.</p>
+      </div>
       <div class="flex gap-2 justify-end pt-2">
         <button type="button" onclick="document.getElementById('employee-edit-modal').classList.add('hidden')"
                 class="px-4 py-2.5 font-semibold text-gray-500 hover:text-ink transition-colors" style="font-size:13px;">Annuler</button>
@@ -192,6 +217,12 @@
       form.email.value = btn.dataset.email || '';
       form.hired_at.value = btn.dataset.hiredAt || '';
       form.status.value = btn.dataset.status || 'actif';
+      var hasAccount = btn.dataset.hasAccount === '1';
+      form.grant_access.checked = hasAccount;
+      form.password.value = '';
+      document.getElementById('employee-edit-password-hint').textContent = hasAccount
+        ? "Laisser vide pour conserver le mot de passe actuel."
+        : "Requis pour créer l'accès (avec e-mail et téléphone renseignés ci-dessus).";
       title.textContent = 'Modifier ' + btn.dataset.firstName;
       modal.classList.remove('hidden');
     });

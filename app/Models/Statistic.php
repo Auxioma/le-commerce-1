@@ -18,17 +18,32 @@ class Statistic extends Model
      */
     public static function walletActivityLastDays(int $days = 14): array
     {
+        return self::walletActivityForRange(
+            date('Y-m-d', strtotime("-{$days} days")),
+            date('Y-m-d')
+        );
+    }
+
+    /**
+     * Recharges et débits entre deux dates, groupés par jour.
+     *
+     * @param array{from?:string, to?:string} $filters
+     */
+    public static function walletActivityForRange(?string $from = null, ?string $to = null): array
+    {
+        $from = $from ?: date('Y-m-d', strtotime('-14 days'));
+        $to   = $to ?: date('Y-m-d');
+
         $stmt = self::db()->prepare(
             "SELECT DATE(created_at) AS jour,
                     SUM(CASE WHEN type = 'recharge' THEN amount ELSE 0 END) AS recharges,
                     SUM(CASE WHEN type = 'debit' THEN amount ELSE 0 END) AS depenses
              FROM wallet_transactions
-             WHERE created_at >= CURDATE() - INTERVAL :days DAY
+             WHERE DATE(created_at) BETWEEN :from AND :to
              GROUP BY DATE(created_at)
              ORDER BY jour ASC"
         );
-        $stmt->bindValue('days', $days, \PDO::PARAM_INT);
-        $stmt->execute();
+        $stmt->execute(['from' => $from, 'to' => $to]);
         return $stmt->fetchAll();
     }
 
@@ -37,13 +52,27 @@ class Statistic extends Model
      */
     public static function paymentMethodBreakdown(): array
     {
-        $stmt = self::db()->query(
+        return self::paymentMethodBreakdownForRange();
+    }
+
+    /**
+     * Répartition des transactions par moyen de paiement sur une période.
+     *
+     * @param array{from?:string, to?:string} $filters
+     */
+    public static function paymentMethodBreakdownForRange(?string $from = null, ?string $to = null): array
+    {
+        $from = $from ?: '1970-01-01';
+        $to   = $to ?: date('Y-m-d');
+
+        $stmt = self::db()->prepare(
             "SELECT payment_method, COUNT(*) AS nb, COALESCE(SUM(amount), 0) AS total
              FROM wallet_transactions
-             WHERE status = 'reussi'
+             WHERE status = 'reussi' AND DATE(created_at) BETWEEN :from AND :to
              GROUP BY payment_method
              ORDER BY total DESC"
         );
+        $stmt->execute(['from' => $from, 'to' => $to]);
         return $stmt->fetchAll();
     }
 
@@ -52,15 +81,30 @@ class Statistic extends Model
      */
     public static function newClientsByMonth(int $months = 6): array
     {
+        return self::newClientsByRange(
+            date('Y-m-d', strtotime("-{$months} months")),
+            date('Y-m-d')
+        );
+    }
+
+    /**
+     * Nouveaux clients par mois entre deux dates.
+     *
+     * @param array{from?:string, to?:string} $filters
+     */
+    public static function newClientsByRange(?string $from = null, ?string $to = null): array
+    {
+        $from = $from ?: date('Y-m-d', strtotime('-6 months'));
+        $to   = $to ?: date('Y-m-d');
+
         $stmt = self::db()->prepare(
             "SELECT DATE_FORMAT(created_at, '%Y-%m') AS mois, COUNT(*) AS nb
              FROM users
-             WHERE role = 'client' AND deleted_at IS NULL AND created_at >= CURDATE() - INTERVAL :months MONTH
+             WHERE role = 'client' AND deleted_at IS NULL AND DATE(created_at) BETWEEN :from AND :to
              GROUP BY mois
              ORDER BY mois ASC"
         );
-        $stmt->bindValue('months', $months, \PDO::PARAM_INT);
-        $stmt->execute();
+        $stmt->execute(['from' => $from, 'to' => $to]);
         return $stmt->fetchAll();
     }
 
@@ -128,18 +172,34 @@ class Statistic extends Model
 
     public static function topClientsBySpend(int $limit = 5): array
     {
+        return self::topClientsBySpendForRange(null, null, $limit);
+    }
+
+    /**
+     * Top clients par dépenses sur une période donnée.
+     *
+     * @param array{from?:string, to?:string} $filters
+     */
+    public static function topClientsBySpendForRange(?string $from = null, ?string $to = null, int $limit = 5): array
+    {
+        $from = $from ?: '1970-01-01';
+        $to   = $to ?: date('Y-m-d');
+
         $stmt = self::db()->prepare(
-            "SELECT u.first_name, u.last_name, COALESCE(SUM(wt.amount), 0) AS total_spent
+            "SELECT u.id AS user_id, u.first_name, u.last_name, u.phone_whatsapp,
+                    COALESCE(SUM(wt.amount), 0) AS total_spent
              FROM users u
              JOIN wallets w ON w.user_id = u.id
-             LEFT JOIN wallet_transactions wt ON wt.wallet_id = w.id AND wt.type = 'debit' AND wt.status = 'reussi'
+             LEFT JOIN wallet_transactions wt ON wt.wallet_id = w.id
+                 AND wt.type = 'debit' AND wt.status = 'reussi'
+                 AND DATE(wt.created_at) BETWEEN :from AND :to
              WHERE u.role = 'client' AND u.deleted_at IS NULL
              GROUP BY u.id
              ORDER BY total_spent DESC
              LIMIT :limit"
         );
-        $stmt->bindValue('limit', $limit, \PDO::PARAM_INT);
-        $stmt->execute();
+        $params = ['from' => $from, 'to' => $to, 'limit' => $limit];
+        $stmt->execute($params);
         return $stmt->fetchAll();
     }
 }

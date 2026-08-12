@@ -48,18 +48,41 @@ class WalletTransaction extends Model
     /**
      * Dernières transactions, avec le nom et le téléphone du client associé.
      */
-    public static function latestWithUser(int $limit = 5): array
+    public static function latestWithUser(int $limit = 5, array $filters = []): array
     {
+        $where = [];
+        $params = [];
+
+        if (!empty($filters['from'])) {
+            $where[] = 'DATE(wt.created_at) >= :from';
+            $params['from'] = $filters['from'];
+        }
+        if (!empty($filters['to'])) {
+            $where[] = 'DATE(wt.created_at) <= :to';
+            $params['to'] = $filters['to'];
+        }
+        if (!empty($filters['q'])) {
+            $where[] = '(u.first_name LIKE :q1 OR u.last_name LIKE :q2 OR u.phone_whatsapp LIKE :q3)';
+            $needle = '%' . $filters['q'] . '%';
+            $params['q1'] = $needle;
+            $params['q2'] = $needle;
+            $params['q3'] = $needle;
+        }
+
+        $whereSql = $where ? ' WHERE ' . implode(' AND ', $where) : '';
+
+        $params['limit'] = $limit;
+
         $stmt = self::db()->prepare(
-            'SELECT wt.*, u.first_name, u.last_name, u.phone_whatsapp
+            'SELECT wt.*, u.id AS user_id, u.first_name, u.last_name, u.phone_whatsapp
              FROM wallet_transactions wt
              JOIN wallets w ON w.id = wt.wallet_id
              JOIN users u ON u.id = w.user_id
+             ' . $whereSql . '
              ORDER BY wt.created_at DESC
              LIMIT :limit'
         );
-        $stmt->bindValue('limit', $limit, \PDO::PARAM_INT);
-        $stmt->execute();
+        $stmt->execute($params);
         return $stmt->fetchAll();
     }
 

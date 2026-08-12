@@ -59,12 +59,16 @@ class Middleware
 
     /**
      * Bloque l'accès si le rôle ne correspond pas (ex: 'admin').
+     * Le rôle 'employe' (Lot 19 : comptes employés) a accès aux mêmes
+     * écrans que 'admin' — il n'existe pas encore de permissions distinctes
+     * par onglet, un employé avec un accès back-office voit tout l'admin.
      */
     public static function requireRole(string $role, string $redirectTo = '/'): void
     {
         self::requireAuth($role === 'admin' ? '/admin/connexion' : '/connexion');
 
-        if (self::role() !== $role) {
+        $allowedRoles = $role === 'admin' ? ['admin', 'employe'] : [$role];
+        if (!in_array(self::role(), $allowedRoles, true)) {
             http_response_code(403);
             $redirectTo = $role === 'admin' ? '/admin/connexion' : $redirectTo;
             header('Location: ' . BASE_PATH . $redirectTo);

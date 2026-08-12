@@ -33,7 +33,7 @@ class AdminLoginController extends Controller
         $stmt = null;
         $user = User::where('email', $email)[0] ?? null;
 
-        if (!$user || $user['role'] !== 'admin' || !password_verify($password, (string) $user['password_hash'])) {
+        if (!$user || !in_array($user['role'], ['admin', 'employe'], true) || !password_verify($password, (string) $user['password_hash'])) {
             $this->view('auth/admin-login', [
                 'title' => 'Espace Administrateur — Le Commerce',
                 'error' => 'Identifiants incorrects.',

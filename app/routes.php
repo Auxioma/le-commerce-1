@@ -144,6 +144,7 @@ $router->post('/admin/avis-google', AdminReviewController::class, 'store');
 $router->post('/admin/avis-google/{id}/supprimer', AdminReviewController::class, 'destroy');
 
 $router->get('/admin/statistiques', AdminStatisticsController::class, 'index');
+$router->get('/admin/statistiques/export', AdminStatisticsController::class, 'export');
 $router->get('/admin/google-analytics', AdminGoogleAnalyticsController::class, 'index');
 
 $router->get('/admin/facturation', AdminBillingController::class, 'index');

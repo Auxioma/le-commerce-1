@@ -39,14 +39,21 @@ class AdminPlaceholderController extends Controller
         $label = self::SECTIONS[$section];
 
         if ($section === 'portefeuilles') {
+            $filters = [
+                'q'    => trim((string) $this->input('q', '')),
+                'from' => (string) $this->input('from', ''),
+                'to'   => (string) $this->input('to', ''),
+            ];
+
             $this->view('admin/wallets', [
                 'title'              => $label . ' — Administration Le Commerce',
                 'pageTitle'          => $label,
                 'totalBalance'       => Wallet::totalBalance(),
                 'walletCount'        => Wallet::count(),
                 'rechargesThisMonth' => WalletTransaction::countByType('recharge', 'this_month'),
-                'latestTransactions' => WalletTransaction::latestWithUser(5),
+                'latestTransactions' => WalletTransaction::latestWithUser(20, $filters),
                 'topClients'         => Wallet::topByBalance(5),
+                'filters'            => $filters,
             ], 'admin');
             return;
         }

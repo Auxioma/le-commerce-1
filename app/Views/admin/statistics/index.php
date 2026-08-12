@@ -5,6 +5,35 @@ $pageActions = [];
 require __DIR__ . '/../../partials/admin-page-header.php';
 ?>
 
+<!-- Filtres période + export -->
+<form method="GET" action="<?= BASE_PATH ?>/admin/statistiques">
+  <div class="bg-white border border-gray-200 rounded-xl px-5 py-4 shadow-sm flex flex-wrap items-center gap-3 mb-6">
+    <div class="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2.5" style="font-size:13px;">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      <span class="text-gray-500 shrink-0">Période :</span>
+      <input type="date" name="from" value="<?= htmlspecialchars($filters['from']) ?>" class="focus:outline-none bg-transparent" style="font-size:13px;">
+      <span class="text-gray-400">—</span>
+      <input type="date" name="to" value="<?= htmlspecialchars($filters['to']) ?>" class="focus:outline-none bg-transparent" style="font-size:13px;">
+    </div>
+    <button type="submit" class="inline-flex items-center gap-2 text-white font-bold rounded-lg px-5 py-2.5 transition-opacity hover:opacity-90" style="background:#c8272c; font-size:13px;">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4h18M7 10h10M11 16h2"/></svg>
+      Actualiser
+    </button>
+    <a href="<?= BASE_PATH ?>/admin/statistiques/export?<?= http_build_query($filters) ?>"
+       class="inline-flex items-center gap-2 text-white font-bold rounded-lg px-5 py-2.5 transition-opacity hover:opacity-90" style="background:#1a1a2e; font-size:13px;">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      Exporter CSV
+    </a>
+    <a href="<?= BASE_PATH ?>/admin/statistiques" class="inline-flex items-center gap-2 font-bold rounded-lg px-4 py-2.5 border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" style="font-size:13px;">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+      Réinitialiser
+    </a>
+    <p class="text-sm text-gray-500 ml-auto">
+      Du <?= date('d/m/Y', strtotime($filters['from'])) ?> au <?= date('d/m/Y', strtotime($filters['to'])) ?>
+    </p>
+  </div>
+</form>
+
 <!-- KPIs -->
 <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
   <div class="card card-md">
@@ -27,19 +56,25 @@ require __DIR__ . '/../../partials/admin-page-header.php';
 
 <div class="grid lg:grid-cols-3 gap-6 mb-6">
   <div class="lg:col-span-2 card card-md">
-    <h2 class="section-title mb-4">Recharges &amp; dépenses (14 derniers jours)</h2>
-    <canvas id="chart-activity" height="110"></canvas>
+    <h2 class="section-title mb-4">Recharges &amp; dépenses</h2>
+    <div class="relative" style="height: 300px;">
+      <canvas id="chart-activity"></canvas>
+    </div>
   </div>
   <div class="card card-md">
     <h2 class="section-title mb-4">Moyens de paiement</h2>
-    <canvas id="chart-payments" height="180"></canvas>
+    <div class="relative" style="height: 300px;">
+      <canvas id="chart-payments"></canvas>
+    </div>
   </div>
 </div>
 
 <div class="grid lg:grid-cols-3 gap-6">
   <div class="lg:col-span-2 card card-md">
     <h2 class="section-title mb-4">Nouveaux clients par mois</h2>
-    <canvas id="chart-clients" height="110"></canvas>
+    <div class="relative" style="height: 300px;">
+      <canvas id="chart-clients"></canvas>
+    </div>
   </div>
   <div class="card card-md">
     <h2 class="section-title mb-4">Top 5 clients (dépenses)</h2>
@@ -49,7 +84,9 @@ require __DIR__ . '/../../partials/admin-page-header.php';
       <ul class="space-y-3">
         <?php foreach ($topClients as $c): ?>
           <li class="flex items-center justify-between text-sm">
-            <span class="font-medium text-ink"><?= htmlspecialchars($c['first_name'] . ' ' . $c['last_name']) ?></span>
+            <a href="<?= BASE_PATH ?>/admin/clients/<?= $c['user_id'] ?>" class="font-medium text-ink hover:text-brand-500 transition-colors">
+              <?= htmlspecialchars($c['first_name'] . ' ' . $c['last_name']) ?>
+            </a>
             <span class="font-bold text-ink"><?= number_format($c['total_spent'], 2, ',', ' ') ?> €</span>
           </li>
         <?php endforeach; ?>
@@ -78,7 +115,7 @@ require __DIR__ . '/../../partials/admin-page-header.php';
         { label: 'Dépenses', data: activity.map(a => parseFloat(a.depenses)), borderColor: brand, backgroundColor: brand + '15', tension: 0.35, fill: true },
       ],
     },
-    options: { plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true } } },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true, grid: { display: true, drawBorder: false } } } },
   });
 
   // Moyens de paiement
@@ -90,7 +127,7 @@ require __DIR__ . '/../../partials/admin-page-header.php';
       labels: payments.map(p => paymentLabels[p.payment_method] || p.payment_method),
       datasets: [{ data: payments.map(p => parseFloat(p.total)), backgroundColor: [brand, emerald, '#3b82f6', '#f59e0b', '#8b5cf6'] }],
     },
-    options: { plugins: { legend: { position: 'bottom' } } },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } },
   });
 
   // Nouveaux clients par mois
@@ -98,10 +135,13 @@ require __DIR__ . '/../../partials/admin-page-header.php';
   new Chart(document.getElementById('chart-clients'), {
     type: 'bar',
     data: {
-      labels: clients.map(c => c.mois),
+      labels: clients.map(c => {
+        const [y, m] = c.mois.split('-');
+        return m + '/' + y;
+      }),
       datasets: [{ label: 'Nouveaux clients', data: clients.map(c => parseInt(c.nb, 10)), backgroundColor: brand, borderRadius: 6 }],
     },
-    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } },
   });
 })();
 </script>
