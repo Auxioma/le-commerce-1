@@ -122,6 +122,9 @@ $router->post('/admin/offres', AdminOfferController::class, 'store');
 $router->post('/admin/offres/generer', AdminOfferController::class, 'generateCode');
 $router->post('/admin/offres/envoyer', AdminOfferController::class, 'sendToClient');
 $router->post('/admin/offres/{id}/statut', AdminOfferController::class, 'toggleStatus');
+$router->get('/admin/offres/{id}/modifier', AdminOfferController::class, 'edit');
+$router->post('/admin/offres/{id}', AdminOfferController::class, 'update');
+$router->post('/admin/offres/{id}/supprimer', AdminOfferController::class, 'destroy');
 $router->get('/admin/offres/scanner', AdminOfferScanController::class, 'index');
 $router->post('/admin/offres/scanner/verifier', AdminOfferScanController::class, 'verify');
 $router->post('/admin/offres/scanner/valider', AdminOfferScanController::class, 'redeem');
@@ -132,15 +135,22 @@ $router->get('/admin/sondages/creer', AdminPollController::class, 'create');
 $router->post('/admin/sondages', AdminPollController::class, 'store');
 $router->get('/admin/sondages/{id}/resultats', AdminPollController::class, 'results');
 $router->post('/admin/sondages/{id}/statut', AdminPollController::class, 'toggleStatus');
+$router->get('/admin/sondages/{id}/modifier', AdminPollController::class, 'edit');
+$router->post('/admin/sondages/{id}', AdminPollController::class, 'update');
+$router->post('/admin/sondages/{id}/supprimer', AdminPollController::class, 'destroy');
 
 // --- Zonage & Proximité (Lot 7) ---
 $router->get('/admin/zonage', AdminProximityController::class, 'index');
 $router->post('/admin/zonage', AdminProximityController::class, 'store');
 $router->post('/admin/zonage/{id}/statut', AdminProximityController::class, 'toggleStatus');
+$router->get('/admin/zonage/{id}/modifier', AdminProximityController::class, 'edit');
+$router->post('/admin/zonage/{id}', AdminProximityController::class, 'update');
+$router->post('/admin/zonage/{id}/supprimer', AdminProximityController::class, 'destroy');
 
 // --- Avis Google, Statistiques, Facturation, Paramètres (Lot 10) ---
 $router->get('/admin/avis-google', AdminReviewController::class, 'index');
 $router->post('/admin/avis-google', AdminReviewController::class, 'store');
+$router->post('/admin/avis-google/{id}', AdminReviewController::class, 'update');
 $router->post('/admin/avis-google/{id}/supprimer', AdminReviewController::class, 'destroy');
 
 $router->get('/admin/statistiques', AdminStatisticsController::class, 'index');
@@ -148,6 +158,7 @@ $router->get('/admin/statistiques/export', AdminStatisticsController::class, 'ex
 $router->get('/admin/google-analytics', AdminGoogleAnalyticsController::class, 'index');
 
 $router->get('/admin/facturation', AdminBillingController::class, 'index');
+$router->get('/admin/facturation/export', AdminBillingController::class, 'export');
 $router->get('/admin/facturation/{id}', AdminBillingController::class, 'show');
 
 $router->get('/admin/parametres', AdminSettingsController::class, 'index');

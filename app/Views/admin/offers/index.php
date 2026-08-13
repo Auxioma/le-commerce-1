@@ -90,17 +90,23 @@ require __DIR__ . '/../../partials/admin-page-header.php';
                     <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-50 text-amber-600">Brouillon</span>
                   <?php endif; ?>
                 </td>
-                <td class="px-5 py-3.5 text-right">
-                  <?php if (!$isExpired): ?>
-                    <form method="POST" action="<?= BASE_PATH ?>/admin/offres/<?= $offer['id'] ?>/statut" class="inline">
+                <td class="px-5 py-3.5 text-right whitespace-nowrap">
+                  <div class="flex items-center justify-end gap-3">
+                    <?php if (!$isExpired): ?>
+                      <form method="POST" action="<?= BASE_PATH ?>/admin/offres/<?= $offer['id'] ?>/statut" class="inline">
+                        <?= Csrf::field() ?>
+                        <button type="submit" class="text-xs font-bold text-gray-500 hover:text-brand-500">
+                          <?= $offer['status'] === 'active' ? 'Passer en brouillon' : 'Activer' ?>
+                        </button>
+                      </form>
+                    <?php endif; ?>
+                    <a href="<?= BASE_PATH ?>/admin/offres/<?= $offer['id'] ?>/modifier" class="text-xs font-bold text-gray-500 hover:text-brand-500">Modifier</a>
+                    <form method="POST" action="<?= BASE_PATH ?>/admin/offres/<?= $offer['id'] ?>/supprimer" class="inline"
+                          onsubmit="return confirm('Supprimer définitivement l\'offre « <?= htmlspecialchars(addslashes($offer['title'])) ?> » ?');">
                       <?= Csrf::field() ?>
-                      <button type="submit" class="text-xs font-bold text-gray-500 hover:text-brand-500">
-                        <?= $offer['status'] === 'active' ? 'Passer en brouillon' : 'Activer' ?>
-                      </button>
+                      <button type="submit" class="text-xs font-bold text-gray-300 hover:text-brand-500">Suppr.</button>
                     </form>
-                  <?php else: ?>
-                    <span class="text-xs text-gray-300">—</span>
-                  <?php endif; ?>
+                  </div>
                 </td>
               </tr>
             <?php endforeach; ?>

@@ -16,11 +16,19 @@ class Invoice extends Model
 
     private const WHERE = "wt.type = 'recharge' AND wt.payment_method = 'carte_bancaire' AND wt.status = 'reussi'";
 
-    public static function paginate(int $page = 1, int $perPage = 10): array
+    public static function paginate(int $page = 1, int $perPage = 10, array $filters = []): array
     {
-        $total = (int) self::db()->query(
-            'SELECT COUNT(*) FROM wallet_transactions wt WHERE ' . self::WHERE
-        )->fetchColumn();
+        [$whereSql, $params] = self::buildFilters($filters);
+
+        $countStmt = self::db()->prepare(
+            "SELECT COUNT(*) FROM wallet_transactions wt
+             JOIN wallets w ON w.id = wt.wallet_id
+             JOIN users u ON u.id = w.user_id
+             WHERE {$whereSql}"
+        );
+        $countStmt->execute($params);
+        $total = (int) $countStmt->fetchColumn();
+
         $totalPages = max(1, (int) ceil($total / $perPage));
         $page = max(1, min($page, $totalPages));
         $offset = ($page - 1) * $perPage;
@@ -30,11 +38,11 @@ class Invoice extends Model
              FROM wallet_transactions wt
              JOIN wallets w ON w.id = wt.wallet_id
              JOIN users u ON u.id = w.user_id
-             WHERE " . self::WHERE . "
+             WHERE {$whereSql}
              ORDER BY wt.created_at DESC
              LIMIT {$perPage} OFFSET {$offset}"
         );
-        $stmt->execute();
+        $stmt->execute($params);
 
         return [
             'data'       => $stmt->fetchAll(),
@@ -42,6 +50,54 @@ class Invoice extends Model
             'page'       => $page,
             'totalPages' => $totalPages,
         ];
+    }
+
+    /**
+     * Toutes les factures correspondant aux filtres, sans pagination (pour l'export CSV).
+     */
+    public static function allWithFilters(array $filters = []): array
+    {
+        [$whereSql, $params] = self::buildFilters($filters);
+
+        $stmt = self::db()->prepare(
+            "SELECT wt.*, u.first_name, u.last_name, u.email
+             FROM wallet_transactions wt
+             JOIN wallets w ON w.id = wt.wallet_id
+             JOIN users u ON u.id = w.user_id
+             WHERE {$whereSql}
+             ORDER BY wt.created_at DESC"
+        );
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+
+    /**
+     * @return array{0: string, 1: array<string,mixed>} [clause SQL, paramètres liés]
+     */
+    private static function buildFilters(array $filters): array
+    {
+        $where = [self::WHERE];
+        $params = [];
+
+        $q = trim((string) ($filters['q'] ?? ''));
+        if ($q !== '') {
+            $where[] = "(u.first_name LIKE :q OR u.last_name LIKE :q OR u.email LIKE :q)";
+            $params['q'] = '%' . $q . '%';
+        }
+
+        $from = trim((string) ($filters['from'] ?? ''));
+        if ($from !== '') {
+            $where[] = 'wt.created_at >= :from';
+            $params['from'] = $from . ' 00:00:00';
+        }
+
+        $to = trim((string) ($filters['to'] ?? ''));
+        if ($to !== '') {
+            $where[] = 'wt.created_at <= :to';
+            $params['to'] = $to . ' 23:59:59';
+        }
+
+        return [implode(' AND ', $where), $params];
     }
 
     public static function findWithDetails(int $id): ?array

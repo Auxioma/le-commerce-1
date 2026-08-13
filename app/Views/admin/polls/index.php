@@ -75,6 +75,12 @@ require __DIR__ . '/../../partials/admin-page-header.php';
                   <?= $poll['status'] === 'actif' ? 'Terminer' : 'Activer' ?>
                 </button>
               </form>
+              <a href="<?= BASE_PATH ?>/admin/sondages/<?= $poll['id'] ?>/modifier" class="text-xs font-bold text-gray-400 hover:text-brand-500">Modifier</a>
+              <form method="POST" action="<?= BASE_PATH ?>/admin/sondages/<?= $poll['id'] ?>/supprimer"
+                    onsubmit="return confirm('Supprimer définitivement ce sondage ?');">
+                <?= Csrf::field() ?>
+                <button type="submit" class="text-xs font-bold text-gray-300 hover:text-brand-500">Suppr.</button>
+              </form>
             </div>
           </div>
         <?php endforeach; ?>

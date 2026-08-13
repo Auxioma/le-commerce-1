@@ -1,6 +1,6 @@
 <?php
-$pageTitle = 'Créer une offre';
-$pageSubtitle = 'Configurez une nouvelle offre attractive pour vos clients et gérez sa publication depuis le back-office.';
+$pageTitle = 'Modifier l\'offre';
+$pageSubtitle = 'Mettez à jour les informations de cette offre.';
 $pageActions = [];
 require __DIR__ . '/../../partials/admin-page-header.php';
 ?>
@@ -12,8 +12,7 @@ require __DIR__ . '/../../partials/admin-page-header.php';
   </a>
 
   <div class="card card-md sm:p-8">
-    <p class="text-sm text-gray-500 mb-6">Choisissez le type d'offre que vous souhaitez proposer à vos clients.</p>
+    <p class="text-sm text-gray-500 mb-6">Modifiez les informations de l'offre « <?= htmlspecialchars($offer['title']) ?> ».</p>
     <?php require __DIR__ . '/_form.php'; ?>
   </div>
 </div>
-

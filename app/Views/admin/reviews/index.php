@@ -83,27 +83,45 @@ require __DIR__ . '/../../partials/admin-page-header.php';
   <?php else: ?>
     <div class="divide-y divide-gray-50">
       <?php foreach ($reviews as $r): ?>
-        <div class="flex items-start justify-between gap-4 px-5 py-4">
-          <div class="flex items-start gap-3 min-w-0">
-            <span class="w-9 h-9 rounded-full bg-brand-50 text-brand-500 flex items-center justify-center text-xs font-bold shrink-0">
-              <?= htmlspecialchars(mb_substr($r['author_name'], 0, 1)) ?>
-            </span>
-            <div class="min-w-0">
-              <div class="flex items-center gap-2">
-                <p class="font-semibold text-ink text-sm"><?= htmlspecialchars($r['author_name']) ?></p>
-                <div class="flex text-amber-400">
-                  <?php for ($i = 0; $i < 5; $i++): ?>
-                    <svg class="w-3 h-3" fill="<?= $i < $r['rating'] ? 'currentColor' : 'none' ?>" stroke="currentColor" stroke-width="1.5" viewBox="0 0 20 20"><path d="M10 15l-5.5 3 2-6.5L1 7h6.5L10 1l2.5 6H19l-5.5 4.5 2 6.5z"/></svg>
-                  <?php endfor; ?>
+        <div class="px-5 py-4">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex items-start gap-3 min-w-0">
+              <span class="w-9 h-9 rounded-full bg-brand-50 text-brand-500 flex items-center justify-center text-xs font-bold shrink-0">
+                <?= htmlspecialchars(mb_substr($r['author_name'], 0, 1)) ?>
+              </span>
+              <div class="min-w-0">
+                <div class="flex items-center gap-2">
+                  <p class="font-semibold text-ink text-sm"><?= htmlspecialchars($r['author_name']) ?></p>
+                  <div class="flex text-amber-400">
+                    <?php for ($i = 0; $i < 5; $i++): ?>
+                      <svg class="w-3 h-3" fill="<?= $i < $r['rating'] ? 'currentColor' : 'none' ?>" stroke="currentColor" stroke-width="1.5" viewBox="0 0 20 20"><path d="M10 15l-5.5 3 2-6.5L1 7h6.5L10 1l2.5 6H19l-5.5 4.5 2 6.5z"/></svg>
+                    <?php endfor; ?>
+                  </div>
                 </div>
+                <?php if ($r['comment']): ?><p class="text-sm text-gray-500 mt-1"><?= htmlspecialchars($r['comment']) ?></p><?php endif; ?>
+                <p class="text-xs text-gray-400 mt-1"><?= date('d/m/Y', strtotime($r['published_at'])) ?></p>
               </div>
-              <?php if ($r['comment']): ?><p class="text-sm text-gray-500 mt-1"><?= htmlspecialchars($r['comment']) ?></p><?php endif; ?>
-              <p class="text-xs text-gray-400 mt-1"><?= date('d/m/Y', strtotime($r['published_at'])) ?></p>
+            </div>
+            <div class="flex items-center gap-3 shrink-0">
+              <button type="button" onclick="document.getElementById('edit-review-<?= $r['id'] ?>').classList.toggle('hidden')" class="text-xs font-semibold text-gray-400 hover:text-brand-500">Modifier</button>
+              <form method="POST" action="<?= BASE_PATH ?>/admin/avis-google/<?= $r['id'] ?>/supprimer"
+                    onsubmit="return confirm('Supprimer cet avis ?');">
+                <?= Csrf::field() ?>
+                <button type="submit" class="text-xs font-semibold text-gray-300 hover:text-brand-500">Supprimer</button>
+              </form>
             </div>
           </div>
-          <form method="POST" action="<?= BASE_PATH ?>/admin/avis-google/<?= $r['id'] ?>/supprimer" class="shrink-0">
+
+          <form id="edit-review-<?= $r['id'] ?>" method="POST" action="<?= BASE_PATH ?>/admin/avis-google/<?= $r['id'] ?>" class="hidden mt-3 pl-12 space-y-2">
             <?= Csrf::field() ?>
-            <button type="submit" class="text-xs font-semibold text-gray-300 hover:text-brand-500">Supprimer</button>
+            <input type="text" name="author_name" required value="<?= htmlspecialchars($r['author_name']) ?>" class="form-input">
+            <select name="rating" class="form-select">
+              <?php for ($star = 5; $star >= 1; $star--): ?>
+                <option value="<?= $star ?>" <?= (int) $r['rating'] === $star ? 'selected' : '' ?>><?= $star ?> étoile<?= $star > 1 ? 's' : '' ?></option>
+              <?php endfor; ?>
+            </select>
+            <textarea name="comment" rows="2" class="form-textarea"><?= htmlspecialchars($r['comment'] ?? '') ?></textarea>
+            <button type="submit" class="text-xs font-bold text-white bg-brand-500 hover:bg-brand-600 px-4 py-2 rounded-lg">Enregistrer</button>
           </form>
         </div>
       <?php endforeach; ?>

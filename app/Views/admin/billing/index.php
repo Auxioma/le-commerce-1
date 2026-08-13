@@ -5,6 +5,37 @@ $pageActions = [];
 require __DIR__ . '/../../partials/admin-page-header.php';
 ?>
 
+<!-- Filtres + export -->
+<form method="GET" action="<?= BASE_PATH ?>/admin/facturation">
+  <div class="bg-white border border-gray-200 rounded-xl px-5 py-4 shadow-sm flex flex-wrap items-center gap-3 mb-6">
+    <div class="relative flex-1 min-w-[180px]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
+      <input type="text" name="q" placeholder="Rechercher un client..." value="<?= htmlspecialchars($filters['q'] ?? '') ?>"
+             class="w-full border border-gray-200 rounded-lg pl-10 pr-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500" style="font-size:13px;">
+    </div>
+    <div class="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2.5" style="font-size:13px;">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      <span class="text-gray-500 shrink-0">Période :</span>
+      <input type="date" name="from" value="<?= htmlspecialchars($filters['from'] ?? '') ?>" class="focus:outline-none bg-transparent" style="font-size:13px;">
+      <span class="text-gray-400">—</span>
+      <input type="date" name="to" value="<?= htmlspecialchars($filters['to'] ?? '') ?>" class="focus:outline-none bg-transparent" style="font-size:13px;">
+    </div>
+    <button type="submit" class="inline-flex items-center gap-2 text-white font-bold rounded-lg px-5 py-2.5 transition-opacity hover:opacity-90" style="background:#c8272c; font-size:13px;">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4h18M7 10h10M11 16h2"/></svg>
+      Filtrer
+    </button>
+    <a href="<?= BASE_PATH ?>/admin/facturation/export?<?= http_build_query($filters) ?>"
+       class="inline-flex items-center gap-2 text-white font-bold rounded-lg px-5 py-2.5 transition-opacity hover:opacity-90" style="background:#1a1a2e; font-size:13px;">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      Exporter CSV
+    </a>
+    <a href="<?= BASE_PATH ?>/admin/facturation" class="inline-flex items-center gap-2 font-bold rounded-lg px-4 py-2.5 border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" style="font-size:13px;">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+      Réinitialiser
+    </a>
+  </div>
+</form>
+
 <!-- KPIs -->
 <div class="grid sm:grid-cols-3 gap-5 mb-6">
   <div class="card card-md">
@@ -58,7 +89,7 @@ require __DIR__ . '/../../partials/admin-page-header.php';
     <?php if ($totalPages > 1): ?>
       <div class="flex items-center justify-center gap-1 px-5 py-4 border-t border-gray-50">
         <?php for ($p = 1; $p <= $totalPages; $p++): ?>
-          <a href="<?= BASE_PATH ?>/admin/facturation?page=<?= $p ?>"
+          <a href="<?= BASE_PATH ?>/admin/facturation?<?= http_build_query(array_merge($filters, ['page' => $p])) ?>"
              class="w-8 h-8 flex items-center justify-center rounded-lg text-sm font-semibold transition-colors <?= $p === $page ? 'bg-brand-500 text-white' : 'text-gray-500 hover:bg-gray-100' ?>">
             <?= $p ?>
           </a>

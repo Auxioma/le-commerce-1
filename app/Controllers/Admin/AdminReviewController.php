@@ -58,6 +58,38 @@ class AdminReviewController extends Controller
         $this->redirect('/admin/avis-google');
     }
 
+    public function update(int $id): void
+    {
+        Middleware::requireRole('admin');
+        $this->verifyCsrf();
+
+        $review = GoogleReview::find($id);
+        if (!$review) {
+            $this->setFlash('error', 'Avis introuvable.');
+            $this->redirect('/admin/avis-google');
+            return;
+        }
+
+        $author  = trim((string) $this->input('author_name', ''));
+        $rating  = (int) $this->input('rating', 5);
+        $comment = trim((string) $this->input('comment', ''));
+
+        if ($author === '' || $rating < 1 || $rating > 5) {
+            $this->setFlash('error', 'Merci de renseigner un auteur et une note valide (1 à 5).');
+            $this->redirect('/admin/avis-google');
+            return;
+        }
+
+        GoogleReview::update($id, [
+            'author_name' => $author,
+            'rating'      => $rating,
+            'comment'     => $comment ?: null,
+        ]);
+
+        $this->setFlash('success', 'Avis mis à jour.');
+        $this->redirect('/admin/avis-google');
+    }
+
     public function destroy(int $id): void
     {
         Middleware::requireRole('admin');

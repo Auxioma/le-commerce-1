@@ -45,6 +45,8 @@ class AdminOfferController extends Controller
         $this->view('admin/offers/create', [
             'title'     => 'Créer une offre — Administration Le Commerce',
             'pageTitle' => 'Créer une nouvelle offre',
+            'formAction'    => '/admin/offres',
+            'submitLabel'   => "Créer l'offre",
             'typeLabels'    => Offer::TYPE_LABELS,
             'segmentLabels' => Offer::SEGMENT_LABELS,
             'errors' => [],
@@ -57,13 +59,141 @@ class AdminOfferController extends Controller
         Middleware::requireRole('admin');
         $this->verifyCsrf();
 
+        [$errors, $data] = $this->validate();
+
+        if ($errors) {
+            $this->view('admin/offers/create', [
+                'title'     => 'Créer une offre — Administration Le Commerce',
+                'pageTitle' => 'Créer une nouvelle offre',
+                'formAction'    => '/admin/offres',
+                'submitLabel'   => "Créer l'offre",
+                'typeLabels'    => Offer::TYPE_LABELS,
+                'segmentLabels' => Offer::SEGMENT_LABELS,
+                'errors' => $errors,
+                'old'    => $data,
+            ], 'admin');
+            return;
+        }
+
+        Offer::create([
+            'title'          => $data['title'],
+            'description'    => $data['description'] ?: null,
+            'type'           => $data['type'],
+            'value'          => (float) $data['value'],
+            'target_segment' => $data['target_segment'],
+            'valid_until'    => date('Y-m-d', strtotime($data['valid_until'])),
+            'status'         => $data['publish'] ? 'active' : 'brouillon',
+        ]);
+
+        $this->setFlash('success', 'L\'offre "' . $data['title'] . '" a bien été créée.');
+        $this->redirect('/admin/offres');
+    }
+
+    public function edit(int $id): void
+    {
+        Middleware::requireRole('admin');
+
+        $offer = Offer::find($id);
+        if (!$offer) {
+            $this->setFlash('error', 'Offre introuvable.');
+            $this->redirect('/admin/offres');
+            return;
+        }
+
+        $this->view('admin/offers/edit', [
+            'title'     => 'Modifier une offre — Administration Le Commerce',
+            'pageTitle' => 'Modifier « ' . $offer['title'] . ' »',
+            'formAction'    => '/admin/offres/' . $id,
+            'submitLabel'   => 'Enregistrer les modifications',
+            'offer'         => $offer,
+            'typeLabels'    => Offer::TYPE_LABELS,
+            'segmentLabels' => Offer::SEGMENT_LABELS,
+            'errors' => [],
+            'old'    => [
+                'title'       => $offer['title'],
+                'description' => $offer['description'],
+                'type'        => $offer['type'],
+                'value'       => $offer['value'],
+                'segment'     => $offer['target_segment'],
+                'validUntil'  => $offer['valid_until'],
+                'publish'     => $offer['status'] === 'active',
+            ],
+        ], 'admin');
+    }
+
+    public function update(int $id): void
+    {
+        Middleware::requireRole('admin');
+        $this->verifyCsrf();
+
+        $offer = Offer::find($id);
+        if (!$offer) {
+            $this->setFlash('error', 'Offre introuvable.');
+            $this->redirect('/admin/offres');
+            return;
+        }
+
+        [$errors, $data] = $this->validate();
+
+        if ($errors) {
+            $this->view('admin/offers/edit', [
+                'title'     => 'Modifier une offre — Administration Le Commerce',
+                'pageTitle' => 'Modifier « ' . $offer['title'] . ' »',
+                'formAction'    => '/admin/offres/' . $id,
+                'submitLabel'   => 'Enregistrer les modifications',
+                'offer'         => $offer,
+                'typeLabels'    => Offer::TYPE_LABELS,
+                'segmentLabels' => Offer::SEGMENT_LABELS,
+                'errors' => $errors,
+                'old'    => $data,
+            ], 'admin');
+            return;
+        }
+
+        Offer::update($id, [
+            'title'          => $data['title'],
+            'description'    => $data['description'] ?: null,
+            'type'           => $data['type'],
+            'value'          => (float) $data['value'],
+            'target_segment' => $data['target_segment'],
+            'valid_until'    => date('Y-m-d', strtotime($data['valid_until'])),
+            'status'         => $data['publish'] ? 'active' : 'brouillon',
+        ]);
+
+        $this->setFlash('success', 'L\'offre "' . $data['title'] . '" a bien été mise à jour.');
+        $this->redirect('/admin/offres');
+    }
+
+    public function destroy(int $id): void
+    {
+        Middleware::requireRole('admin');
+        $this->verifyCsrf();
+
+        $offer = Offer::find($id);
+        if (!$offer) {
+            $this->setFlash('error', 'Offre introuvable.');
+            $this->redirect('/admin/offres');
+            return;
+        }
+
+        Offer::delete($id);
+
+        $this->setFlash('success', 'L\'offre "' . $offer['title'] . '" a été supprimée.');
+        $this->redirect('/admin/offres');
+    }
+
+    /**
+     * @return array{0: array<string,string>, 1: array<string,mixed>} [errors, data]
+     */
+    private function validate(): array
+    {
         $title       = trim((string) $this->input('title', ''));
         $description = trim((string) $this->input('description', ''));
         $type        = (string) $this->input('type', '');
         $value       = $this->input('value', '');
         $segment     = (string) $this->input('target_segment', 'tous');
         $validUntil  = (string) $this->input('valid_until', '');
-        $publish     = $this->input('publish') ? 'active' : 'brouillon';
+        $publish     = (bool) $this->input('publish');
 
         $errors = [];
         if ($title === '' || mb_strlen($title) > 150) {
@@ -78,34 +208,11 @@ class AdminOfferController extends Controller
         if (!array_key_exists($segment, Offer::SEGMENT_LABELS)) {
             $errors['target_segment'] = 'Segment cible invalide.';
         }
-        if ($validUntil === '' || strtotime($validUntil) === false || strtotime($validUntil) < strtotime('today')) {
-            $errors['valid_until'] = 'La date de validité doit être aujourd\'hui ou une date future.';
+        if ($validUntil === '' || strtotime($validUntil) === false) {
+            $errors['valid_until'] = 'La date de validité est invalide.';
         }
 
-        if ($errors) {
-            $this->view('admin/offers/create', [
-                'title'     => 'Créer une offre — Administration Le Commerce',
-                'pageTitle' => 'Créer une nouvelle offre',
-                'typeLabels'    => Offer::TYPE_LABELS,
-                'segmentLabels' => Offer::SEGMENT_LABELS,
-                'errors' => $errors,
-                'old'    => compact('title', 'description', 'type', 'value', 'segment', 'validUntil'),
-            ], 'admin');
-            return;
-        }
-
-        Offer::create([
-            'title'          => $title,
-            'description'    => $description ?: null,
-            'type'           => $type,
-            'value'          => (float) $value,
-            'target_segment' => $segment,
-            'valid_until'    => date('Y-m-d', strtotime($validUntil)),
-            'status'         => $publish,
-        ]);
-
-        $this->setFlash('success', 'L\'offre "' . $title . '" a bien été créée.');
-        $this->redirect('/admin/offres');
+        return [$errors, compact('title', 'description', 'type', 'value', 'segment', 'validUntil', 'publish')];
     }
 
     public function toggleStatus(int $id): void

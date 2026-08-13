@@ -34,88 +34,11 @@ require __DIR__ . '/../../partials/admin-page-header.php';
     <h2 class="section-title mb-1">Créer une campagne de proximité</h2>
     <p class="text-sm text-gray-500 mb-5">Le client recevra votre offre lorsqu'il entrera dans la zone définie, pendant la plage horaire choisie.</p>
 
-    <form method="POST" action="<?= BASE_PATH ?>/admin/zonage" class="space-y-4">
-      <?= Csrf::field() ?>
-
-      <div>
-        <label class="block text-sm font-semibold text-ink mb-1.5">Nom de la campagne</label>
-        <input type="text" name="name" required placeholder="Ex : Café du matin"
-               class="form-input">
-      </div>
-
-      <div>
-        <label class="block text-sm font-semibold text-ink mb-1.5">
-          Zone de diffusion : <span id="radius-value" class="text-brand-500">500 mètres</span>
-        </label>
-        <input type="range" name="radius_m" min="100" max="5000" step="100" value="500" id="radius-slider"
-               class="w-full accent-brand-500">
-        <div class="flex justify-between text-[10px] text-gray-400 mt-1">
-          <span>100m</span><span>1km</span><span>2km</span><span>5km</span>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-semibold text-ink mb-1.5">Heure de début</label>
-          <input type="time" name="start_time" required value="10:00"
-                 class="form-input">
-        </div>
-        <div>
-          <label class="block text-sm font-semibold text-ink mb-1.5">Heure de fin</label>
-          <input type="time" name="end_time" required value="11:00"
-                 class="form-input">
-        </div>
-      </div>
-
-      <div>
-        <label class="block text-sm font-semibold text-ink mb-2">Jours de diffusion</label>
-        <div class="flex flex-wrap gap-2">
-          <?php foreach (['lun' => 'Lun', 'mar' => 'Mar', 'mer' => 'Mer', 'jeu' => 'Jeu', 'ven' => 'Ven', 'sam' => 'Sam', 'dim' => 'Dim'] as $key => $label): ?>
-            <label class="cursor-pointer">
-              <input type="checkbox" name="days[]" value="<?= $key ?>" class="peer sr-only" <?= in_array($key, ['lun', 'mar', 'mer', 'jeu', 'ven'], true) ? 'checked' : '' ?>>
-              <span class="inline-block px-3 py-2 rounded-lg text-xs font-bold border-2 border-gray-200 peer-checked:border-brand-500 peer-checked:bg-brand-50 peer-checked:text-brand-600 transition-colors">
-                <?= $label ?>
-              </span>
-            </label>
-          <?php endforeach; ?>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-semibold text-ink mb-1.5">Cible</label>
-          <select name="target_segment" class="form-select">
-            <?php foreach ($segmentLabels as $key => $label): ?>
-              <option value="<?= $key ?>"><?= htmlspecialchars($label) ?></option>
-            <?php endforeach; ?>
-          </select>
-        </div>
-        <div>
-          <label class="block text-sm font-semibold text-ink mb-1.5">Offre liée <span class="text-gray-400 font-normal">(facultatif)</span></label>
-          <select name="offer_id" class="form-select">
-            <option value="">Aucune offre</option>
-            <?php foreach ($activeOffers as $o): ?>
-              <option value="<?= $o['id'] ?>"><?= htmlspecialchars($o['title']) ?></option>
-            <?php endforeach; ?>
-          </select>
-        </div>
-      </div>
-
-      <div>
-        <label class="block text-sm font-semibold text-ink mb-1.5">Message</label>
-        <textarea name="message" rows="3" maxlength="160" required placeholder="👋 Bonjour {prenom} ! Vous n'êtes pas loin du Commerce..."
-                  class="form-textarea"></textarea>
-      </div>
-
-      <label class="flex items-center gap-2.5 text-sm text-gray-600 bg-gray-50 rounded-2xl px-4 py-3">
-        <input type="checkbox" name="publish" value="1" checked class="rounded border-gray-300 text-brand-500 focus:ring-brand-500/30">
-        Activer immédiatement la campagne
-      </label>
-
-      <button type="submit" class="btn-primary w-full">
-        Lancer la campagne
-      </button>
-    </form>
+    <?php
+      $formAction  = '/admin/zonage';
+      $submitLabel = 'Lancer la campagne';
+      require __DIR__ . '/_form.php';
+    ?>
   </div>
 
   <!-- Carte -->
@@ -182,13 +105,21 @@ require __DIR__ . '/../../partials/admin-page-header.php';
                   <?= $c['status'] === 'active' ? 'Active' : 'En pause' ?>
                 </span>
               </td>
-              <td class="px-5 py-3.5 text-right">
-                <form method="POST" action="<?= BASE_PATH ?>/admin/zonage/<?= $c['id'] ?>/statut">
-                  <?= Csrf::field() ?>
-                  <button type="submit" class="text-xs font-bold text-gray-400 hover:text-brand-500">
-                    <?= $c['status'] === 'active' ? 'Mettre en pause' : 'Activer' ?>
-                  </button>
-                </form>
+              <td class="px-5 py-3.5 text-right whitespace-nowrap">
+                <div class="flex items-center justify-end gap-3">
+                  <form method="POST" action="<?= BASE_PATH ?>/admin/zonage/<?= $c['id'] ?>/statut" class="inline">
+                    <?= Csrf::field() ?>
+                    <button type="submit" class="text-xs font-bold text-gray-400 hover:text-brand-500">
+                      <?= $c['status'] === 'active' ? 'Mettre en pause' : 'Activer' ?>
+                    </button>
+                  </form>
+                  <a href="<?= BASE_PATH ?>/admin/zonage/<?= $c['id'] ?>/modifier" class="text-xs font-bold text-gray-400 hover:text-brand-500">Modifier</a>
+                  <form method="POST" action="<?= BASE_PATH ?>/admin/zonage/<?= $c['id'] ?>/supprimer" class="inline"
+                        onsubmit="return confirm('Supprimer définitivement la campagne « <?= htmlspecialchars(addslashes($c['name'])) ?> » ?');">
+                    <?= Csrf::field() ?>
+                    <button type="submit" class="text-xs font-bold text-gray-300 hover:text-brand-500">Suppr.</button>
+                  </form>
+                </div>
               </td>
             </tr>
           <?php endforeach; ?>
