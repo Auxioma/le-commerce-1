@@ -25,6 +25,7 @@ use App\Controllers\Auth\LoginController;
 use App\Controllers\Auth\RegisterController;
 use App\Controllers\Auth\LogoutController;
 use App\Controllers\Auth\AdminLoginController;
+use App\Controllers\Auth\AdminPasswordResetController;
 use App\Controllers\Admin\AdminDashboardController;
 use App\Controllers\Admin\AdminClientController;
 use App\Controllers\Admin\AdminOfferController;
@@ -103,6 +104,10 @@ $router->get('/mon-compte/{section}', ClientPlaceholderController::class, 'show'
 // --- Authentification admin ---
 $router->get('/admin/connexion', AdminLoginController::class, 'index');
 $router->post('/admin/connexion', AdminLoginController::class, 'store');
+$router->get('/admin/mot-de-passe-oublie', AdminPasswordResetController::class, 'forgot');
+$router->post('/admin/mot-de-passe-oublie', AdminPasswordResetController::class, 'sendLink');
+$router->get('/admin/reinitialiser-mot-de-passe/{token}', AdminPasswordResetController::class, 'reset');
+$router->post('/admin/reinitialiser-mot-de-passe/{token}', AdminPasswordResetController::class, 'update');
 
 // --- Back-office (protégé, voir Middleware::requireRole('admin')) ---
 $router->get('/admin', AdminDashboardController::class, 'index');
