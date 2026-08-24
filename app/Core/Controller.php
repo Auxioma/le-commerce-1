@@ -1,10 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Core;
+
+use App\Service\ShopSettingsService;
 
 /**
  * Contrôleur de base
- * Fournit le rendu de vues avec layout et les helpers communs
+ * Fournit le rendu de vues (Twig) avec layout et les helpers communs
  */
 abstract class Controller
 {
@@ -12,92 +16,23 @@ abstract class Controller
 
     public function __construct()
     {
-        // Données partagées automatiquement avec toutes les vues (config boutique, etc.)
-        $this->sharedData['app']  = require dirname(__DIR__, 2) . '/config/app.php';
-        $this->sharedData['shop'] = $this->buildShopData($this->sharedData['app']['shop']);
+        $appConfig = require dirname(__DIR__, 2) . '/config/app.php';
+        $currentUser = Middleware::user();
+
+        // Données partagées automatiquement avec toutes les vues (config boutique,
+        // paramètres modifiables, libellés constants...) — préparées une seule fois
+        // par le Service dédié, pour que les vues n'appellent jamais un Model.
+        $shopData = (new ShopSettingsService())->build($appConfig['shop'], $currentUser);
+
+        $this->sharedData['app'] = $appConfig;
+        $this->sharedData['shop'] = $shopData['shop'];
+        $this->sharedData['settings'] = $shopData['settings'];
+        $this->sharedData['registrationSourceLabels'] = $shopData['registrationSourceLabels'];
+        $this->sharedData['clientLabelColors'] = $shopData['clientLabelColors'];
+        $this->sharedData['unreadMessagesCount'] = $shopData['unreadMessagesCount'];
         $this->sharedData['currentUri'] = $this->currentUri();
-        $this->sharedData['currentUser'] = Middleware::user();
+        $this->sharedData['currentUser'] = $currentUser;
         $this->sharedData['flash'] = $this->pullFlash();
-    }
-
-    /**
-     * Fusionne les paramètres modifiables (table `settings`, Lot 10) par-dessus
-     * les valeurs par défaut de config/app.php, pour que les changements faits
-     * depuis /admin/parametres soient reflétés partout sans toucher au code.
-     */
-    private function buildShopData(array $defaults): array
-    {
-        $overrides = \App\Models\Settings::all();
-        if (empty($overrides)) {
-            return $defaults;
-        }
-
-        return array_merge($defaults, [
-            'name'      => $overrides['shop_name'] ?? $defaults['name'],
-            'address'   => $overrides['shop_address'] ?? $defaults['address'],
-            'zipcode'   => $overrides['shop_zipcode'] ?? $defaults['zipcode'],
-            'city'      => $overrides['shop_city'] ?? $defaults['city'],
-            'phone'     => $overrides['shop_phone'] ?? $defaults['phone'],
-            'phone_href'=> isset($overrides['shop_phone']) ? self::phoneHref($overrides['shop_phone']) : $defaults['phone_href'],
-            'whatsapp'      => $overrides['shop_whatsapp'] ?? $defaults['whatsapp'],
-            'whatsapp_href' => self::resolveWhatsappHref($overrides, $defaults),
-            'email'     => $overrides['shop_email'] ?? $defaults['email'],
-            'hours' => [
-                'lun_sam' => $overrides['hours_lun_sam'] ?? $defaults['hours']['lun_sam'],
-                'dim'     => $overrides['hours_dim'] ?? $defaults['hours']['dim'],
-            ],
-            'social' => [
-                'facebook'  => $overrides['social_facebook'] ?? $defaults['social']['facebook'],
-                'instagram' => $overrides['social_instagram'] ?? $defaults['social']['instagram'],
-            ],
-            'latitude'  => isset($overrides['latitude']) ? (float) $overrides['latitude'] : $defaults['latitude'],
-            'longitude' => isset($overrides['longitude']) ? (float) $overrides['longitude'] : $defaults['longitude'],
-            'streetview_embed_url' => $overrides['streetview_embed_url'] ?? ($defaults['streetview_embed_url'] ?? ''),
-            'legal' => [
-                'forme_juridique'       => $overrides['legal_forme_juridique'] ?? $defaults['legal']['forme_juridique'],
-                'capital_social'        => $overrides['legal_capital_social'] ?? $defaults['legal']['capital_social'],
-                'siret'                 => $overrides['legal_siret'] ?? $defaults['legal']['siret'],
-                'rcs_numero'            => $overrides['legal_rcs_numero'] ?? $defaults['legal']['rcs_numero'],
-                'rcs_ville'             => $overrides['legal_rcs_ville'] ?? $defaults['legal']['rcs_ville'],
-                'directeur_publication' => $overrides['legal_directeur_publication'] ?? $defaults['legal']['directeur_publication'],
-                'hebergeur_nom'         => $overrides['legal_hebergeur_nom'] ?? $defaults['legal']['hebergeur_nom'],
-                'hebergeur_adresse'     => $overrides['legal_hebergeur_adresse'] ?? $defaults['legal']['hebergeur_adresse'],
-                'hebergeur_telephone'   => $overrides['legal_hebergeur_telephone'] ?? $defaults['legal']['hebergeur_telephone'],
-            ],
-        ]);
-    }
-
-    /**
-     * Détermine le numéro WhatsApp effectif : le champ dédié s'il a été
-     * renseigné en admin, sinon le téléphone du commerce (comportement
-     * historique, avant que les deux numéros ne soient dissociables).
-     */
-    private static function resolveWhatsappHref(array $overrides, array $defaults): string
-    {
-        $whatsapp = $overrides['shop_whatsapp'] ?? $defaults['whatsapp'] ?? '';
-        if ($whatsapp !== '') {
-            return self::phoneHref($whatsapp);
-        }
-
-        $phone = $overrides['shop_phone'] ?? $defaults['phone'];
-        return self::phoneHref($phone);
-    }
-
-    /**
-     * Normalise un numéro français saisi en admin (ex. "07 81 77 15 52")
-     * vers le format international utilisé par les liens tel:/wa.me
-     * (ex. "+33781771552").
-     */
-    private static function phoneHref(string $phone): string
-    {
-        $digits = preg_replace('/[^\d+]/', '', $phone);
-        if (str_starts_with($digits, '+')) {
-            return $digits;
-        }
-        if (str_starts_with($digits, '0')) {
-            return '+33' . substr($digits, 1);
-        }
-        return '+' . $digits;
     }
 
     /**
@@ -131,30 +66,20 @@ abstract class Controller
     }
 
     /**
-     * Affiche une vue enveloppée dans le layout principal
+     * Affiche une vue Twig enveloppée dans un layout
      *
-     * @param string $view   chemin relatif dans Views, ex: "home/index"
+     * @param string $view   chemin relatif dans Views, ex: "home/index" (résout home/index.twig)
      * @param array  $data   données transmises à la vue
-     * @param string $layout nom du layout dans Views/layouts (sans extension)
+     * @param string $layout nom du layout dans Views/layouts (sans extension), ou '' pour aucun layout
      */
     protected function view(string $view, array $data = [], string $layout = 'main'): void
     {
         $data = array_merge($this->sharedData, $data);
-        extract($data);
+        $content = View::render($view, $data);
 
-        $viewFile = dirname(__DIR__) . "/Views/{$view}.php";
-        if (!file_exists($viewFile)) {
-            throw new \RuntimeException("Vue introuvable : {$view}");
-        }
-
-        // Capture le contenu de la vue pour l'injecter dans le layout
-        ob_start();
-        require $viewFile;
-        $content = ob_get_clean();
-
-        $layoutFile = dirname(__DIR__) . "/Views/layouts/{$layout}.php";
-        if (file_exists($layoutFile)) {
-            require $layoutFile;
+        $layoutTemplate = "layouts/{$layout}";
+        if ($layout !== '' && View::exists($layoutTemplate)) {
+            echo View::render($layoutTemplate, array_merge($data, ['content' => $content]));
         } else {
             echo $content;
         }

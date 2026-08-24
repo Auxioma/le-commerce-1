@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controllers\Admin;
 
 use App\Core\Controller;
@@ -7,10 +9,18 @@ use App\Core\Middleware;
 use App\Models\Offer;
 use App\Models\OfferRedemption;
 use App\Models\User;
-use App\Models\WhatsappMessage;
+use App\Service\NotificationService;
 
 class AdminOfferController extends Controller
 {
+    private NotificationService $notificationService;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->notificationService = new NotificationService();
+    }
+
     public function index(): void
     {
         Middleware::requireRole('admin');
@@ -290,11 +300,7 @@ class AdminOfferController extends Controller
             . "Code : " . $redemption['code'] . "\n"
             . "Présentez ce code en caisse pour en profiter.";
 
-        WhatsappMessage::create([
-            'user_id'   => $userId,
-            'direction' => 'sortant',
-            'content'   => $content,
-        ]);
+        $this->notificationService->sendWhatsapp($userId, $content);
 
         $this->setFlash('success', 'Offre envoyée à ' . $user['first_name'] . ' ' . $user['last_name'] . ' par WhatsApp.');
         $this->redirect('/admin/offres');

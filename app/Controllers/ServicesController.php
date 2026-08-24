@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controllers;
 
 use App\Core\Controller;
@@ -20,6 +22,7 @@ class ServicesController extends Controller
 
         $this->view('pages/services', [
             'title'      => 'Nos Services — Le Commerce',
+            'description' => 'Découvrez les services du quotidien proposés par Le Commerce à Forges-les-Eaux : timbres, recharges, colis et bien plus.',
             'heading'    => 'Nos Services du Quotidien',
             'categories' => $categories,
         ]);

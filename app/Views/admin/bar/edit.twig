@@ -1,0 +1,53 @@
+{% set pageTitle = 'Modifier « ' ~ drink.name ~ ' »' %}
+{% set pageSubtitle = 'Les changements sont visibles immédiatement sur la page publique « Le Bar ».' %}
+{% set pageActions = [] %}
+{% include 'partials/admin-page-header.twig' %}
+
+<div class="max-w-2xl">
+  <a href="{{ base_path }}/admin/bar" class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-brand-500 mb-4">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+    Retour au Bar
+  </a>
+
+  <div class="card card-md sm:p-8">
+    <form method="POST" action="{{ base_path }}/admin/bar/{{ drink.id }}" class="space-y-5">
+      {{ csrf_field() }}
+
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Nom de la boisson</label>
+        <input type="text" name="name" required value="{{ old.name|default(drink.name) }}"
+               class="form-input {{ errors.name is defined ? 'border-brand-400' : '' }}">
+        {% if errors.name is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.name }}</p>{% endif %}
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Catégorie</label>
+        <select name="category" required class="form-select {{ errors.category is defined ? 'border-brand-400' : '' }}">
+          {% for key, label in categories %}
+            <option value="{{ key }}" {{ old.category|default(drink.category) == key ? 'selected' : '' }}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        {% if errors.category is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.category }}</p>{% endif %}
+      </div>
+
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-semibold text-ink mb-1.5">Degré d'alcool</label>
+          <input type="text" name="degree" value="{{ old.degree|default(drink.degree) }}" placeholder="Ex : 5,5"
+                 class="form-input {{ errors.degree is defined ? 'border-brand-400' : '' }}">
+          {% if errors.degree is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.degree }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-ink mb-1.5">Prix (€)</label>
+          <input type="text" name="price" value="{{ old.price|default(drink.price) }}" placeholder="Ex : 3,50"
+                 class="form-input {{ errors.price is defined ? 'border-brand-400' : '' }}">
+          {% if errors.price is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.price }}</p>{% endif %}
+        </div>
+      </div>
+
+      <button type="submit" class="btn-primary w-full">
+        Enregistrer les modifications
+      </button>
+    </form>
+  </div>
+</div>

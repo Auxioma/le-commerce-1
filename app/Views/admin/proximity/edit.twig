@@ -1,0 +1,17 @@
+{% set pageTitle = 'Modifier la campagne' %}
+{% set pageSubtitle = 'Mettez à jour les paramètres de cette campagne de proximité.' %}
+{% set pageActions = [] %}
+{% include 'partials/admin-page-header.twig' %}
+
+<div class="max-w-2xl">
+  <a href="{{ base_path }}/admin/zonage" class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-brand-500 mb-4">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+    Retour aux campagnes
+  </a>
+
+  <div class="card card-md sm:p-8">
+    {% set formAction = '/admin/zonage/' ~ campaign.id %}
+    {% set submitLabel = 'Enregistrer les modifications' %}
+    {% include 'admin/proximity/_form.twig' %}
+  </div>
+</div>

@@ -1,0 +1,75 @@
+<div class="mb-8">
+  <h1 class="font-extrabold text-3xl text-ink mb-2">Loterie</h1>
+  <p class="text-gray-500">Participez aux tirages en cours et tentez de remporter un lot !</p>
+</div>
+
+{% if lotteries is empty %}
+  <div class="bg-white border border-gray-100 rounded-2xl text-center py-20 px-6">
+    <span class="w-16 h-16 rounded-full bg-gray-100 text-gray-300 flex items-center justify-center mx-auto mb-4">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+    </span>
+    <p class="text-gray-600 font-semibold text-lg mb-1">Aucune loterie en cours</p>
+    <p class="text-gray-400 text-sm">Revenez bientôt pour tenter votre chance !</p>
+  </div>
+{% else %}
+  <div class="grid sm:grid-cols-2 gap-6">
+    {% for lottery in lotteries %}
+      {% set entry = entries[lottery.id]|default(null) %}
+      <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden hover-lift transition-all">
+        <div class="p-6 bg-gradient-to-r from-brand-50 to-transparent border-b border-gray-100">
+          <h3 class="font-bold text-ink text-lg mb-1">{{ lottery.title }}</h3>
+          {% if lottery.description %}
+            <p class="text-sm text-gray-600 mb-2">{{ lottery.description }}</p>
+          {% endif %}
+          <p class="text-sm font-bold text-brand-500">🎁 {{ lottery.prize }}</p>
+          <p class="text-xs text-gray-400 mt-1">Fin des inscriptions le {{ lottery.ends_at|date('d/m/Y') }}</p>
+        </div>
+
+        <div class="p-6">
+          {% if entry %}
+            <div class="bg-slate-900 rounded-xl p-5 mb-4 flex items-center gap-4">
+              <svg viewBox="0 0 100 100" class="w-20 h-20 shrink-0 bg-white rounded-lg p-1">
+                <rect width="100" height="100" fill="#fff"/>
+                {{ qr_pattern(entry.code) }}
+              </svg>
+              <div>
+                <p class="text-gray-400 text-xs font-semibold uppercase tracking-wider">Votre ticket</p>
+                <p class="font-mono font-extrabold text-white text-lg mt-1">{{ entry.code }}</p>
+                <p class="text-gray-400 text-xs mt-2">Vous êtes inscrit ✓</p>
+              </div>
+            </div>
+          {% else %}
+            <form method="POST" action="{{ base_path }}/mon-compte/loterie/{{ lottery.id }}/participer">
+              {{ csrf_field() }}
+              <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-lg transition-colors text-sm">
+                Générer mon ticket de participation
+              </button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+{% set wonEntries = pastEntries|filter(e => e.lottery_status == 'terminee' and e.winner_user_id == user.id) %}
+{% set endedEntries = pastEntries|filter(e => e.lottery_status == 'terminee') %}
+{% if endedEntries is not empty %}
+  <div class="mt-10">
+    <h2 class="font-bold text-xl text-ink mb-4">Tirages terminés</h2>
+    <div class="bg-white border border-gray-100 rounded-2xl divide-y divide-gray-50">
+      {% for e in endedEntries %}
+        {% set won = e.winner_user_id == user.id %}
+        <div class="flex items-center justify-between px-5 py-4">
+          <div>
+            <p class="font-semibold text-ink text-sm">{{ e.lottery_title }}</p>
+            <p class="text-xs text-gray-400">{{ e.prize }}</p>
+          </div>
+          <span class="text-xs font-bold px-3 py-1.5 rounded-full {{ won ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500' }}">
+            {{ won ? '🏆 Gagné !' : 'Non gagnant' }}
+          </span>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endif %}

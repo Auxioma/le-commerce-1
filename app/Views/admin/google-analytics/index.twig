@@ -1,0 +1,433 @@
+{% set pageTitle = 'Google Analytics' %}
+{% set pageSubtitle = "Vue d'ensemble de l'activité de votre plateforme (clients, portefeuilles, offres, trafic du site)." %}
+{% set pageActions = [] %}
+{% include 'partials/admin-page-header.twig' %}
+
+{% set sourceColors = {'bar': '#3b82f6', 'tabac': '#ef4444', 'jeux_services': '#10b981', 'pmu': '#f59e0b', 'nirio': '#a855f7'} %}
+
+<div class="grid lg:grid-cols-4 gap-6 mt-6">
+  <div class="lg:col-span-3 space-y-6">
+
+    <!-- KPIs -->
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      {% set kpis = [
+        {label: 'Clients inscrits', value: totalClients|number_format(0, ',', ' '), delta: newClientsToday > 0 ? '+' ~ newClientsToday ~ " aujourd'hui" : "Stable aujourd'hui", color: 'blue', icon: 'M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4zm6 0a4 4 0 10-4-4', href: '/admin/clients'},
+        {label: 'Portefeuilles actifs', value: walletsActive|number_format(0, ',', ' '), delta: walletsNewToday > 0 ? '+' ~ walletsNewToday ~ " aujourd'hui" : 'Stable', color: 'emerald', icon: 'M3 10h18M7 15h1m4 0h1m-9 4h16a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z', href: '/admin/portefeuilles'},
+        {label: 'Réservations', value: reservationsCount, delta: reservationsToday > 0 ? '+' ~ reservationsToday ~ " aujourd'hui" : "Aucune aujourd'hui", color: 'purple', icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', href: '/admin/reservations'},
+        {label: 'Offres créées', value: offersActive, delta: 'Actives actuellement', color: 'orange', icon: 'M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z', href: '/admin/offres'},
+        {label: 'Participations loterie', value: lotteryEntries|number_format(0, ',', ' '), delta: lotteryEntriesToday > 0 ? '+' ~ lotteryEntriesToday ~ " aujourd'hui" : 'Stable', color: 'pink', icon: 'M12 8c-1.5-3-6-3-6 0s4.5 3 6 6c1.5-3 6-3 6-6s-4.5-3-6 0z', href: '/admin/loterie'},
+        {label: 'Sondages en cours', value: pollsActive, delta: 'En cours', color: 'indigo', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14', href: '/admin/sondages'},
+        {label: 'Messages envoyés', value: messagesToday, delta: "aujourd'hui", color: 'orange', icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.86 9.86 0 01-4-.8L3 20l1.3-3.9A7.96 7.96 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z', href: '/admin/messages'},
+        {label: 'WhatsApp envoyés', value: whatsappToday, delta: "aujourd'hui", color: 'emerald', icon: 'M3 21l1.65-4.95A9 9 0 1112 21a9 9 0 01-8.35-4.95z', href: '/admin/messages'},
+        {label: 'Clients à proximité', value: nearbyClients, delta: 'actifs', color: 'purple', icon: 'M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z', href: '/admin/zonage'},
+        {label: 'Avis reçus', value: reviewsThisMonth, delta: 'ce mois-ci', color: 'blue', icon: 'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z', href: '/admin/avis-google'},
+        {label: 'Nouveaux clients', value: newClientsThisWeek, delta: 'cette semaine', color: 'pink', icon: 'M8 9a3 3 0 100-6 3 3 0 000 6zm-7 8a7 7 0 0114 0H1z', href: '/admin/clients'},
+      ] %}
+      {% set colorMap = {
+        'blue': {bg: 'bg-blue-100', text: 'text-blue-500'},
+        'emerald': {bg: 'bg-emerald-100', text: 'text-emerald-500'},
+        'purple': {bg: 'bg-purple-100', text: 'text-purple-500'},
+        'orange': {bg: 'bg-orange-100', text: 'text-orange-500'},
+        'pink': {bg: 'bg-pink-100', text: 'text-pink-500'},
+        'indigo': {bg: 'bg-indigo-100', text: 'text-indigo-500'},
+      } %}
+      {% for k in kpis %}
+        {% set c = colorMap[k.color] %}
+        <div class="card card-md">
+          <span class="w-10 h-10 rounded-xl {{ c.bg }} {{ c.text }} flex items-center justify-center mb-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="{{ k.icon }}"/></svg>
+          </span>
+          <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wide">{{ k.label }}</p>
+          <p class="font-extrabold text-2xl text-ink mt-1">{{ k.value }}</p>
+          <p class="text-xs text-emerald-500 font-semibold mt-1">{{ k.delta }}</p>
+          <a href="{{ base_path ~ k.href }}" class="text-xs text-brand-500 font-semibold mt-2 inline-block hover:underline">Voir les détails</a>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Graphique + Répartition + Carte proximité -->
+    <div class="grid lg:grid-cols-3 gap-5">
+      <div class="card card-md">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-bold text-ink text-sm">Évolution des inscriptions clients</h2>
+          <span class="text-xs text-gray-400 font-medium">7 derniers jours</span>
+        </div>
+        <div class="flex items-center gap-4 mb-3">
+          <span class="flex items-center gap-1.5 text-xs text-gray-500"><span class="w-3 h-0.5 rounded-full bg-blue-500 inline-block"></span> Total</span>
+          <span class="flex items-center gap-1.5 text-xs text-gray-500"><span class="w-3 h-0.5 rounded-full bg-emerald-500 inline-block"></span> Nouveaux</span>
+        </div>
+        <canvas id="chart-registrations" height="180"></canvas>
+      </div>
+
+      <div class="card card-md">
+        <h2 class="font-bold text-ink text-sm mb-4">Répartition des inscriptions par outil</h2>
+        <div class="flex items-center gap-6">
+          <div class="w-40 h-40 shrink-0">
+            <canvas id="chart-segments" height="160" width="160"></canvas>
+          </div>
+          <div class="space-y-2 text-sm">
+            {% set totalSources = registrationsBySource|column('nb')|reduce((carry, v) => carry + v, 0) %}
+            {% for src in registrationsBySource %}
+              {% set pct = totalSources > 0 ? ((src.nb / totalSources) * 100)|round(1) : 0 %}
+              {% set color = sourceColors[src.registration_source]|default('#6b7280') %}
+              {% set label = registrationSourceLabels[src.registration_source]|default(src.registration_source|capitalize) %}
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full shrink-0" style="background:{{ color }};"></span>
+                <span class="text-gray-700 font-medium">{{ label }}</span>
+                <span class="text-gray-400 ml-auto">{{ src.nb }} ({{ pct }}%)</span>
+              </div>
+            {% endfor %}
+            {% if registrationsBySource is empty %}
+              <p class="text-gray-400 text-xs py-4 text-center">Aucune inscription pour le moment.</p>
+            {% endif %}
+            <div class="flex items-center gap-2 pt-2 border-t border-gray-100 font-bold">
+              <span class="text-ink">Total</span>
+              <span class="text-ink ml-auto">{{ totalSources|number_format(0, ',', ' ') }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card card-md">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-bold text-ink text-sm">Clients à proximité</h2>
+        </div>
+        <div id="proximity-map" style="height:220px; border-radius:12px;"></div>
+        <p class="text-xs text-gray-400 mt-3">{{ nearbyLocations|length }} client(s) géolocalisé(s) dans la dernière heure.</p>
+      </div>
+    </div>
+
+    <!-- 4 blocs bas -->
+    <div class="grid lg:grid-cols-4 gap-5">
+
+      <!-- Offres les plus utilisées -->
+      <div class="card card-md">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-bold text-ink text-xs uppercase tracking-wide">Offres les plus utilisées</h2>
+          <a href="{{ base_path }}/admin/offres" class="text-xs text-brand-500 font-semibold hover:underline">Voir toutes</a>
+        </div>
+        {% if topOffers is empty %}
+          <p class="text-sm text-gray-400 py-6 text-center">Aucune offre active.</p>
+        {% else %}
+          {% set maxUsage = max(topOffers|column('usage_count')) %}
+          {% set offerColors = ['#10b981', '#f59e0b', '#3b82f6', '#ef4444', '#8b5cf6'] %}
+          <ul class="space-y-3">
+            {% for o in topOffers %}
+              <li>
+                <div class="flex items-center justify-between mb-1">
+                  <p class="font-medium text-ink text-xs truncate">{{ o.title }}</p>
+                  <p class="text-gray-400 text-[10px] shrink-0 ml-2">{{ o.usage_count }} util.</p>
+                </div>
+                <div class="w-full bg-gray-100 rounded-full h-2">
+                  <div class="h-2 rounded-full" style="width:{{ maxUsage > 0 ? min(100, ((o.usage_count / maxUsage) * 100)|round) : 0 }}%; background:{{ offerColors[loop.index0 % 5] }};"></div>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+
+      <!-- Rechargements portefeuilles -->
+      <div class="card card-md">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-bold text-ink text-xs uppercase tracking-wide">Rechargements portefeuilles</h2>
+          <a href="{{ base_path }}/admin/portefeuilles" class="text-xs text-brand-500 font-semibold hover:underline">Voir tout</a>
+        </div>
+        <p class="text-[10px] font-semibold text-gray-400 uppercase">Total rechargé ce mois</p>
+        <p class="font-extrabold text-xl text-ink mb-3">{{ totalBalance|number_format(2, ',', ' ') }} &euro; <span class="text-xs text-emerald-500 font-semibold">{{ rechargesThisMonth }} recharges</span></p>
+        {% if latestRecharges is empty %}
+          <p class="text-sm text-gray-400 py-4 text-center">Aucune recharge.</p>
+        {% else %}
+          <ul class="space-y-2">
+            {% for t in latestRecharges %}
+              {% if t.type == 'recharge' %}
+                <li class="flex items-center justify-between text-xs">
+                  <span class="text-ink font-medium truncate">{{ t.first_name }} {{ t.last_name }}</span>
+                  <span class="text-gray-500 shrink-0 ml-2">{{ t.amount|number_format(2, ',', ' ') }} &euro;</span>
+                </li>
+              {% endif %}
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+
+      <!-- Utilisation des QR Codes -->
+      <div class="card card-md">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-bold text-ink text-xs uppercase tracking-wide">Utilisation des QR Codes</h2>
+        </div>
+        {% set maxQr = qrUsage is not empty ? max(qrUsage|column('count')) : 0 %}
+        {% set qrColors = ['#3b82f6', '#10b981', '#a855f7', '#f59e0b'] %}
+        <ul class="space-y-3">
+          {% for qr in qrUsage %}
+            {% set pct = maxQr > 0 ? min(100, ((qr.count / maxQr) * 100)|round) : 0 %}
+            <li>
+              <div class="flex items-center justify-between mb-1">
+                <p class="font-medium text-ink text-xs truncate">{{ qr.label }}</p>
+                <p class="text-gray-400 text-[10px] shrink-0 ml-2">{{ qr.count }} ({{ pct }}%)</p>
+              </div>
+              <div class="w-full bg-gray-100 rounded-full h-2">
+                <div class="h-2 rounded-full" style="width:{{ pct }}%; background:{{ qrColors[loop.index0 % 4] }};"></div>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <!-- Google Analytics -->
+      <div class="card card-md">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="font-bold text-ink text-xs uppercase tracking-wide">Google Analytics</h2>
+        </div>
+        {% if not ga4Configured %}
+          <p class="text-sm text-gray-400 py-2">Configuration requise.</p>
+          <a href="{{ base_path }}/admin/parametres" class="text-xs text-brand-500 font-semibold hover:underline">Configurer Google Analytics</a>
+        {% elseif ga4 is null %}
+          <p class="text-sm text-gray-400 py-2">Impossible de récupérer les données GA4 pour le moment (vérifiez la configuration).</p>
+        {% else %}
+          <div class="grid grid-cols-2 gap-2 mb-3 text-center">
+            <div>
+              <p class="font-extrabold text-lg text-ink">{{ ga4.users|number_format(0, ',', ' ') }}</p>
+              <p class="text-[9px] text-gray-400 uppercase">Utilisateurs actifs</p>
+            </div>
+            <div>
+              <p class="font-extrabold text-lg text-ink">{{ ga4.newUsers|number_format(0, ',', ' ') }}</p>
+              <p class="text-[9px] text-gray-400 uppercase">Nouveaux utilisateurs</p>
+            </div>
+            <div>
+              <p class="font-extrabold text-lg text-ink">{{ ga4.pageViews|number_format(0, ',', ' ') }}</p>
+              <p class="text-[9px] text-gray-400 uppercase">Vues</p>
+            </div>
+            <div>
+              <p class="font-extrabold text-lg text-ink">{{ ga4.eventCount|number_format(0, ',', ' ') }}</p>
+              <p class="text-[9px] text-gray-400 uppercase">Nb. événements</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2 mb-3 text-center">
+            <div>
+              <p class="font-bold text-sm text-ink">{{ ga4.sessions|number_format(0, ',', ' ') }}</p>
+              <p class="text-[9px] text-gray-400 uppercase">Sessions</p>
+            </div>
+            <div>
+              <p class="font-bold text-sm text-ink">{{ ga4.bounceRate }}%</p>
+              <p class="text-[9px] text-gray-400 uppercase">Rebond</p>
+            </div>
+            <div>
+              <p class="font-bold text-sm text-ink">{{ '%02d'|format(ga4.avgDuration // 60) }}m{{ '%02d'|format(ga4.avgDuration % 60) }}</p>
+              <p class="text-[9px] text-gray-400 uppercase">Durée moy.</p>
+            </div>
+            <div>
+              <p class="font-bold text-sm text-ink">{{ ga4.conversions }}</p>
+              <p class="text-[9px] text-gray-400 uppercase">Conversions</p>
+            </div>
+          </div>
+          <canvas id="chart-ga4" height="80"></canvas>
+        {% endif %}
+      </div>
+    </div>
+    {% if ga4Configured and ga4 is not null %}
+    <!-- Détails du trafic Google Analytics -->
+    <div class="grid lg:grid-cols-3 gap-5">
+
+      <!-- Pages les plus vues -->
+      <div class="card card-md">
+        <h2 class="font-bold text-ink text-xs uppercase tracking-wide mb-4">Pages les plus vues <span class="text-gray-400 font-medium normal-case">— 7 derniers jours</span></h2>
+        {% if ga4.topPages is empty %}
+          <p class="text-sm text-gray-400 py-6 text-center">Aucune donnée disponible.</p>
+        {% else %}
+          {% set maxPageViews = max(ga4.topPages|column('value')) %}
+          {% set pageColors = ['#c8102e', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#6b7280'] %}
+          <ul class="space-y-3">
+            {% for p in ga4.topPages %}
+              <li>
+                <div class="flex items-center justify-between mb-1">
+                  <p class="font-medium text-ink text-xs truncate" title="{{ p.label }}">{{ p.label }}</p>
+                  <p class="text-gray-400 text-[10px] shrink-0 ml-2">{{ p.value|number_format(0, ',', ' ') }} vues</p>
+                </div>
+                <div class="w-full bg-gray-100 rounded-full h-2">
+                  <div class="h-2 rounded-full" style="width:{{ maxPageViews > 0 ? min(100, ((p.value / maxPageViews) * 100)|round) : 0 }}%; background:{{ pageColors[loop.index0 % 6] }};"></div>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+
+      <!-- Sources de trafic -->
+      <div class="card card-md">
+        <h2 class="font-bold text-ink text-xs uppercase tracking-wide mb-4">Sources de trafic <span class="text-gray-400 font-medium normal-case">— 7 derniers jours</span></h2>
+        {% if ga4.channels is empty %}
+          <p class="text-sm text-gray-400 py-6 text-center">Aucune donnée disponible.</p>
+        {% else %}
+          {% set totalChannels = ga4.channels|column('value')|reduce((carry, v) => carry + v, 0) %}
+          {% set channelColors = ['#3b82f6', '#10b981', '#f59e0b', '#a855f7', '#ef4444', '#6b7280'] %}
+          <ul class="space-y-2 text-sm">
+            {% for c in ga4.channels %}
+              {% set pct = totalChannels > 0 ? ((c.value / totalChannels) * 100)|round(1) : 0 %}
+              <li class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full shrink-0" style="background:{{ channelColors[loop.index0 % 6] }};"></span>
+                <span class="text-gray-700 font-medium truncate">{{ c.label }}</span>
+                <span class="text-gray-400 ml-auto shrink-0">{{ c.value|number_format(0, ',', ' ') }} ({{ pct }}%)</span>
+              </li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+
+      <!-- Appareils -->
+      <div class="card card-md">
+        <h2 class="font-bold text-ink text-xs uppercase tracking-wide mb-4">Appareils <span class="text-gray-400 font-medium normal-case">— 7 derniers jours</span></h2>
+        {% if ga4.devices is empty %}
+          <p class="text-sm text-gray-400 py-6 text-center">Aucune donnée disponible.</p>
+        {% else %}
+          {% set totalDevices = ga4.devices|column('value')|reduce((carry, v) => carry + v, 0) %}
+          {% set deviceIcons = {
+            'desktop': 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z',
+            'mobile': 'M12 18h.01M7 21h10a1 1 0 001-1V4a1 1 0 00-1-1H7a1 1 0 00-1 1v16a1 1 0 001 1z',
+            'tablet': 'M12 18h.01M5 21h14a1 1 0 001-1V4a1 1 0 00-1-1H5a1 1 0 00-1 1v16a1 1 0 001 1z',
+          } %}
+          {% set deviceColors = ['#3b82f6', '#10b981', '#f59e0b', '#a855f7'] %}
+          <ul class="space-y-3">
+            {% for d in ga4.devices %}
+              {% set pct = totalDevices > 0 ? min(100, ((d.value / totalDevices) * 100)|round) : 0 %}
+              <li>
+                <div class="flex items-center justify-between mb-1">
+                  <span class="flex items-center gap-1.5 text-xs text-gray-700 font-medium capitalize">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="{{ deviceIcons[d.label|lower]|default(deviceIcons.desktop) }}"/></svg>
+                    {{ d.label }}
+                  </span>
+                  <span class="text-gray-400 text-[10px] shrink-0">{{ d.value|number_format(0, ',', ' ') }} ({{ pct }}%)</span>
+                </div>
+                <div class="w-full bg-gray-100 rounded-full h-2">
+                  <div class="h-2 rounded-full" style="width:{{ pct }}%; background:{{ deviceColors[loop.index0 % 4] }};"></div>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Colonne droite : actions rapides -->
+  <div class="lg:col-span-1 space-y-5">
+    <div class="card card-md">
+      <h2 class="font-bold text-ink text-xs uppercase tracking-wide mb-3">Actions rapides</h2>
+      <ul class="space-y-1">
+        {% set quickActions = [
+          {label: 'Ajouter une offre', href: '/admin/offres/creer'},
+          {label: 'Envoyer un SMS', href: '/admin/messages'},
+          {label: 'Envoyer un e-mail', href: '/admin/messages'},
+          {label: 'Envoyer un WhatsApp', href: '/admin/messages'},
+          {label: 'Lancer une loterie', href: '/admin/loterie'},
+          {label: 'Créer un sondage', href: '/admin/sondages/creer'},
+          {label: 'Ajouter une réservation', href: '/admin/reservations'},
+          {label: 'Envoyer à proximité', href: '/admin/zonage'},
+        ] %}
+        {% for a in quickActions %}
+          <li>
+            <a href="{{ base_path ~ a.href }}" class="flex items-center justify-between px-3 py-2 rounded-xl text-sm text-gray-600 hover:bg-gray-50 hover:text-brand-500 transition-colors">
+              {{ a.label }}
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <div class="card card-md bg-emerald-50/60 border-emerald-100">
+      <h2 class="font-bold text-emerald-700 text-xs uppercase tracking-wide mb-3">Communiquer sur WhatsApp</h2>
+      <ul class="space-y-1">
+        {% set whatsappActions = [
+          {label: 'Nouveau message', href: '/admin/messages'},
+          {label: 'Listes de diffusion', href: '/admin/messages'},
+          {label: 'Messages programmés', href: '/admin/messages'},
+          {label: 'Statistiques WhatsApp', href: '/admin/messages'},
+        ] %}
+        {% for a in whatsappActions %}
+          <li>
+            <a href="{{ base_path ~ a.href }}" class="flex items-center justify-between px-3 py-2 rounded-xl text-sm text-emerald-700 hover:bg-emerald-100/70 transition-colors">
+              {{ a.label }}
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+      <a href="{{ base_path }}/admin/messages" class="btn-primary w-full mt-3 justify-center">Accéder au WhatsApp</a>
+    </div>
+  </div>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+  if (typeof Chart === 'undefined') return;
+
+  const blue = '#3b82f6', emerald = '#10b981';
+  Chart.defaults.font.family = 'Montserrat, sans-serif';
+  Chart.defaults.font.size = 11;
+  Chart.defaults.color = '#6b7280';
+
+  const reg = {{ clientRegistrations|json_encode|raw }};
+  new Chart(document.getElementById('chart-registrations'), {
+    type: 'line',
+    data: {
+      labels: reg.map(r => { const d = new Date(r.jour); return d.toLocaleDateString('fr-FR', {day:'2-digit', month:'short'}); }),
+      datasets: [
+        { label: 'Total', data: reg.map(r => r.total), borderColor: blue, backgroundColor: blue + '20', fill: true, tension: 0.35, borderWidth: 2, pointRadius: 3, pointBackgroundColor: blue },
+        { label: 'Nouveaux', data: reg.map(r => r.nouveaux), borderColor: emerald, backgroundColor: emerald + '20', fill: true, tension: 0.35, borderWidth: 2, pointRadius: 3, pointBackgroundColor: emerald }
+      ]
+    },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: '#f3f4f6' } }, x: { grid: { display: false } } } }
+  });
+
+  const sources = {{ registrationsBySource|json_encode|raw }};
+  const sourceLabels = {{ registrationSourceLabels|json_encode|raw }};
+  const sourceColors = { bar: '#3b82f6', tabac: '#ef4444', jeux_services: '#10b981', pmu: '#f59e0b', nirio: '#a855f7' };
+  const labels = sources.map(s => sourceLabels[s.registration_source] || s.registration_source);
+  const data = sources.map(s => parseInt(s.nb));
+  const colors = sources.map(s => sourceColors[s.registration_source] || '#6b7280');
+
+  if (data.length) {
+    new Chart(document.getElementById('chart-segments'), {
+      type: 'doughnut',
+      data: { labels: labels, datasets: [{ data: data, backgroundColor: colors, borderWidth: 0 }] },
+      options: { responsive: true, cutout: '65%', plugins: { legend: { display: false } } }
+    });
+  }
+
+  {% if ga4.series is not empty %}
+  const ga4Series = {{ ga4.series|json_encode|raw }};
+  new Chart(document.getElementById('chart-ga4'), {
+    type: 'line',
+    data: {
+      labels: ga4Series.map(s => s.date.slice(4,6) + '/' + s.date.slice(6,8)),
+      datasets: [{ data: ga4Series.map(s => s.sessions), borderColor: '#c8102e', backgroundColor: '#c8102e20', fill: true, tension: 0.35, borderWidth: 2, pointRadius: 0 }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { display: false } } }
+  });
+  {% endif %}
+})();
+
+// --- Carte "Clients à proximité" (Leaflet + OpenStreetMap) ---
+(function () {
+  if (typeof L === 'undefined') return;
+  const shopLat = {{ shop.latitude }};
+  const shopLng = {{ shop.longitude }};
+  const map = L.map('proximity-map', { zoomControl: false, attributionControl: false }).setView([shopLat, shopLng], 14);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+  L.circleMarker([shopLat, shopLng], { radius: 9, color: '#c8102e', fillColor: '#c8102e', fillOpacity: 1 })
+    .addTo(map).bindPopup('{{ shop.name|e('js') }}');
+
+  const clients = {{ nearbyLocations|json_encode|raw }};
+  clients.forEach(function (c) {
+    L.circleMarker([parseFloat(c.latitude), parseFloat(c.longitude)], { radius: 7, color: '#3b82f6', fillColor: '#3b82f6', fillOpacity: 0.85 })
+      .addTo(map)
+      .bindPopup((c.first_name + ' ' + c.last_name).trim());
+  });
+})();
+</script>

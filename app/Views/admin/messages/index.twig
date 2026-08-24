@@ -1,0 +1,502 @@
+{% set segmentLabels = {'fidele': 'Fidèle', 'nouveau': 'Nouveau', 'occasionnel': 'Occasionnel'} %}
+{% set labelColorClasses = {
+    'gray':   'bg-gray-100 text-gray-700',
+    'amber':  'bg-amber-100 text-amber-700',
+    'blue':   'bg-blue-100 text-blue-700',
+    'purple': 'bg-purple-100 text-purple-700',
+    'green':  'bg-green-100 text-green-700',
+    'red':    'bg-red-100 text-red-700',
+} %}
+{% set channelMeta = {
+    'email':    {label: 'E-mail',   color: '#c8272c'},
+    'sms':      {label: 'SMS',      color: '#f97316'},
+    'whatsapp': {label: 'WhatsApp', color: '#25D366'},
+} %}
+{% set quickReplies = {
+    'Réponse rapide': "Bonjour, merci pour votre message ! Je reviens vers vous très rapidement.",
+    'Offre spéciale':  "Bonjour ! Pour vous remercier de votre fidélité, voici une offre spéciale réservée à nos meilleurs clients 🎁",
+    'Carte cadeau':    "Bonjour ! Nous avons une carte cadeau qui pourrait vous intéresser, souhaitez-vous en savoir plus ?",
+    'Inviter un ami':  "Le saviez-vous ? Parrainez un ami et gagnez 10€ de crédit dès sa première recharge !",
+} %}
+
+<!-- En-tête -->
+<div class="flex items-start justify-between gap-4 mb-6 flex-wrap">
+  <div>
+    <h1 class="font-extrabold text-ink" style="font-size:22px; letter-spacing:-0.5px;">Messages</h1>
+    <p class="text-gray-500 mt-1" style="font-size:13px;">Communiquez avec vos clients par e-mail, SMS, WhatsApp et plus encore.</p>
+  </div>
+  <button type="button" onclick="document.getElementById('new-message-modal').classList.remove('hidden')"
+          class="inline-flex items-center gap-2 bg-brand-500 hover:bg-brand-600 text-white font-bold px-5 py-2.5 rounded-lg shadow-sm transition-colors" style="font-size:13px;">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+    Nouveau message
+  </button>
+</div>
+
+<!-- Cartes KPI -->
+<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+  <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-4 flex items-center gap-3">
+    <div class="w-10 h-10 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center shrink-0">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.86 9.86 0 01-4-.8L3 20l1.3-3.9A7.96 7.96 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+    </div>
+    <div>
+      <p class="text-gray-500 font-semibold" style="font-size:10.5px;">TOUTES BOÎTES</p>
+      <p class="font-black text-ink" style="font-size:20px; line-height:1;">{{ (totalContacts + totalWhatsapp + totalSms)|number_format }}</p>
+    </div>
+  </div>
+  <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-4 flex items-center gap-3">
+    <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style="background:#fee2e2; color:#c8272c;">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+    </div>
+    <div>
+      <p class="text-gray-500 font-semibold" style="font-size:10.5px;">E-MAILS</p>
+      <p class="font-black text-ink" style="font-size:20px; line-height:1;">{{ totalContacts|number_format }} <span class="text-brand-500 font-semibold" style="font-size:11px;">Non lus : {{ unreadContacts }}</span></p>
+    </div>
+  </div>
+  <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-4 flex items-center gap-3">
+    <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style="background:#ffedd5; color:#f97316;">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.86 9.86 0 01-4-.8L3 20l1.3-3.9A7.96 7.96 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+    </div>
+    <div>
+      <p class="text-gray-500 font-semibold" style="font-size:10.5px;">SMS</p>
+      <p class="font-black text-ink" style="font-size:20px; line-height:1;">{{ totalSms|number_format }} <span class="font-semibold" style="font-size:11px; color:#f97316;">Non lus : {{ smsIncoming }}</span></p>
+    </div>
+  </div>
+  <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-4 flex items-center gap-3">
+    <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style="background:#dcfce7; color:#16a34a;">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.4A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-2.9.8.8-2.8-.2-.3A8 8 0 1 1 12 20z"/></svg>
+    </div>
+    <div>
+      <p class="text-gray-500 font-semibold" style="font-size:10.5px;">WHATSAPP</p>
+      <p class="font-black text-ink" style="font-size:20px; line-height:1;">{{ totalWhatsapp|number_format }} <span class="text-green-600 font-semibold" style="font-size:11px;">Non lus : {{ whatsappIncoming }}</span></p>
+    </div>
+  </div>
+  <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-4 flex items-center gap-3">
+    <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style="background:#f3e8ff; color:#9333ea;">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+    </div>
+    <div>
+      <p class="text-gray-500 font-semibold" style="font-size:10.5px;">NOTIFICATIONS</p>
+      <p class="font-black text-ink" style="font-size:20px; line-height:1;">{{ notificationsCount|number_format }}</p>
+    </div>
+  </div>
+  <a href="{{ base_path }}/admin/messages?tab=scheduled" class="bg-white border border-gray-200 rounded-xl shadow-sm p-4 flex items-center gap-3 hover:border-blue-300 transition-colors">
+    <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style="background:#dbeafe; color:#2563eb;">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+    </div>
+    <div>
+      <p class="text-gray-500 font-semibold" style="font-size:10.5px;">PROGRAMMÉS</p>
+      <p class="font-black text-ink" style="font-size:20px; line-height:1;">{{ scheduledCount|number_format }} <span class="text-blue-600 font-semibold" style="font-size:11px;">À venir</span></p>
+    </div>
+  </a>
+</div>
+
+<!-- Onglets -->
+{% set tabs = {'inbox': 'Boîte de réception', 'sent': 'Envoyés', 'drafts': 'Brouillons', 'archive': 'Archives', 'spam': 'Spam'} %}
+<div class="flex items-center gap-1 border-b border-gray-200 mb-4 overflow-x-auto">
+  {% for key, tabLabel in tabs %}
+    <a href="{{ base_path }}/admin/messages?tab={{ key }}"
+       class="px-4 py-2.5 font-semibold border-b-2 whitespace-nowrap transition-colors {{ tab == key ? 'border-brand-500 text-brand-500' : 'border-transparent text-gray-500 hover:text-ink' }}"
+       style="font-size:13px;">
+      {{ tabLabel }}
+    </a>
+  {% endfor %}
+</div>
+
+{% if tab == 'inbox' %}
+
+  <!-- Recherche + filtres -->
+  <form method="GET" action="{{ base_path }}/admin/messages" class="flex items-center gap-3 mb-4 flex-wrap">
+    <input type="hidden" name="tab" value="inbox">
+    <div class="relative flex-1 min-w-[220px]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+      <input type="text" name="q" value="{{ q }}" placeholder="Rechercher un message..."
+             class="w-full border border-gray-200 rounded-lg pl-9 pr-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500" style="font-size:13px;">
+    </div>
+    <select name="channel" onchange="this.form.submit()" class="border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500" style="font-size:13px;">
+      <option value="tous" {{ channel == 'tous' ? 'selected' : '' }}>Tous les canaux</option>
+      <option value="email" {{ channel == 'email' ? 'selected' : '' }}>E-mail</option>
+      <option value="sms" {{ channel == 'sms' ? 'selected' : '' }}>SMS</option>
+      <option value="whatsapp" {{ channel == 'whatsapp' ? 'selected' : '' }}>WhatsApp</option>
+    </select>
+    <select name="label" onchange="this.form.submit()" class="border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500" style="font-size:13px;">
+      <option value="tous" {{ label == 'tous' ? 'selected' : '' }}>Toutes les étiquettes</option>
+      {% for lbl in allLabels %}
+        <option value="{{ lbl }}" {{ label == lbl ? 'selected' : '' }}>{{ lbl }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="text-gray-500 hover:text-brand-500 font-semibold transition-colors" style="font-size:12.5px;">Filtrer</button>
+  </form>
+
+  <!-- Boîte de réception -->
+  <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden" style="height:640px;">
+    <div class="grid h-full" style="grid-template-columns: 300px 1fr 300px;">
+
+      <!-- Colonne 1 : liste -->
+      <div class="border-r border-gray-100 overflow-y-auto">
+        {% if inbox is empty %}
+          <div class="text-center py-16 px-4">
+            <p class="text-gray-400 text-sm">Aucun message ne correspond à ces filtres.</p>
+          </div>
+        {% endif %}
+        {% for item in inbox %}
+          {% set isSelected = (item.type == 'contact' and selectedContact and selectedContact.id == item.id)
+                     or (item.type != 'contact' and selectedUser and selectedChannel == item.type and selectedUser.id == item.id) %}
+          {% set href = item.type == 'contact'
+            ? base_path ~ '/admin/messages?type=contact&id=' ~ item.id
+            : base_path ~ '/admin/messages?type=' ~ item.type ~ '&user=' ~ item.id %}
+          <a href="{{ href }}" class="flex items-start gap-2.5 px-4 py-3 border-b border-gray-50 transition-colors {{ isSelected ? 'bg-brand-50' : 'hover:bg-gray-50' }}">
+            <span class="w-2 h-2 rounded-full mt-1.5 shrink-0 {{ item.unread ? 'bg-brand-500' : 'bg-transparent' }}"></span>
+            {% if item.type == 'whatsapp' %}
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 mt-1 shrink-0" style="color:#25D366;" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.4A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-2.9.8.8-2.8-.2-.3A8 8 0 1 1 12 20z"/></svg>
+            {% elseif item.type == 'sms' %}
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 mt-1 shrink-0" style="color:#f97316;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.86 9.86 0 01-4-.8L3 20l1.3-3.9A7.96 7.96 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+            {% else %}
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 mt-1 shrink-0 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            {% endif %}
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center justify-between gap-2">
+                <p class="font-semibold text-ink truncate" style="font-size:12.5px;">{{ item.name }}</p>
+                <span class="text-gray-400 shrink-0" style="font-size:10.5px;">{{ item.time|date('d/m') }}</span>
+              </div>
+              <p class="text-gray-500 truncate" style="font-size:11.5px;">{{ item.preview }}</p>
+              {% if item.labels is not empty %}
+                <div class="flex items-center gap-1 mt-1 flex-wrap">
+                  {% for lbl in item.labels %}
+                    <span class="px-1.5 py-0.5 rounded-full font-semibold {{ labelColorClasses[lbl.color]|default(labelColorClasses.gray) }}" style="font-size:9.5px;">{{ lbl.label }}</span>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+
+      <!-- Colonne 2 : conversation / message -->
+      <div class="flex flex-col min-w-0">
+        {% if selectedContact %}
+          <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <p class="font-bold text-ink" style="font-size:14px;">{{ selectedContact.name }}</p>
+              <span class="px-2 py-0.5 rounded-full font-semibold" style="font-size:10px; background:#fee2e2; color:#c8272c;">E-mail</span>
+            </div>
+            <form method="POST" action="{{ base_path }}/admin/messages/contact/{{ selectedContact.id }}/lu">
+              {{ csrf_field() }}
+              <button type="submit" class="text-xs font-semibold text-gray-400 hover:text-brand-500 transition-colors">
+                Marquer {{ selectedContact.is_read ? 'non lu' : 'lu' }}
+              </button>
+            </form>
+          </div>
+          <div class="flex-1 overflow-y-auto p-5">
+            <p class="text-gray-400" style="font-size:12px;">{{ selectedContact.email }} · {{ selectedContact.created_at|date('d/m/Y H:i') }}</p>
+            <p class="font-bold text-ink mt-3 mb-3" style="font-size:14px;">{{ selectedContact.subject ?: 'Sans objet' }}</p>
+            <p class="text-gray-600 whitespace-pre-line leading-relaxed" style="font-size:13.5px;">{{ selectedContact.message }}</p>
+          </div>
+          <div class="px-5 py-4 border-t border-gray-100">
+            <a href="mailto:{{ selectedContact.email }}?subject={{ ('RE: ' ~ (selectedContact.subject ?: 'Votre message'))|url_encode }}"
+               class="inline-flex items-center gap-2 text-white font-bold px-4 py-2.5 rounded-lg transition-opacity hover:opacity-90" style="background:#c8272c; font-size:13px;">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+              Répondre par e-mail
+            </a>
+          </div>
+
+        {% elseif selectedUser and selectedThread is not null %}
+          {% set isWhats = selectedChannel == 'whatsapp' %}
+          {% set accent  = isWhats ? '#25D366' : '#f97316' %}
+          {% set sendUrl = base_path ~ '/admin/messages/' ~ selectedChannel ~ '/' ~ selectedUser.id %}
+          <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+            <div class="flex items-center gap-2 flex-wrap">
+              <p class="font-bold text-ink" style="font-size:14px;">{{ selectedUser.first_name }} {{ selectedUser.last_name }}</p>
+              <span class="px-2 py-0.5 rounded-full font-semibold text-white" style="font-size:10px; background:{{ accent }};">{{ isWhats ? 'WhatsApp' : 'SMS' }}</span>
+              {% for lbl in clientLabels %}
+                <span class="px-2 py-0.5 rounded-full font-semibold {{ labelColorClasses[lbl.color]|default(labelColorClasses.gray) }}" style="font-size:10px;">{{ lbl.label }}</span>
+              {% endfor %}
+            </div>
+            <a href="{{ base_path }}/admin/clients/{{ selectedUser.id }}" class="text-xs font-semibold text-brand-500 hover:text-brand-600 shrink-0">Voir la fiche</a>
+          </div>
+          <div class="flex-1 overflow-y-auto p-5 space-y-3" style="background:#f7f7f6;">
+            {% if selectedThread is empty %}
+              <p class="text-gray-400 text-sm text-center py-8">Aucun message échangé pour l'instant.</p>
+            {% endif %}
+            {% for msg in selectedThread %}
+              {% set out = msg.direction == 'sortant' %}
+              <div class="flex {{ out ? 'justify-end' : 'justify-start' }}">
+                <div class="max-w-[75%] rounded-2xl px-4 py-2.5 {{ out ? 'text-white' : 'bg-white border border-gray-100' }}" style="{{ out ? 'background:' ~ accent ~ ';' : '' }}">
+                  <p class="whitespace-pre-line" style="font-size:13px;">{{ msg.content }}</p>
+                  <p class="mt-1 {{ out ? 'text-white/70' : 'text-gray-400' }}" style="font-size:10.5px;">{{ msg.sent_at|date('d/m H:i') }}</p>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+
+          <!-- Réponses rapides -->
+          <div class="px-4 pt-3 flex items-center gap-2 flex-wrap border-t border-gray-100">
+            {% for qLabel, qText in quickReplies %}
+              <button type="button" onclick='document.getElementById("composer-{{ selectedChannel }}-{{ selectedUser.id }}").value = {{ qText|json_encode|raw }}; document.getElementById("composer-{{ selectedChannel }}-{{ selectedUser.id }}").focus();'
+                      class="px-3 py-1.5 rounded-full border border-gray-200 text-gray-600 font-semibold hover:border-brand-300 hover:text-brand-500 transition-colors" style="font-size:11.5px;">
+                {{ qLabel }}
+              </button>
+            {% endfor %}
+          </div>
+
+          <form method="POST" action="{{ sendUrl }}" class="px-4 py-3 flex items-center gap-2">
+            {{ csrf_field() }}
+            <input type="hidden" name="back_channel" value="{{ selectedChannel }}">
+            <input type="text" id="composer-{{ selectedChannel }}-{{ selectedUser.id }}" name="content" required placeholder="Écrire un message..."
+                   class="flex-1 min-w-0 border border-gray-200 rounded-full px-4 py-2.5 focus:outline-none focus:ring-2" style="font-size:13px;">
+            <label class="flex items-center gap-1.5 text-gray-500 shrink-0" style="font-size:11px;" title="Programmer l'envoi">
+              <input type="datetime-local" name="scheduled_at" class="border border-gray-200 rounded-lg px-2 py-2 hidden sm:block" style="font-size:11px;">
+            </label>
+            <button type="submit" class="shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-white transition-opacity hover:opacity-90" style="background:{{ accent }};">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+            </button>
+          </form>
+
+        {% else %}
+          <div class="flex-1 flex items-center justify-center">
+            <p class="text-gray-400 text-sm">Sélectionnez une conversation.</p>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Colonne 3 : détails contact -->
+      <div class="border-l border-gray-100 overflow-y-auto p-5">
+        {% if selectedUser %}
+          <p class="text-gray-400 uppercase font-bold mb-3" style="font-size:10.5px; letter-spacing:0.5px;">Détails du contact</p>
+          <p class="font-bold text-ink" style="font-size:14px;">{{ selectedUser.first_name }} {{ selectedUser.last_name }}</p>
+          <p class="text-gray-500 mt-1" style="font-size:12.5px;">{{ selectedUser.phone_whatsapp }}</p>
+          {% if selectedUser.email is not empty %}
+            <p class="text-gray-500 break-all" style="font-size:12.5px;">{{ selectedUser.email }}</p>
+          {% endif %}
+          <p class="text-gray-400 mt-2" style="font-size:11.5px;">Inscrit le {{ selectedUser.created_at|date('d/m/Y') }}</p>
+          <p class="mt-2">
+            <span class="px-2.5 py-1 rounded-full font-semibold bg-gray-100 text-gray-700" style="font-size:11px;">
+              {{ segmentLabels[selectedUser.segment]|default(selectedUser.segment) }}
+            </span>
+          </p>
+          {% if selectedWallet %}
+            <p class="mt-3 text-gray-500" style="font-size:12px;">Portefeuille : <span class="font-bold text-ink">{{ selectedWallet.balance|number_format(2, ',', ' ') }} €</span></p>
+          {% endif %}
+
+          <!-- Actions rapides -->
+          <p class="text-gray-400 uppercase font-bold mt-5 mb-2" style="font-size:10.5px; letter-spacing:0.5px;">Actions rapides</p>
+          <div class="space-y-1.5">
+            <a href="mailto:{{ selectedUser.email|default('') }}" class="flex items-center gap-2 text-gray-600 hover:text-brand-500 transition-colors" style="font-size:12.5px;">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+              Envoyer un e-mail
+            </a>
+            <a href="{{ base_path }}/admin/messages?type=sms&user={{ selectedUser.id }}" class="flex items-center gap-2 text-gray-600 hover:text-brand-500 transition-colors" style="font-size:12.5px;">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.86 9.86 0 01-4-.8L3 20l1.3-3.9A7.96 7.96 0 013 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+              Envoyer un SMS
+            </a>
+            <a href="{{ base_path }}/admin/messages?type=whatsapp&user={{ selectedUser.id }}" class="flex items-center gap-2 text-gray-600 hover:text-brand-500 transition-colors" style="font-size:12.5px;">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.4A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-2.9.8.8-2.8-.2-.3A8 8 0 1 1 12 20z"/></svg>
+              Envoyer un WhatsApp
+            </a>
+            <a href="{{ base_path }}/admin/offres/creer" class="flex items-center gap-2 text-gray-600 hover:text-brand-500 transition-colors" style="font-size:12.5px;">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+              Créer une offre personnalisée
+            </a>
+            <button type="button" onclick="document.getElementById('note-form-{{ selectedUser.id }}').classList.toggle('hidden')" class="flex items-center gap-2 text-gray-600 hover:text-brand-500 transition-colors" style="font-size:12.5px;">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+              Ajouter une note
+            </button>
+          </div>
+
+          <form id="note-form-{{ selectedUser.id }}" method="POST" action="{{ base_path }}/admin/messages/clients/{{ selectedUser.id }}/notes" class="hidden mt-2 space-y-2">
+            {{ csrf_field() }}
+            <input type="hidden" name="back_channel" value="{{ selectedChannel }}">
+            <textarea name="content" rows="2" placeholder="Écrire une note interne..." class="w-full border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500" style="font-size:12.5px;"></textarea>
+            <button type="submit" class="w-full text-white font-bold py-2 rounded-lg" style="background:#c8272c; font-size:12px;">Enregistrer la note</button>
+          </form>
+
+          {% if clientNotes is not empty %}
+            <div class="mt-3 space-y-2">
+              {% for note in clientNotes|slice(0, 3) %}
+                <div class="bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+                  <p class="text-gray-700" style="font-size:12px;">{{ note.content }}</p>
+                  <p class="text-amber-600 mt-1" style="font-size:10px;">{{ note.created_at|date('d/m/Y H:i') }}</p>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          <!-- Statistiques d'engagement -->
+          {% if engagement %}
+            <p class="text-gray-400 uppercase font-bold mt-5 mb-2" style="font-size:10.5px; letter-spacing:0.5px;">Statistiques d'engagement</p>
+            <div class="grid grid-cols-2 gap-2">
+              <div class="bg-gray-50 rounded-lg px-3 py-2">
+                <p class="text-gray-400" style="font-size:10px;">Messages échangés</p>
+                <p class="font-bold text-ink" style="font-size:14px;">{{ engagement.total }}</p>
+              </div>
+              <div class="bg-gray-50 rounded-lg px-3 py-2">
+                <p class="text-gray-400" style="font-size:10px;">Taux de réponse</p>
+                <p class="font-bold text-ink" style="font-size:14px;">{{ engagement.responseRate }}%</p>
+              </div>
+              <div class="bg-gray-50 rounded-lg px-3 py-2">
+                <p class="text-gray-400" style="font-size:10px;">Dernier contact</p>
+                <p class="font-bold text-ink" style="font-size:12px;">{{ engagement.lastContact ? engagement.lastContact|date('d/m/Y') : '—' }}</p>
+              </div>
+              <div class="bg-gray-50 rounded-lg px-3 py-2">
+                <p class="text-gray-400" style="font-size:10px;">Canal préféré</p>
+                <p class="font-bold text-ink" style="font-size:12px;">{{ engagement.preferredChannel ? engagement.preferredChannel|capitalize : '—' }}</p>
+              </div>
+            </div>
+          {% endif %}
+
+          <!-- Étiquettes -->
+          <div class="flex items-center justify-between mt-5 mb-2">
+            <p class="text-gray-400 uppercase font-bold" style="font-size:10.5px; letter-spacing:0.5px;">Étiquettes</p>
+            <button type="button" onclick="document.getElementById('label-form-{{ selectedUser.id }}').classList.toggle('hidden')" class="text-brand-500 font-semibold hover:text-brand-600" style="font-size:11px;">Gérer</button>
+          </div>
+          <div class="flex items-center gap-1.5 flex-wrap">
+            {% for lbl in clientLabels %}
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full font-semibold {{ labelColorClasses[lbl.color]|default(labelColorClasses.gray) }}" style="font-size:11px;">
+                {{ lbl.label }}
+                <form method="POST" action="{{ base_path }}/admin/messages/etiquettes/{{ lbl.id }}/supprimer" class="inline">
+                  {{ csrf_field() }}
+                  <input type="hidden" name="user_id" value="{{ selectedUser.id }}">
+                  <input type="hidden" name="back_channel" value="{{ selectedChannel }}">
+                  <button type="submit" class="opacity-60 hover:opacity-100">&times;</button>
+                </form>
+              </span>
+            {% endfor %}
+            {% if clientLabels is empty %}
+              <p class="text-gray-400" style="font-size:11.5px;">Aucune étiquette.</p>
+            {% endif %}
+          </div>
+          <form id="label-form-{{ selectedUser.id }}" method="POST" action="{{ base_path }}/admin/messages/clients/{{ selectedUser.id }}/etiquettes" class="hidden mt-2 flex items-center gap-2">
+            {{ csrf_field() }}
+            <input type="hidden" name="back_channel" value="{{ selectedChannel }}">
+            <input type="text" name="label" required placeholder="Nouvelle étiquette" class="flex-1 min-w-0 border border-gray-200 rounded-lg px-2.5 py-1.5" style="font-size:11.5px;">
+            <select name="color" class="border border-gray-200 rounded-lg px-2 py-1.5" style="font-size:11.5px;">
+              {% for c in clientLabelColors %}
+                <option value="{{ c }}">{{ c|capitalize }}</option>
+              {% endfor %}
+            </select>
+            <button type="submit" class="text-white font-bold px-3 py-1.5 rounded-lg" style="background:#c8272c; font-size:11px;">+</button>
+          </form>
+
+        {% elseif selectedContact %}
+          <p class="text-gray-400 uppercase font-bold mb-3" style="font-size:10.5px; letter-spacing:0.5px;">Détails du contact</p>
+          <p class="font-bold text-ink" style="font-size:14px;">{{ selectedContact.name }}</p>
+          <p class="text-gray-500 break-all mt-1" style="font-size:12.5px;">{{ selectedContact.email }}</p>
+          <p class="text-gray-400 mt-2" style="font-size:11.5px;">Reçu le {{ selectedContact.created_at|date('d/m/Y à H:i') }}</p>
+          <p class="mt-3 px-2.5 py-1 inline-block rounded-full font-semibold bg-gray-100 text-gray-600" style="font-size:11px;">Formulaire de contact</p>
+          <p class="text-gray-400 mt-4" style="font-size:11.5px; line-height:1.6;">Ce message provient du formulaire public, il n'est pas forcément lié à un compte client inscrit.</p>
+        {% else %}
+          <p class="text-gray-400 text-sm">—</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+{% elseif tab == 'sent' %}
+
+  <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+    {% if sentMessages is empty %}
+      <div class="text-center py-16 px-4"><p class="text-gray-400 text-sm">Aucun message envoyé pour le moment.</p></div>
+    {% else %}
+      <table class="min-w-full">
+        <thead class="bg-gray-50 border-b border-gray-100">
+          <tr>
+            <th class="px-5 py-2.5 text-left font-bold text-gray-500 uppercase" style="font-size:10.5px;">Destinataire</th>
+            <th class="px-5 py-2.5 text-left font-bold text-gray-500 uppercase" style="font-size:10.5px;">Canal</th>
+            <th class="px-5 py-2.5 text-left font-bold text-gray-500 uppercase" style="font-size:10.5px;">Message</th>
+            <th class="px-5 py-2.5 text-right font-bold text-gray-500 uppercase" style="font-size:10.5px;">Envoyé le</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+          {% for m in sentMessages %}
+            {% set meta = channelMeta[m.channel] %}
+            <tr class="hover:bg-gray-50 transition-colors">
+              <td class="px-5 py-3">
+                <a href="{{ base_path }}/admin/messages?type={{ m.channel }}&user={{ m.userId }}" class="font-semibold text-ink hover:text-brand-500" style="font-size:13px;">{{ m.name }}</a>
+              </td>
+              <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full font-semibold text-white" style="font-size:10.5px; background:{{ meta.color }};">{{ meta.label }}</span></td>
+              <td class="px-5 py-3 text-gray-600 truncate" style="font-size:12.5px; max-width:420px;">{{ m.content }}</td>
+              <td class="px-5 py-3 text-right text-gray-500" style="font-size:12px;">{{ m.time|date('d/m/Y H:i') }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  </div>
+
+{% elseif tab == 'scheduled' %}
+
+  <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+    {% if scheduledMessages is empty %}
+      <div class="text-center py-16 px-4"><p class="text-gray-400 text-sm">Aucun message programmé.</p></div>
+    {% else %}
+      <table class="min-w-full">
+        <thead class="bg-gray-50 border-b border-gray-100">
+          <tr>
+            <th class="px-5 py-2.5 text-left font-bold text-gray-500 uppercase" style="font-size:10.5px;">Destinataire</th>
+            <th class="px-5 py-2.5 text-left font-bold text-gray-500 uppercase" style="font-size:10.5px;">Canal</th>
+            <th class="px-5 py-2.5 text-left font-bold text-gray-500 uppercase" style="font-size:10.5px;">Message</th>
+            <th class="px-5 py-2.5 text-left font-bold text-gray-500 uppercase" style="font-size:10.5px;">Programmé pour</th>
+            <th class="px-5 py-2.5"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+          {% for m in scheduledMessages %}
+            {% set meta = channelMeta[m.channel] %}
+            <tr class="hover:bg-gray-50 transition-colors">
+              <td class="px-5 py-3 font-semibold text-ink" style="font-size:13px;">{{ m.first_name }} {{ m.last_name }}</td>
+              <td class="px-5 py-3"><span class="px-2 py-0.5 rounded-full font-semibold text-white" style="font-size:10.5px; background:{{ meta.color }};">{{ meta.label }}</span></td>
+              <td class="px-5 py-3 text-gray-600 truncate" style="font-size:12.5px; max-width:380px;">{{ m.content }}</td>
+              <td class="px-5 py-3 text-gray-500" style="font-size:12px;">{{ m.scheduled_at|date('d/m/Y H:i') }}</td>
+              <td class="px-5 py-3 text-right">
+                <form method="POST" action="{{ base_path }}/admin/messages/programmes/{{ m.id }}/annuler">
+                  {{ csrf_field() }}
+                  <button type="submit" class="text-xs font-semibold text-red-500 hover:text-red-700">Annuler</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  </div>
+
+{% else %}
+
+  <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-16 text-center">
+    <p class="text-gray-400 text-sm">Cette section n'est pas encore disponible dans cette version.</p>
+  </div>
+
+{% endif %}
+
+<!-- Modale "Nouveau message" -->
+<div id="new-message-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+  <div class="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="font-bold text-ink" style="font-size:16px;">Nouveau message</h2>
+      <button type="button" onclick="document.getElementById('new-message-modal').classList.add('hidden')" class="text-gray-400 hover:text-ink">&times;</button>
+    </div>
+    <form method="POST" action="{{ base_path }}/admin/messages/nouveau" class="space-y-3">
+      {{ csrf_field() }}
+      <div>
+        <label class="block text-gray-500 font-semibold mb-1" style="font-size:12px;">Client</label>
+        <select name="user_id" required class="w-full border border-gray-200 rounded-lg px-3 py-2.5" style="font-size:13px;">
+          <option value="">Choisir un client...</option>
+          {% for c in allClients %}
+            <option value="{{ c.id }}">{{ c.first_name }} {{ c.last_name }} — {{ c.phone_whatsapp }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="block text-gray-500 font-semibold mb-1" style="font-size:12px;">Canal</label>
+        <select name="channel" class="w-full border border-gray-200 rounded-lg px-3 py-2.5" style="font-size:13px;">
+          <option value="whatsapp">WhatsApp</option>
+          <option value="sms">SMS</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-gray-500 font-semibold mb-1" style="font-size:12px;">Message</label>
+        <textarea name="content" rows="3" required placeholder="Votre message..." class="w-full border border-gray-200 rounded-lg px-3 py-2.5" style="font-size:13px;"></textarea>
+      </div>
+      <button type="submit" class="w-full text-white font-bold py-2.5 rounded-lg" style="background:#c8272c; font-size:13px;">Envoyer</button>
+    </form>
+  </div>
+</div>

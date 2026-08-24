@@ -1,0 +1,34 @@
+<div class="w-full max-w-md bg-ink text-white rounded-2xl shadow-sm p-8">
+  <div class="flex items-center gap-2 mb-1">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2zm10-10V7a4 4 0 1 0-8 0v4h8z"/></svg>
+    <h1 class="font-extrabold" style="font-size:22px; letter-spacing:-0.5px;">Espace Administrateur</h1>
+  </div>
+  <p class="text-gray-400 mb-6" style="font-size:13px; letter-spacing:0.3px;">Réservé au personnel du Commerce.</p>
+
+  {% if error %}
+    <div class="flex items-start gap-2 bg-brand-500/10 text-brand-400 border border-brand-500/30 rounded-lg px-4 py-3 text-sm mb-5">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M12 8v5M12 16h.01"/></svg>
+      {{ error }}
+    </div>
+  {% endif %}
+
+  <form method="POST" action="{{ base_path }}/admin/connexion" class="space-y-4">
+    {{ csrf_field() }}
+
+    <div>
+      <label class="block font-semibold mb-1.5" style="font-size:13px; letter-spacing:0.3px;">Adresse e-mail</label>
+      <input type="email" name="email" required autofocus value="{{ old.email|default('') }}"
+             class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500">
+    </div>
+
+    <div>
+      <label class="block font-semibold mb-1.5" style="font-size:13px; letter-spacing:0.3px;">Mot de passe</label>
+      <input type="password" name="password" required placeholder="••••••••"
+             class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:border-brand-500">
+    </div>
+
+    <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold text-sm px-6 py-3.5 rounded-lg transition-colors">
+      Se connecter
+    </button>
+  </form>
+</div>

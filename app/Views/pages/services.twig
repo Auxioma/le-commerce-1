@@ -1,0 +1,14 @@
+{% set heroEyebrow = 'NOS SERVICES' %}
+{% set heroText = "Un commerce de proximité qui simplifie votre quotidien : colis, factures, retraits d'espèces et bien plus, sans rendez-vous." %}
+{% set heroActions = [
+    {href: base_path ~ '/contact', label: 'Une question ?', class: 'btn-primary'},
+] %}
+{% set heroSlug = 'hero_services' %}
+{% include 'partials/page-hero.twig' %}
+
+<section class="max-w-[1536px] mx-auto px-6 lg:px-10 py-12">
+  {% set gridTitle = 'TOUS VOS SERVICES DU QUOTIDIEN' %}
+  {% set gridItems = categories %}
+  {% set gridCols = 3 %}
+  {% include 'partials/feature-grid.twig' %}
+</section>

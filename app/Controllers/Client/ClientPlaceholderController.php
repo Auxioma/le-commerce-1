@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controllers\Client;
 
 use App\Core\Controller;
@@ -19,7 +21,7 @@ class ClientPlaceholderController extends Controller
 
         if (!isset(self::SECTIONS[$section])) {
             http_response_code(404);
-            require dirname(__DIR__, 2) . '/Views/errors/404.php';
+            echo \App\Core\View::render('errors/404');
             return;
         }
 

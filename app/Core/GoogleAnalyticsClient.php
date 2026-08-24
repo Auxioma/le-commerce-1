@@ -1,136 +1,160 @@
 <?php
 
-namespace App\Core;
+declare(strict_types=1);
 
-use App\Models\Settings;
+namespace App\Core;
 
 /**
  * Client minimaliste pour l'API GA4 Data (Google Analytics), sans
- * dépendance Composer (le projet reste 100 % PHP natif) : génère un JWT
- * signé RS256 à partir du compte de service, l'échange contre un jeton
- * d'accès OAuth2, puis appelle l'endpoint runReport.
+ * dépendance Composer (le projet reste 100 % PHP natif), qui appelle
+ * l'endpoint runReport après authentification.
  *
- * Configuration attendue dans /admin/parametres (table `settings`) :
- * - ga4_property_id           : identifiant numérique de la propriété GA4
- *                               (ex: "properties/123456789" ou juste "123456789")
- * - ga4_service_account_json  : contenu JSON complet du fichier de clé du
- *                               compte de service Google (rôle "Lecteur"
- *                               sur la propriété GA4 concernée)
+ * Authentification : OAuth 2.0 "utilisateur" — un identifiant client Web
+ * (Google Cloud Console → Identifiants) associé à un refresh_token obtenu
+ * une fois pour toutes via la connexion admin depuis /admin/parametres
+ * (voir AdminGoogleOAuthController). Toute la configuration vit dans le
+ * fichier .env du serveur (jamais en base de données, jamais dans un
+ * fichier JSON versionné) :
+ *
+ * - GA4_PROPERTY_ID          : identifiant numérique de la propriété GA4
+ * - GA4_OAUTH_CLIENT_ID      : client_id de l'identifiant OAuth Web
+ * - GA4_OAUTH_CLIENT_SECRET  : client_secret de ce même identifiant
+ * - GA4_OAUTH_REFRESH_TOKEN  : obtenu (et réécrit dans .env) automatiquement
+ *                              par AdminGoogleOAuthController::callback()
  */
 class GoogleAnalyticsClient
 {
-    private const TOKEN_URL  = 'https://oauth2.googleapis.com/token';
-    private const API_BASE   = 'https://analyticsdata.googleapis.com/v1beta';
-    private const SCOPE      = 'https://www.googleapis.com/auth/analytics.readonly';
-    private const CACHE_FILE = 'ga4_access_token.json';
+    private const TOKEN_URL = 'https://oauth2.googleapis.com/token';
+    private const API_BASE  = 'https://analyticsdata.googleapis.com/v1beta';
+    private const SCOPE     = 'https://www.googleapis.com/auth/analytics.readonly';
+
+    /** Jeton d'accès mis en cache le temps de la requête HTTP (plusieurs
+     *  runReport() sont appelés par page), jamais persisté sur disque. */
+    private static ?string $cachedAccessToken = null;
 
     private string $propertyId;
-    private array $credentials;
+    private string $clientId;
+    private string $clientSecret;
+    private string $refreshToken;
 
-    private function __construct(string $propertyId, array $credentials)
+    private function __construct(string $propertyId, string $clientId, string $clientSecret, string $refreshToken)
     {
-        $this->propertyId  = 'properties/' . preg_replace('/^properties\//', '', $propertyId);
-        $this->credentials = $credentials;
+        $this->propertyId   = 'properties/' . preg_replace('/^properties\//', '', $propertyId);
+        $this->clientId     = $clientId;
+        $this->clientSecret = $clientSecret;
+        $this->refreshToken = $refreshToken;
     }
 
     /**
-     * Construit le client à partir des paramètres enregistrés en base.
-     * Renvoie null si la configuration est absente ou invalide (le
+     * Construit le client à partir des variables d'environnement (.env).
+     * Renvoie null si la configuration est absente ou incomplète (le
      * contrôleur doit alors afficher un message d'invite à configurer).
      */
     public static function fromSettings(): ?self
     {
-        $propertyId = trim((string) Settings::get('ga4_property_id', ''));
-        $json       = trim((string) Settings::get('ga4_service_account_json', ''));
+        $propertyId   = trim((string) getenv('GA4_PROPERTY_ID'));
+        $clientId     = trim((string) getenv('GA4_OAUTH_CLIENT_ID'));
+        $clientSecret = trim((string) getenv('GA4_OAUTH_CLIENT_SECRET'));
+        $refreshToken = trim((string) getenv('GA4_OAUTH_REFRESH_TOKEN'));
 
-        if ($propertyId === '' || $json === '') {
+        if ($propertyId === '' || $clientId === '' || $clientSecret === '' || $refreshToken === '') {
             return null;
         }
 
-        $credentials = json_decode($json, true);
-        if (!is_array($credentials) || empty($credentials['private_key']) || empty($credentials['client_email'])) {
-            return null;
-        }
-
-        return new self($propertyId, $credentials);
+        return new self($propertyId, $clientId, $clientSecret, $refreshToken);
     }
 
     /**
-     * Récupère un jeton d'accès valide, depuis le cache disque si non
-     * expiré, sinon en négociant un nouveau jeton auprès de Google.
+     * Échange un code d'autorisation (reçu sur /callback/google/analytics)
+     * contre un refresh_token, puis le persiste dans .env. Renvoie false si
+     * l'échange échoue ou si Google ne renvoie pas de refresh_token (arrive
+     * si l'utilisateur a déjà autorisé l'appli sans `prompt=consent`).
+     */
+    public static function exchangeAuthorizationCode(string $code, string $redirectUri): bool
+    {
+        $clientId     = trim((string) getenv('GA4_OAUTH_CLIENT_ID'));
+        $clientSecret = trim((string) getenv('GA4_OAUTH_CLIENT_SECRET'));
+        if ($clientId === '' || $clientSecret === '') {
+            error_log('[GoogleAnalyticsClient] GA4_OAUTH_CLIENT_ID / GA4_OAUTH_CLIENT_SECRET absents de .env.');
+            return false;
+        }
+
+        $response = self::httpPost(self::TOKEN_URL, [
+            'grant_type'    => 'authorization_code',
+            'code'          => $code,
+            'client_id'     => $clientId,
+            'client_secret' => $clientSecret,
+            'redirect_uri'  => $redirectUri,
+        ], ['Content-Type: application/x-www-form-urlencoded']);
+
+        $data = json_decode($response['body'] ?? '', true);
+        if ($response['status'] !== 200 || empty($data['refresh_token'])) {
+            error_log('[GoogleAnalyticsClient] Échec de l\'échange du code d\'autorisation OAuth : ' . ($response['body'] ?? 'réponse vide'));
+            return false;
+        }
+
+        self::persistEnvValue('GA4_OAUTH_REFRESH_TOKEN', $data['refresh_token']);
+        self::$cachedAccessToken = null;
+
+        return true;
+    }
+
+    /**
+     * Révoque la connexion OAuth locale (efface le refresh_token de .env).
+     * N'invalide pas le jeton côté Google — l'admin peut aussi le faire
+     * depuis https://myaccount.google.com/permissions.
+     */
+    public static function disconnectOAuth(): void
+    {
+        self::persistEnvValue('GA4_OAUTH_REFRESH_TOKEN', '');
+        self::$cachedAccessToken = null;
+    }
+
+    public static function isOAuthAuthorized(): bool
+    {
+        return trim((string) getenv('GA4_OAUTH_REFRESH_TOKEN')) !== '';
+    }
+
+    public static function hasOAuthClient(): bool
+    {
+        return trim((string) getenv('GA4_OAUTH_CLIENT_ID')) !== ''
+            && trim((string) getenv('GA4_OAUTH_CLIENT_SECRET')) !== '';
+    }
+
+    /**
+     * Valeur actuelle de GA4_PROPERTY_ID (pour affichage en lecture seule
+     * dans /admin/parametres), ou null si non définie.
+     */
+    public static function propertyId(): ?string
+    {
+        $value = trim((string) getenv('GA4_PROPERTY_ID'));
+        return $value !== '' ? $value : null;
+    }
+
+    /**
+     * Récupère un jeton d'accès valide (renouvelé via le refresh_token),
+     * mis en cache en mémoire pour la durée de la requête HTTP courante.
      */
     private function accessToken(): ?string
     {
-        $cachePath = dirname(__DIR__, 2) . '/storage/logs/' . self::CACHE_FILE;
-
-        if (is_file($cachePath)) {
-            $cached = json_decode((string) file_get_contents($cachePath), true);
-            if (is_array($cached) && ($cached['expires_at'] ?? 0) > time() + 30) {
-                return $cached['access_token'];
-            }
+        if (self::$cachedAccessToken !== null) {
+            return self::$cachedAccessToken;
         }
 
-        $jwt = $this->buildJwt();
-        if ($jwt === null) {
-            return null;
-        }
-
-        $response = $this->httpPost(self::TOKEN_URL, [
-            'grant_type' => 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-            'assertion'  => $jwt,
+        $response = self::httpPost(self::TOKEN_URL, [
+            'grant_type'    => 'refresh_token',
+            'refresh_token' => $this->refreshToken,
+            'client_id'     => $this->clientId,
+            'client_secret' => $this->clientSecret,
         ], ['Content-Type: application/x-www-form-urlencoded']);
 
         $data = json_decode($response['body'] ?? '', true);
         if ($response['status'] !== 200 || empty($data['access_token'])) {
-            error_log('[GoogleAnalyticsClient] Échec récupération du jeton OAuth2 : ' . ($response['body'] ?? 'réponse vide'));
+            error_log('[GoogleAnalyticsClient] Échec du renouvellement du jeton OAuth : ' . ($response['body'] ?? 'réponse vide'));
             return null;
         }
 
-        file_put_contents($cachePath, json_encode([
-            'access_token' => $data['access_token'],
-            'expires_at'   => time() + (int) ($data['expires_in'] ?? 3600),
-        ]));
-
-        return $data['access_token'];
-    }
-
-    /**
-     * Construit et signe (RS256) le JWT nécessaire au flux
-     * "JWT Bearer Token" OAuth2 pour compte de service Google.
-     */
-    private function buildJwt(): ?string
-    {
-        $now = time();
-        $header = ['alg' => 'RS256', 'typ' => 'JWT'];
-        $claims = [
-            'iss'   => $this->credentials['client_email'],
-            'scope' => self::SCOPE,
-            'aud'   => self::TOKEN_URL,
-            'exp'   => $now + 3600,
-            'iat'   => $now,
-        ];
-
-        $segments = [
-            self::base64UrlEncode(json_encode($header)),
-            self::base64UrlEncode(json_encode($claims)),
-        ];
-        $signingInput = implode('.', $segments);
-
-        $privateKey = openssl_pkey_get_private($this->credentials['private_key']);
-        if ($privateKey === false) {
-            error_log('[GoogleAnalyticsClient] Clé privée du compte de service invalide.');
-            return null;
-        }
-
-        $signature = '';
-        $ok = openssl_sign($signingInput, $signature, $privateKey, OPENSSL_ALGO_SHA256);
-        if (!$ok) {
-            error_log('[GoogleAnalyticsClient] Échec de la signature JWT.');
-            return null;
-        }
-
-        $segments[] = self::base64UrlEncode($signature);
-        return implode('.', $segments);
+        return self::$cachedAccessToken = $data['access_token'];
     }
 
     /**
@@ -144,7 +168,7 @@ class GoogleAnalyticsClient
             return null;
         }
 
-        $response = $this->httpPost(
+        $response = self::httpPost(
             self::API_BASE . '/' . $this->propertyId . ':runReport',
             json_encode($body),
             ['Content-Type: application/json', 'Authorization: Bearer ' . $token]
@@ -162,7 +186,7 @@ class GoogleAnalyticsClient
      * Requête cURL générique en POST, avec corps déjà encodé (string) ou
      * tableau à encoder en x-www-form-urlencoded.
      */
-    private function httpPost(string $url, $body, array $headers): array
+    private static function httpPost(string $url, $body, array $headers): array
     {
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_POST, true);
@@ -175,13 +199,42 @@ class GoogleAnalyticsClient
         if ($responseBody === false) {
             error_log('[GoogleAnalyticsClient] Erreur cURL : ' . curl_error($ch));
         }
-        curl_close($ch);
 
         return ['status' => $status, 'body' => $responseBody];
     }
 
-    private static function base64UrlEncode(string $data): string
+    /**
+     * Met à jour (ou ajoute) une variable dans le fichier .env du serveur,
+     * et reflète immédiatement le changement dans le process courant
+     * (getenv/$_ENV) pour que la requête en cours en tienne compte sans
+     * attendre le prochain redémarrage.
+     */
+    private static function persistEnvValue(string $key, string $value): void
     {
-        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+        $envPath = dirname(__DIR__, 2) . '/.env';
+        if (!is_file($envPath)) {
+            error_log('[GoogleAnalyticsClient] Fichier .env introuvable, impossible d\'enregistrer ' . $key);
+            return;
+        }
+
+        $lines = file($envPath, FILE_IGNORE_NEW_LINES);
+        $found = false;
+
+        foreach ($lines as $i => $line) {
+            if (preg_match('/^\s*' . preg_quote($key, '/') . '\s*=/', $line)) {
+                $lines[$i] = $key . '=' . $value;
+                $found = true;
+                break;
+            }
+        }
+
+        if (!$found) {
+            $lines[] = $key . '=' . $value;
+        }
+
+        file_put_contents($envPath, implode(PHP_EOL, $lines) . PHP_EOL);
+
+        putenv($key . '=' . $value);
+        $_ENV[$key] = $value;
     }
 }

@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * Registre des emplacements d'images pilotables depuis /admin/images.
  * Chaque clé (slug) est utilisée telle quelle par le front-office
@@ -26,24 +29,6 @@ return [
         'bar_planche_saucisson' => 'Planche à saucisson',
         'bar_planche_mixte'     => 'Planche mixte',
         'bar_planche_fromage'   => 'Planche fromage',
-    ],
-    'Tabac' => [
-        'tabac_cigarettes'             => 'Cigarettes & tabac à rouler',
-        'tabac_cigares'                => 'Cigares & cigarillos',
-        'tabac_cigarette_electronique' => 'Cigarette électronique',
-        'tabac_papiers_filtres'        => 'Papiers, filtres & accessoires',
-    ],
-    'PMU' => [
-        'pmu_simple_gagnant_place' => 'Simple gagnant / placé',
-        'pmu_couple_trio'          => 'Couplé & Trio',
-        'pmu_quinte'               => 'Quinté+',
-        'pmu_multi'                => 'Multi',
-    ],
-    'FDJ' => [
-        'fdj_loto_euromillions' => 'Loto & Euromillions',
-        'fdj_illiko'            => 'Illiko (jeux à gratter)',
-        'fdj_amigo_keno'        => 'Amigo & Keno',
-        'fdj_rapido'            => 'Rapido & jeux express',
     ],
     'Presse' => [
         'presse_quotidiens_nationaux' => 'Quotidiens nationaux',

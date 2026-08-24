@@ -1,0 +1,59 @@
+{% set pageTitle = 'Modifier « ' ~ category.name ~ ' »' %}
+{% set pageSubtitle = 'Les changements sont visibles immédiatement sur la page publique « PMU ».' %}
+{% set pageActions = [] %}
+{% include 'partials/admin-page-header.twig' %}
+
+<div class="max-w-2xl">
+  <a href="{{ base_path }}/admin/pmu" class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-brand-500 mb-4">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+    Retour au PMU
+  </a>
+
+  <div class="card card-md sm:p-8">
+    <form method="POST" action="{{ base_path }}/admin/pmu/categories/{{ category.id }}" enctype="multipart/form-data" class="space-y-5">
+      {{ csrf_field() }}
+
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Nom de la catégorie</label>
+        <input type="text" name="name" required value="{{ old.name|default(category.name) }}"
+               class="form-input {{ errors.name is defined ? 'border-brand-400' : '' }}">
+        {% if errors.name is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.name }}</p>{% endif %}
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Description</label>
+        <textarea name="description" rows="2"
+                  class="form-textarea">{{ old.description|default(category.description) }}</textarea>
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Icône</label>
+        <select name="icon" required class="form-select {{ errors.icon is defined ? 'border-brand-400' : '' }}">
+          {% for path, label in iconChoices %}
+            <option value="{{ path }}" {{ old.icon|default(category.icon) == path ? 'selected' : '' }}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        {% if errors.icon is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.icon }}</p>{% endif %}
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Photo</label>
+        {% if category.image %}
+          <img src="{{ base_path }}{{ category.image }}" alt="{{ category.name }}" class="w-32 h-24 object-cover rounded-lg mb-2">
+        {% endif %}
+        <input type="file" name="image" accept="image/jpeg,image/png,image/webp" class="form-input">
+        {% if errors.image is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.image }}</p>{% endif %}
+        <p class="text-xs text-gray-400 mt-1">JPEG, PNG ou WEBP, 5 Mo maximum. Laissez vide pour conserver la photo actuelle.</p>
+      </div>
+
+      <label class="flex items-center gap-2.5 text-sm text-gray-600 bg-gray-50 rounded-2xl px-4 py-3">
+        <input type="checkbox" name="publish" value="1" {{ (old.publish is defined ? old.publish : category.status == 'active') ? 'checked' : '' }} class="rounded border-gray-300 text-brand-500 focus:ring-brand-500/30">
+        Publier sur /pmu (sinon la catégorie est inactive)
+      </label>
+
+      <button type="submit" class="btn-primary w-full">
+        Enregistrer les modifications
+      </button>
+    </form>
+  </div>
+</div>

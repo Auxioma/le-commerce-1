@@ -114,9 +114,8 @@ class Router
     protected function notFound(): void
     {
         http_response_code(404);
-        $viewPath = dirname(__DIR__) . '/Views/errors/404.php';
-        if (file_exists($viewPath)) {
-            require $viewPath;
+        if (View::exists('errors/404')) {
+            echo View::render('errors/404');
         } else {
             echo '404 - Page non trouvée';
         }

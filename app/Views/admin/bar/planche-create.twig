@@ -1,0 +1,53 @@
+{% set pageTitle = 'Ajouter une planche' %}
+{% set pageSubtitle = 'Cette planche apparaîtra sur la page publique « Le Bar » une fois enregistrée.' %}
+{% set pageActions = [] %}
+{% include 'partials/admin-page-header.twig' %}
+
+<div class="max-w-2xl">
+  <a href="{{ base_path }}/admin/bar" class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-brand-500 mb-4">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+    Retour au Bar
+  </a>
+
+  <div class="card card-md sm:p-8">
+    <form method="POST" action="{{ base_path }}/admin/bar/planches" enctype="multipart/form-data" class="space-y-5">
+      {{ csrf_field() }}
+
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Nom de la planche</label>
+        <input type="text" name="name" required value="{{ old.name|default('') }}" placeholder="Ex : Planche du terroir"
+               class="form-input {{ errors.name is defined ? 'border-brand-400' : '' }}">
+        {% if errors.name is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.name }}</p>{% endif %}
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Description</label>
+        <textarea name="description" rows="2" placeholder="Ex : Charcuterie et fromages affinés, pain de campagne."
+                  class="form-textarea">{{ old.description|default('') }}</textarea>
+      </div>
+
+      <div class="max-w-[160px]">
+        <label class="block text-sm font-semibold text-ink mb-1.5">Prix (€)</label>
+        <input type="text" name="price" required value="{{ old.price|default('') }}" placeholder="Ex : 9,50"
+               class="form-input {{ errors.price is defined ? 'border-brand-400' : '' }}">
+        {% if errors.price is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.price }}</p>{% endif %}
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Photo</label>
+        <input type="file" name="image" accept="image/jpeg,image/png,image/webp" class="form-input">
+        {% if errors.image is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.image }}</p>{% endif %}
+        <p class="text-xs text-gray-400 mt-1">JPEG, PNG ou WEBP, 5 Mo maximum. Facultatif — une icône par défaut sera utilisée si aucune photo n'est fournie.</p>
+      </div>
+
+      <label class="flex items-center gap-2.5 text-sm text-gray-600 bg-gray-50 rounded-2xl px-4 py-3">
+        <input type="checkbox" name="publish" value="1" checked class="rounded border-gray-300 text-brand-500 focus:ring-brand-500/30">
+        Publier immédiatement sur /le-bar (sinon la planche est enregistrée inactive)
+      </label>
+
+      <button type="submit" class="btn-primary w-full">
+        Ajouter la planche
+      </button>
+    </form>
+  </div>
+</div>

@@ -1,8 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controllers;
 
 use App\Core\Controller;
+use App\Models\BarPlanche;
+use App\Models\BarSoft;
 use App\Models\Drink;
 
 class BarController extends Controller
@@ -17,14 +21,11 @@ class BarController extends Controller
 
         $this->view('pages/bar', [
             'title'      => 'Le Bar — Le Commerce',
+            'description' => 'Le Bar du Commerce à Forges-les-Eaux : bières pression, planches à partager et boissons fraîches dans une ambiance conviviale.',
             'heading'    => 'Le Bar',
             'categories' => $categories,
-            'planches'   => [
-                ['name' => 'Planche à saucisson', 'desc' => 'Saucisson sec, cornichons, fromage et pain frais.', 'price' => 8.5, 'slug' => 'bar_planche_saucisson'],
-                ['name' => 'Planche mixte', 'desc' => 'Charcuterie, fromage et crudités de saison.', 'price' => 11.0, 'slug' => 'bar_planche_mixte'],
-                ['name' => 'Planche fromage', 'desc' => 'Sélection de fromages affinés et pain de campagne.', 'price' => 9.0, 'slug' => 'bar_planche_fromage'],
-            ],
-            'softs' => ['Coca-Cola', 'Orangina', 'Jus de fruits pressés', 'Eaux plates & gazeuses', 'Café, thé & chocolat chaud'],
+            'planches'   => BarPlanche::listActiveOrdered(),
+            'softs'      => BarSoft::listAllOrdered(),
         ]);
     }
 }

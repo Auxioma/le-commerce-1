@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controllers\Admin;
 
 use App\Core\Controller;
@@ -9,10 +11,19 @@ use App\Models\Wallet;
 use App\Models\User;
 use App\Models\OfferRedemption;
 use App\Models\Poll;
+use App\Service\CsvExportService;
 
 class AdminStatisticsController extends Controller
 {
     private const FILTERS = ['from', 'to'];
+
+    private CsvExportService $csvExportService;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->csvExportService = new CsvExportService();
+    }
 
     private function dateRange(): array
     {
@@ -67,56 +78,52 @@ class AdminStatisticsController extends Controller
 
         $filename = 'statistiques_' . $range['from'] . '_' . $range['to'] . '.csv';
 
-        header('Content-Type: text/csv; charset=utf-8');
-        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        $this->csvExportService->streamDownload(
+            $filename,
+            function ($output) use ($range, $activity, $payments, $clients, $topClients): void {
+                // Section 1 : période
+                $this->csvExportService->writeRow($output, ['Période', $range['from'] . ' — ' . $range['to']]);
+                $this->csvExportService->writeRow($output, []);
 
-        $output = fopen('php://output', 'w');
-        fwrite($output, "\xEF\xBB\xBF"); // BOM UTF-8
+                // Section 2 : activité portefeuille
+                $this->csvExportService->writeRow($output, ['Activité portefeuille', 'Recharges (€)', 'Dépenses (€)']);
+                foreach ($activity as $row) {
+                    $this->csvExportService->writeRow($output, [
+                        $row['jour'],
+                        number_format((float) $row['recharges'], 2, ',', ''),
+                        number_format((float) $row['depenses'], 2, ',', ''),
+                    ]);
+                }
+                $this->csvExportService->writeRow($output, []);
 
-        // Section 1 : période
-        fputcsv($output, ['Période', $range['from'] . ' — ' . $range['to']]);
-        fputcsv($output, []);
+                // Section 3 : moyens de paiement
+                $this->csvExportService->writeRow($output, ['Moyen de paiement', 'Nombre', 'Total (€)']);
+                foreach ($payments as $row) {
+                    $this->csvExportService->writeRow($output, [
+                        $row['payment_method'],
+                        $row['nb'],
+                        number_format((float) $row['total'], 2, ',', ''),
+                    ]);
+                }
+                $this->csvExportService->writeRow($output, []);
 
-        // Section 2 : activité portefeuille
-        fputcsv($output, ['Activité portefeuille', 'Recharges (€)', 'Dépenses (€)']);
-        foreach ($activity as $row) {
-            fputcsv($output, [
-                $row['jour'],
-                number_format((float) $row['recharges'], 2, ',', ''),
-                number_format((float) $row['depenses'], 2, ',', ''),
-            ]);
-        }
-        fputcsv($output, []);
+                // Section 4 : nouveaux clients par mois
+                $this->csvExportService->writeRow($output, ['Mois', 'Nouveaux clients']);
+                foreach ($clients as $row) {
+                    $this->csvExportService->writeRow($output, [$row['mois'], $row['nb']]);
+                }
+                $this->csvExportService->writeRow($output, []);
 
-        // Section 3 : moyens de paiement
-        fputcsv($output, ['Moyen de paiement', 'Nombre', 'Total (€)']);
-        foreach ($payments as $row) {
-            fputcsv($output, [
-                $row['payment_method'],
-                $row['nb'],
-                number_format((float) $row['total'], 2, ',', ''),
-            ]);
-        }
-        fputcsv($output, []);
-
-        // Section 4 : nouveaux clients par mois
-        fputcsv($output, ['Mois', 'Nouveaux clients']);
-        foreach ($clients as $row) {
-            fputcsv($output, [$row['mois'], $row['nb']]);
-        }
-        fputcsv($output, []);
-
-        // Section 5 : top clients
-        fputcsv($output, ['Top clients', 'Téléphone', 'Dépenses (€)']);
-        foreach ($topClients as $row) {
-            fputcsv($output, [
-                $row['first_name'] . ' ' . $row['last_name'],
-                $row['phone_whatsapp'],
-                number_format((float) $row['total_spent'], 2, ',', ''),
-            ]);
-        }
-
-        fclose($output);
-        exit;
+                // Section 5 : top clients
+                $this->csvExportService->writeRow($output, ['Top clients', 'Téléphone', 'Dépenses (€)']);
+                foreach ($topClients as $row) {
+                    $this->csvExportService->writeRow($output, [
+                        $row['first_name'] . ' ' . $row['last_name'],
+                        $row['phone_whatsapp'],
+                        number_format((float) $row['total_spent'], 2, ',', ''),
+                    ]);
+                }
+            }
+        );
     }
 }

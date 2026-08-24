@@ -1,0 +1,52 @@
+<div class="w-full max-w-md bg-white border border-gray-100 rounded-2xl shadow-sm p-8">
+  <p class="text-xs uppercase tracking-[0.25em] font-bold text-brand-500 mb-2">Loterie</p>
+  <h1 class="font-extrabold text-2xl text-ink mb-1">{{ lottery.title }}</h1>
+  <p class="text-gray-500 text-sm mb-6">À gagner : <span class="font-semibold text-ink">{{ lottery.prize }}</span>{% if lottery.description %} — {{ lottery.description }}{% endif %}</p>
+
+  <form method="POST" action="{{ base_path }}/loterie/{{ lottery.qr_token }}" class="space-y-4">
+    {{ csrf_field() }}
+
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Prénom</label>
+        <input type="text" name="first_name" required value="{{ old.firstName|default('') }}"
+               class="w-full border {{ errors.first_name is defined ? 'border-brand-400' : 'border-gray-200' }} rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500">
+        {% if errors.first_name is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.first_name }}</p>{% endif %}
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Nom</label>
+        <input type="text" name="last_name" required value="{{ old.lastName|default('') }}"
+               class="w-full border {{ errors.last_name is defined ? 'border-brand-400' : 'border-gray-200' }} rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500">
+        {% if errors.last_name is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.last_name }}</p>{% endif %}
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-sm font-semibold text-ink mb-1.5">Adresse e-mail</label>
+      <input type="email" name="email" required value="{{ old.email|default('') }}"
+             class="w-full border {{ errors.email is defined ? 'border-brand-400' : 'border-gray-200' }} rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500">
+      {% if errors.email is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.email }}</p>{% endif %}
+    </div>
+
+    <div>
+      <label class="block text-sm font-semibold text-ink mb-1.5">Numéro de téléphone</label>
+      <input type="tel" name="phone_whatsapp" required placeholder="06 12 34 56 78" value="{{ old.phone|default('') }}"
+             class="w-full border {{ errors.phone_whatsapp is defined ? 'border-brand-400' : 'border-gray-200' }} rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500">
+      {% if errors.phone_whatsapp is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.phone_whatsapp }}</p>{% endif %}
+    </div>
+
+    <label class="flex items-start gap-2.5 text-sm text-gray-600 bg-gray-50 rounded-xl px-4 py-3">
+      <input type="checkbox" name="whatsapp_opt_in" value="1" {{ old.whatsappOptIn|default(false) ? 'checked' : '' }}
+             class="mt-0.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500/30">
+      J'accepte de recevoir par WhatsApp les offres et actualités de {{ shop.name }}.
+    </label>
+
+    <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold text-sm px-6 py-3.5 rounded-lg transition-colors">
+      Participer à la loterie
+    </button>
+
+    <p class="text-center text-xs text-gray-400">
+      Tirage le {{ lottery.ends_at|date('d/m/Y') }}. Un seul ticket par personne.
+    </p>
+  </form>
+</div>

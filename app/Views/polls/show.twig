@@ -1,0 +1,61 @@
+<a href="{{ base_path }}/mon-compte/sondages" class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-brand-500 mb-4">
+  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+  Retour aux sondages
+</a>
+
+<div class="max-w-xl bg-white border border-gray-100 rounded-2xl p-6 sm:p-8">
+  <h1 class="font-extrabold text-2xl text-ink mb-1">{{ poll.question }}</h1>
+  {% if poll.description %}<p class="text-gray-500 text-sm mb-6">{{ poll.description }}</p>{% endif %}
+
+  {% if hasVoted %}
+    <div class="flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded-lg px-4 py-3 text-sm mb-6">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+      Merci, vous avez déjà participé à ce sondage !
+    </div>
+
+    <div class="space-y-4">
+      {% for opt in options %}
+        {% set pct = total > 0 ? (opt.votes_count / total * 100)|round : 0 %}
+        {% set isMine = opt.id == votedOptionId %}
+        <div>
+          <div class="flex justify-between text-sm mb-1.5">
+            <span class="font-semibold {{ isMine ? 'text-brand-600' : 'text-ink' }}">
+              {{ opt.label }} {{ isMine ? '· votre choix' : '' }}
+            </span>
+            <span class="text-gray-500">{{ pct }}%</span>
+          </div>
+          <div class="w-full bg-gray-100 rounded-full h-3">
+            <div class="{{ isMine ? 'bg-brand-500' : 'bg-gray-300' }} h-3 rounded-full transition-all" style="width: {{ pct }}%"></div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+    <p class="text-xs text-gray-400 mt-5">{{ total }} participation{{ total > 1 ? 's' : '' }} au total</p>
+
+  {% else %}
+    <form method="POST" action="{{ base_path }}/mon-compte/sondages/{{ poll.id }}/voter" class="space-y-3">
+      {{ csrf_field() }}
+      {% for opt in options %}
+        <label class="block relative cursor-pointer">
+          <input type="radio" name="option_id" value="{{ opt.id }}" required class="peer sr-only">
+          <div class="border-2 border-gray-200 peer-checked:border-brand-500 peer-checked:bg-brand-50 peer-checked:text-brand-600 rounded-lg px-4 py-3.5 font-medium text-sm text-ink transition-colors">
+            {{ opt.label }}
+          </div>
+        </label>
+      {% endfor %}
+
+      {% if poll.reward_type != 'aucune' %}
+        <p class="text-xs text-emerald-600 font-semibold flex items-center gap-1.5 pt-1">
+          🎁 Récompense de participation : {{ rewardLabels[poll.reward_type] }}
+          {% if poll.reward_value and poll.reward_type != 'tirage_sort' %}
+            ({{ poll.reward_type == 'credit' ? poll.reward_value|number_format(2, ',', ' ') ~ ' €' : poll.reward_value|number_format(0) ~ ' pts' }})
+          {% endif %}
+        </p>
+      {% endif %}
+
+      <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold text-sm px-6 py-3.5 rounded-lg transition-colors mt-2">
+        Voter
+      </button>
+    </form>
+  {% endif %}
+</div>

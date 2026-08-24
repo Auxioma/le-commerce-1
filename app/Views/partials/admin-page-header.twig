@@ -1,0 +1,27 @@
+{% set pageTitle = pageTitle|default('') %}
+{% set pageSubtitle = pageSubtitle|default('') %}
+{% set pageActions = pageActions|default([]) %}
+{% set pageBadge = pageBadge|default(null) %}
+<div class="page-header">
+  <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div class="space-y-3">
+      {% if pageBadge %}
+        <p class="page-badge">{{ pageBadge }}</p>
+      {% endif %}
+      <h1 class="text-4xl font-extrabold text-ink leading-tight">{{ pageTitle }}</h1>
+      {% if pageSubtitle %}
+        <p class="max-w-3xl text-sm leading-6 text-gray-500">{{ pageSubtitle }}</p>
+      {% endif %}
+    </div>
+
+    {% if pageActions is not empty %}
+      <div class="page-actions flex flex-wrap gap-3">
+        {% for action in pageActions %}
+          <a href="{{ action.href }}" class="{{ action.class|default('btn-primary') }}">
+            {{ action.label }}
+          </a>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+</div>

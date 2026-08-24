@@ -1,0 +1,129 @@
+{% set pageTitle = 'PMU' %}
+{% set pageSubtitle = 'Gérez les catégories de paris et les autres services affichés sur la page publique « PMU ».' %}
+{% set pageActions = [
+    {href: base_path ~ '/admin/pmu/categories/creer', label: 'Ajouter une catégorie', class: 'btn-primary'},
+    {href: base_path ~ '/pmu', label: 'Voir la page publique', class: 'btn-secondary'},
+] %}
+{% include 'partials/admin-page-header.twig' %}
+
+<!-- KPIs -->
+<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
+  <div class="card card-md">
+    <p class="text-sm font-semibold text-gray-500 mb-2">Catégories actives</p>
+    <p class="font-extrabold text-3xl text-ink">{{ activeCount }}</p>
+    <p class="text-xs text-gray-400 mt-1">Visibles sur /pmu</p>
+  </div>
+  <div class="card card-md">
+    <p class="text-sm font-semibold text-gray-500 mb-2">Catégories inactives</p>
+    <p class="font-extrabold text-3xl text-ink">{{ inactiveCount }}</p>
+    <p class="text-xs text-gray-400 mt-1">Masquées côté public</p>
+  </div>
+  <div class="card card-md">
+    <p class="text-sm font-semibold text-gray-500 mb-2">Autres services</p>
+    <p class="font-extrabold text-3xl text-ink">{{ services|length }}</p>
+  </div>
+</div>
+
+<!-- Catégories -->
+<div class="card overflow-hidden mb-6">
+  <div class="px-5 py-4 border-b border-gray-50">
+    <h2 class="font-bold text-ink">Catégories de paris</h2>
+    <p class="text-sm text-gray-500 mt-0.5">Affichées sur /pmu.</p>
+  </div>
+  {% if categories is empty %}
+    <div class="text-center py-16 px-6">
+      <p class="text-gray-500 font-medium mb-1">Aucune catégorie pour le moment.</p>
+      <a href="{{ base_path }}/admin/pmu/categories/creer" class="text-brand-500 text-sm font-semibold hover:underline">Ajouter votre première catégorie</a>
+    </div>
+  {% else %}
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50">
+          <tr class="text-left text-gray-500 text-xs uppercase tracking-wide">
+            <th class="px-5 py-3 font-semibold">Catégorie</th>
+            <th class="px-5 py-3 font-semibold">Description</th>
+            <th class="px-5 py-3 font-semibold">Statut</th>
+            <th class="px-5 py-3 font-semibold text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+          {% for category in categories %}
+            <tr class="hover:bg-gray-50/50">
+              <td class="px-5 py-3.5">
+                <div class="flex items-center gap-3">
+                  {% if category.image %}
+                    <img src="{{ base_path }}{{ category.image }}" alt="{{ category.name }}" class="w-11 h-11 object-cover rounded-xl shrink-0">
+                  {% else %}
+                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-500">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-4.5 h-4.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="{{ category.icon }}"/>
+                      </svg>
+                    </span>
+                  {% endif %}
+                  <p class="font-semibold text-ink">{{ category.name }}</p>
+                </div>
+              </td>
+              <td class="px-5 py-3.5 text-gray-500 max-w-[320px] truncate">{{ category.description|default('') }}</td>
+              <td class="px-5 py-3.5">
+                {% if category.status == 'active' %}
+                  <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600">Active</span>
+                {% else %}
+                  <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-gray-500">Inactive</span>
+                {% endif %}
+              </td>
+              <td class="px-5 py-3.5 text-right">
+                <div class="inline-flex items-center gap-3">
+                  <a href="{{ base_path }}/admin/pmu/categories/{{ category.id }}/modifier" class="text-xs font-bold text-gray-500 hover:text-brand-500">Modifier</a>
+                  <form method="POST" action="{{ base_path }}/admin/pmu/categories/{{ category.id }}/statut" class="inline">
+                    {{ csrf_field() }}
+                    <button type="submit" class="text-xs font-bold text-gray-500 hover:text-brand-500">
+                      {{ category.status == 'active' ? 'Désactiver' : 'Activer' }}
+                    </button>
+                  </form>
+                  <form method="POST" action="{{ base_path }}/admin/pmu/categories/{{ category.id }}/supprimer" class="inline"
+                        onsubmit="return confirm('Supprimer définitivement cette catégorie ?');">
+                    {{ csrf_field() }}
+                    <button type="submit" class="text-xs font-bold text-brand-500 hover:text-brand-600">Supprimer</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Autres services -->
+<div class="card overflow-hidden max-w-2xl">
+  <div class="px-5 py-4 border-b border-gray-50 flex items-center justify-between gap-3">
+    <div>
+      <h2 class="font-bold text-ink">Autres services disponibles</h2>
+      <p class="text-sm text-gray-500 mt-0.5">Affichés sur /pmu.</p>
+    </div>
+    <a href="{{ base_path }}/admin/pmu/services/creer" class="btn-primary shrink-0">Ajouter un service</a>
+  </div>
+  {% if services is empty %}
+    <div class="text-center py-16 px-6">
+      <p class="text-gray-500 font-medium mb-1">Aucun service pour le moment.</p>
+      <a href="{{ base_path }}/admin/pmu/services/creer" class="text-brand-500 text-sm font-semibold hover:underline">Ajouter votre premier service</a>
+    </div>
+  {% else %}
+    <ul class="divide-y divide-gray-50">
+      {% for service in services %}
+        <li class="flex items-center justify-between gap-3 px-5 py-3">
+          <p class="font-semibold text-ink text-sm">{{ service.name }}</p>
+          <div class="inline-flex items-center gap-3 shrink-0">
+            <a href="{{ base_path }}/admin/pmu/services/{{ service.id }}/modifier" class="text-xs font-bold text-gray-500 hover:text-brand-500">Modifier</a>
+            <form method="POST" action="{{ base_path }}/admin/pmu/services/{{ service.id }}/supprimer" class="inline"
+                  onsubmit="return confirm('Supprimer définitivement ce service ?');">
+              {{ csrf_field() }}
+              <button type="submit" class="text-xs font-bold text-brand-500 hover:text-brand-600">Supprimer</button>
+            </form>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+</div>

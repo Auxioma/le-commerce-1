@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controllers\Admin;
 
 use App\Core\Controller;
@@ -90,8 +92,10 @@ class AdminGoogleAnalyticsController extends Controller
             'dateRanges' => [['startDate' => '7daysAgo', 'endDate' => 'today']],
             'metrics'    => [
                 ['name' => 'activeUsers'],
+                ['name' => 'newUsers'],
                 ['name' => 'sessions'],
                 ['name' => 'screenPageViews'],
+                ['name' => 'eventCount'],
                 ['name' => 'bounceRate'],
                 ['name' => 'averageSessionDuration'],
                 ['name' => 'conversions'],
@@ -122,12 +126,66 @@ class AdminGoogleAnalyticsController extends Controller
 
         return [
             'users'        => (int) $get(0),
-            'sessions'     => (int) $get(1),
-            'pageViews'    => (int) $get(2),
-            'bounceRate'   => round($get(3) * 100, 1),
-            'avgDuration'  => (int) $get(4),
-            'conversions'  => (int) $get(5),
+            'newUsers'     => (int) $get(1),
+            'sessions'     => (int) $get(2),
+            'pageViews'    => (int) $get(3),
+            'eventCount'   => (int) $get(4),
+            'bounceRate'   => round($get(5) * 100, 1),
+            'avgDuration'  => (int) $get(6),
+            'conversions'  => (int) $get(7),
             'series'       => $series,
+            'topPages'     => $this->fetchTopPages($ga4),
+            'channels'     => $this->fetchByDimension($ga4, 'sessionDefaultChannelGroup', 'sessions', 6),
+            'devices'      => $this->fetchByDimension($ga4, 'deviceCategory', 'sessions', 5),
         ];
+    }
+
+    /**
+     * Pages les plus consultées (7 derniers jours), triées par vues décroissantes.
+     */
+    private function fetchTopPages(GoogleAnalyticsClient $ga4, int $limit = 5): array
+    {
+        $report = $ga4->runReport([
+            'dateRanges' => [['startDate' => '7daysAgo', 'endDate' => 'today']],
+            'dimensions' => [['name' => 'pagePath']],
+            'metrics'    => [['name' => 'screenPageViews']],
+            'orderBys'   => [['metric' => ['metricName' => 'screenPageViews'], 'desc' => true]],
+            'limit'      => $limit,
+        ]);
+
+        $rows = [];
+        foreach ($report['rows'] ?? [] as $row) {
+            $rows[] = [
+                'label' => $row['dimensionValues'][0]['value'] ?? '/',
+                'value' => (int) ($row['metricValues'][0]['value'] ?? 0),
+            ];
+        }
+
+        return $rows;
+    }
+
+    /**
+     * Répartition d'une métrique par dimension (canaux d'acquisition,
+     * catégories d'appareil...), triée par valeur décroissante.
+     */
+    private function fetchByDimension(GoogleAnalyticsClient $ga4, string $dimension, string $metric, int $limit): array
+    {
+        $report = $ga4->runReport([
+            'dateRanges' => [['startDate' => '7daysAgo', 'endDate' => 'today']],
+            'dimensions' => [['name' => $dimension]],
+            'metrics'    => [['name' => $metric]],
+            'orderBys'   => [['metric' => ['metricName' => $metric], 'desc' => true]],
+            'limit'      => $limit,
+        ]);
+
+        $rows = [];
+        foreach ($report['rows'] ?? [] as $row) {
+            $rows[] = [
+                'label' => $row['dimensionValues'][0]['value'] ?? 'Autre',
+                'value' => (int) ($row['metricValues'][0]['value'] ?? 0),
+            ];
+        }
+
+        return $rows;
     }
 }

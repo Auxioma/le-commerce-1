@@ -1,0 +1,34 @@
+{% set gridTitle = gridTitle|default(null) %}
+{% set gridItems = gridItems|default([]) %}
+{% set gridCols = gridCols|default(2) %}
+<div class="card card-md">
+  {% if gridTitle %}
+    <h2 class="font-bold text-lg text-ink mb-1">{{ gridTitle }}</h2>
+    <div class="w-10 h-1 bg-brand-500 rounded-full mb-6"></div>
+  {% endif %}
+  <div class="grid grid-cols-1 sm:grid-cols-2 {{ gridCols == 3 ? 'lg:grid-cols-3' : '' }} gap-5">
+    {% for item in gridItems %}
+      {% set uploadedImg = item.image|default('') ? base_path ~ item.image : (item.slug|default('') ? site_image(settings, item.slug, '') : null) %}
+      <div class="feature-card">
+        <div class="mb-3 rounded-md overflow-hidden">
+          {% if uploadedImg %}
+            <img src="{{ uploadedImg }}" alt="{{ item.name|default('image') }}" class="w-full h-28 object-cover" loading="lazy" decoding="async">
+          {% else %}
+            <div class="w-full h-28 bg-brand-50 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-9 h-9 text-brand-200" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="{{ item.icon }}"/>
+              </svg>
+            </div>
+          {% endif %}
+        </div>
+        <div class="feature-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="{{ item.icon }}"/>
+          </svg>
+        </div>
+        <p class="font-semibold text-ink text-sm mb-1">{{ item.name }}</p>
+        <p class="text-gray-500 text-sm leading-relaxed">{{ item.desc }}</p>
+      </div>
+    {% endfor %}
+  </div>
+</div>

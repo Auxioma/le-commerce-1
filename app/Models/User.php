@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use App\Core\Model;
@@ -100,6 +102,36 @@ class User extends Model
                 ? $data['registration_source']
                 : 'bar',
         ]);
+    }
+
+    /**
+     * Crée un compte client "léger" (sans mot de passe), utilisé pour les
+     * participations anonymes via QR code (ex. loterie) — l'identité réelle
+     * n'est confirmée que par le numéro de téléphone. Le client pourra plus
+     * tard définir un mot de passe pour se connecter, comme n'importe quel
+     * autre compte (password_hash est déjà nullable pour ce cas).
+     */
+    public static function createLead(array $data): int
+    {
+        return self::create([
+            'first_name'     => $data['first_name'],
+            'last_name'      => $data['last_name'],
+            'phone_whatsapp' => $data['phone_whatsapp'],
+            'email'          => $data['email'] ?: null,
+            'password_hash'  => null,
+            'role'           => 'client',
+            'segment'        => 'nouveau',
+            'status'         => 'actif',
+            'referral_code'  => strtoupper(substr($data['first_name'], 0, 4)) . random_int(1000, 9999),
+            'whatsapp_opt_in' => (int) ($data['whatsapp_opt_in'] ?? 0),
+            'registration_source' => 'loterie',
+        ]);
+    }
+
+    public static function updateWhatsappOptIn(int $userId, bool $optIn): void
+    {
+        $stmt = self::db()->prepare('UPDATE users SET whatsapp_opt_in = :opt_in WHERE id = :id');
+        $stmt->execute(['opt_in' => (int) $optIn, 'id' => $userId]);
     }
 
     /**

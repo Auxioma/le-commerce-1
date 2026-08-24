@@ -1,0 +1,110 @@
+{% set pageTitle = 'Scanner une offre' %}
+{% set pageSubtitle = 'Vérifiez rapidement un code d’offre et validez son utilisation en boutique.' %}
+{% set pageActions = [] %}
+{% include 'partials/admin-page-header.twig' %}
+
+<div class="max-w-lg mx-auto">
+  <div class="card card-md text-center">
+
+    {% if step == 'input' %}
+      <span class="w-16 h-16 rounded-full bg-gray-50 text-gray-400 flex items-center justify-center mx-auto mb-5">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4h4V2H2v6h2V4zm16 0v4h2V2h-6v2h4zM4 20h4v2H2v-6h2v4zm16 0h-4v2h6v-6h-2v4zM8 8h8v8H8V8z"/></svg>
+      </span>
+      <p class="text-gray-500 text-sm mb-6">Saisissez le code présenté par le client pour vérifier sa validité.</p>
+
+      {% if error %}
+        <div class="flex items-center gap-2 bg-brand-50 text-brand-700 border border-brand-100 rounded-lg px-4 py-3 text-sm mb-5 text-left">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M12 8v5M12 16h.01"/></svg>
+          {{ error }}
+        </div>
+      {% endif %}
+
+      <form method="POST" action="{{ base_path }}/admin/offres/scanner/verifier" class="space-y-4">
+        {{ csrf_field() }}
+        <input type="text" name="code" required autofocus placeholder="Ex : 9F3C7A2B" value="{{ code|default('') }}"
+               class="w-full text-center font-mono font-bold text-lg tracking-widest uppercase border border-gray-200 rounded-lg px-4 py-4 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500">
+        <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold text-sm px-6 py-3.5 rounded-lg transition-colors">
+          Vérifier le code
+        </button>
+      </form>
+
+    {% elseif step == 'valid' %}
+      <span class="w-16 h-16 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mx-auto mb-5">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+      </span>
+      <h1 class="font-extrabold text-xl text-emerald-600 mb-4">Offre valide</h1>
+
+      <div class="bg-gray-50 rounded-xl p-5 text-left mb-6 space-y-2">
+        <p class="font-bold text-ink">{{ redemption.offer_title }}</p>
+        {% if redemption.offer_description %}<p class="text-sm text-gray-500">{{ redemption.offer_description }}</p>{% endif %}
+        <div class="border-t border-gray-200 my-3"></div>
+        <p class="text-xs text-gray-400">Code offre</p>
+        <p class="font-mono font-semibold text-ink">{{ redemption.code }}</p>
+        <p class="text-xs text-gray-400 mt-2">Client concerné</p>
+        <p class="font-semibold text-ink">{{ redemption.first_name }} {{ redemption.last_name }}</p>
+        <p class="text-sm text-gray-500">{{ redemption.phone_whatsapp }}</p>
+        <p class="text-xs text-gray-400 mt-2">Validité</p>
+        <p class="text-sm text-ink">Jusqu'au {{ redemption.valid_until|date('d/m/Y') }}</p>
+      </div>
+
+      <form method="POST" action="{{ base_path }}/admin/offres/scanner/valider" class="space-y-3">
+        {{ csrf_field() }}
+        <input type="hidden" name="code" value="{{ redemption.code }}">
+        <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm px-6 py-3.5 rounded-lg transition-colors">
+          Valider l'utilisation
+        </button>
+      </form>
+      <a href="{{ base_path }}/admin/offres/scanner" class="inline-block text-sm font-semibold text-gray-400 hover:text-brand-500 mt-4">Scanner un autre code</a>
+
+    {% elseif step == 'confirmed' %}
+      <span class="w-16 h-16 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mx-auto mb-5">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+      </span>
+      <h1 class="font-extrabold text-xl text-emerald-600 mb-2">Utilisation confirmée</h1>
+      <p class="text-gray-500 text-sm mb-6">
+        <strong>{{ redemption.offer_title }}</strong> pour
+        <strong>{{ redemption.first_name }} {{ redemption.last_name }}</strong> — le client a été notifié par WhatsApp.
+      </p>
+      <a href="{{ base_path }}/admin/offres/scanner" class="inline-flex items-center justify-center w-full bg-ink hover:bg-black text-white font-bold text-sm px-6 py-3.5 rounded-lg transition-colors">
+        Scanner un autre code
+      </a>
+
+    {% elseif step == 'already_used' %}
+      <span class="w-16 h-16 rounded-full bg-brand-50 text-brand-500 flex items-center justify-center mx-auto mb-5">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </span>
+      <h1 class="font-extrabold text-xl text-brand-600 mb-2">Offre déjà utilisée</h1>
+      <p class="text-gray-500 text-sm mb-6">Cette offre a déjà été utilisée et n'est plus valide.</p>
+      {% if redemption %}
+        <div class="bg-gray-50 rounded-xl p-5 text-left mb-6 space-y-1">
+          <p class="text-xs text-gray-400">Offre</p>
+          <p class="font-semibold text-ink">{{ redemption.offer_title }}</p>
+          <p class="text-xs text-gray-400 mt-2">Client</p>
+          <p class="font-semibold text-ink">{{ redemption.first_name }} {{ redemption.last_name }}</p>
+          {% if redemption.used_at is not empty %}
+            <p class="text-xs text-gray-400 mt-2">Utilisée le</p>
+            <p class="text-sm text-ink">{{ redemption.used_at|date('d/m/Y à H:i') }}</p>
+          {% endif %}
+        </div>
+      {% endif %}
+      <a href="{{ base_path }}/admin/offres/scanner" class="inline-flex items-center justify-center w-full bg-ink hover:bg-black text-white font-bold text-sm px-6 py-3.5 rounded-lg transition-colors">
+        Scanner un autre code
+      </a>
+
+    {% elseif step == 'expired' %}
+      <span class="w-16 h-16 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center mx-auto mb-5">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M12 7v5l3 3"/></svg>
+      </span>
+      <h1 class="font-extrabold text-xl text-gray-600 mb-2">Offre expirée</h1>
+      <p class="text-gray-500 text-sm mb-6">La date de validité de cette offre est dépassée.</p>
+      <a href="{{ base_path }}/admin/offres/scanner" class="inline-flex items-center justify-center w-full bg-ink hover:bg-black text-white font-bold text-sm px-6 py-3.5 rounded-lg transition-colors">
+        Scanner un autre code
+      </a>
+    {% endif %}
+  </div>
+
+  <div class="bg-brand-50 border border-brand-100 rounded-xl px-5 py-4 mt-4 text-xs text-brand-700 flex items-start gap-2.5">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 10-8 0v4h8z"/></svg>
+    Chaque code est unique et ne peut être utilisé qu'une seule fois. Une tentative de réutilisation est automatiquement refusée, même en cas de scans simultanés.
+  </div>
+</div>

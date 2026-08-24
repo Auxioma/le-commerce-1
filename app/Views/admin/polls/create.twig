@@ -1,0 +1,20 @@
+{% set pageTitle = 'Créer un sondage' %}
+{% set pageSubtitle = 'Lancez un sondage pour mieux connaître vos clients et collecter des retours utiles.' %}
+{% set pageActions = [] %}
+{% include 'partials/admin-page-header.twig' %}
+
+<div class="max-w-2xl">
+  <a href="{{ base_path }}/admin/sondages" class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-brand-500 mb-4">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+    Retour aux sondages
+  </a>
+
+  <div class="card card-md sm:p-8">
+    <p class="text-gray-500 text-sm mb-6">Choisissez un thème, ajoutez vos options et paramétrez la durée.</p>
+
+    {% set formAction = '/admin/sondages' %}
+    {% set submitLabel = 'Créer le sondage' %}
+    {% set optionRows = old.options|default([]) %}
+    {% include 'admin/polls/_form.twig' %}
+  </div>
+</div>

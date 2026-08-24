@@ -1,0 +1,19 @@
+<div class="w-full max-w-md bg-white border border-gray-100 rounded-2xl shadow-sm p-8 text-center">
+  <span class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-emerald-50 text-emerald-500 mb-4">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+  </span>
+
+  <h1 class="font-extrabold text-2xl text-ink mb-1">Merci {{ firstName }} !</h1>
+  <p class="text-gray-500 text-sm mb-6">Votre participation à la loterie « {{ lottery.title }} » est enregistrée.</p>
+
+  <div class="bg-gray-50 rounded-xl p-5 mb-6">
+    <p class="text-xs uppercase tracking-[0.2em] font-bold text-gray-400 mb-1">Votre ticket</p>
+    <p class="font-mono font-bold text-lg text-ink">{{ entry.code }}</p>
+  </div>
+
+  <p class="text-sm text-gray-500 mb-6">À gagner : <span class="font-semibold text-ink">{{ lottery.prize }}</span><br>Tirage le {{ lottery.ends_at|date('d/m/Y') }}.</p>
+
+  <a href="{{ base_path }}/" class="inline-block w-full bg-brand-500 hover:bg-brand-600 text-white font-bold text-sm px-6 py-3.5 rounded-lg transition-colors">
+    Retour au site
+  </a>
+</div>

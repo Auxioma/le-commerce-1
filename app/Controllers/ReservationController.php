@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controllers;
 
 use App\Core\Controller;
@@ -11,6 +13,7 @@ class ReservationController extends Controller
     {
         $this->view('pages/reservation', [
             'title'   => 'Réserver une table — Le Commerce',
+            'description' => 'Réservez votre table au Commerce à Forges-les-Eaux en quelques clics : date, heure et nombre de personnes.',
             'heading' => 'Réserver une table',
             'errors'  => [],
             'old'     => [],
@@ -54,6 +57,7 @@ class ReservationController extends Controller
         if ($errors) {
             $this->view('pages/reservation', [
                 'title'   => 'Réserver une table — Le Commerce',
+                'description' => 'Réservez votre table au Commerce à Forges-les-Eaux en quelques clics : date, heure et nombre de personnes.',
                 'heading' => 'Réserver une table',
                 'errors'  => $errors,
                 'old'     => compact('name', 'phone', 'email', 'partySize', 'date', 'time', 'note'),

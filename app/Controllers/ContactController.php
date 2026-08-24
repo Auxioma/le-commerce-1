@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controllers;
 
 use App\Core\Controller;
@@ -11,6 +13,7 @@ class ContactController extends Controller
     {
         $this->view('pages/contact', [
             'title'   => 'Contact — Le Commerce',
+            'description' => 'Contactez Le Commerce à Forges-les-Eaux : adresse, téléphone, horaires d\'ouverture et formulaire de contact en ligne.',
             'heading' => 'Contactez-nous',
         ]);
     }

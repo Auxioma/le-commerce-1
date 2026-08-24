@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Définition des routes
  * @var \App\Core\Router $router
@@ -35,13 +37,19 @@ use App\Controllers\Admin\AdminBillingController;
 use App\Controllers\Admin\AdminSettingsController;
 use App\Controllers\Admin\AdminImageController;
 use App\Controllers\Admin\AdminGoogleAnalyticsController;
+use App\Controllers\Admin\AdminGoogleOAuthController;
 use App\Controllers\Admin\AdminPlaceholderController;
 use App\Controllers\Admin\AdminEstablishmentController;
 use App\Controllers\Admin\AdminServiceController;
+use App\Controllers\Admin\AdminBarController;
+use App\Controllers\Admin\AdminTabacController;
+use App\Controllers\Admin\AdminPmuController;
+use App\Controllers\Admin\AdminFdjController;
 use App\Controllers\Admin\AdminMessageController;
 use App\Controllers\Admin\AdminEmployeeController;
 use App\Controllers\Admin\AdminReservationController;
 use App\Controllers\Admin\AdminLotteryController;
+use App\Controllers\LotteryPublicController;
 use App\Controllers\Client\ClientOfferController;
 use App\Controllers\Client\ClientLotteryController;
 use App\Controllers\Client\PollController;
@@ -60,6 +68,8 @@ $router->get('/contact', ContactController::class, 'index');
 $router->post('/contact', ContactController::class, 'send');
 $router->get('/reservation', ReservationController::class, 'index');
 $router->post('/reservation', ReservationController::class, 'store');
+$router->get('/loterie/{token}', LotteryPublicController::class, 'show');
+$router->post('/loterie/{token}', LotteryPublicController::class, 'store');
 $router->get('/mentions-legales', LegalController::class, 'mentionsLegales');
 $router->get('/cgu', LegalController::class, 'cgu');
 $router->get('/cgv', LegalController::class, 'cgv');
@@ -105,6 +115,73 @@ $router->post('/admin/clients/{id}', AdminClientController::class, 'update');
 $router->post('/admin/clients/{id}/wallet', AdminClientController::class, 'adjustWallet');
 $router->post('/admin/clients/{id}/supprimer', AdminClientController::class, 'destroy');
 $router->post('/admin/clients/{id}/message', AdminClientController::class, 'sendMessage');
+
+// --- Le Bar (bières, planches & softs affichés sur /le-bar) ---
+$router->get('/admin/bar', AdminBarController::class, 'index');
+$router->get('/admin/bar/creer', AdminBarController::class, 'createDrink');
+$router->post('/admin/bar', AdminBarController::class, 'storeDrink');
+
+// Planches à partager (CRUD complet) — routes statiques déclarées avant
+// /admin/bar/{id} pour ne pas être interceptées par son paramètre dynamique.
+$router->get('/admin/bar/planches/creer', AdminBarController::class, 'createPlanche');
+$router->post('/admin/bar/planches', AdminBarController::class, 'storePlanche');
+$router->get('/admin/bar/planches/{id}/modifier', AdminBarController::class, 'editPlanche');
+$router->post('/admin/bar/planches/{id}', AdminBarController::class, 'updatePlanche');
+$router->post('/admin/bar/planches/{id}/statut', AdminBarController::class, 'togglePlanche');
+$router->post('/admin/bar/planches/{id}/supprimer', AdminBarController::class, 'destroyPlanche');
+
+// Softs, cafés & boissons chaudes (CRUD complet) — mêmes précautions d'ordre.
+$router->get('/admin/bar/softs/creer', AdminBarController::class, 'createSoft');
+$router->post('/admin/bar/softs', AdminBarController::class, 'storeSoft');
+$router->get('/admin/bar/softs/{id}/modifier', AdminBarController::class, 'editSoft');
+$router->post('/admin/bar/softs/{id}', AdminBarController::class, 'updateSoft');
+$router->post('/admin/bar/softs/{id}/supprimer', AdminBarController::class, 'destroySoft');
+
+$router->get('/admin/bar/{id}/modifier', AdminBarController::class, 'editDrink');
+$router->post('/admin/bar/{id}', AdminBarController::class, 'updateDrink');
+$router->post('/admin/bar/{id}/supprimer', AdminBarController::class, 'destroyDrink');
+
+// --- Tabac (catégories & services affichés sur /tabac) ---
+$router->get('/admin/tabac', AdminTabacController::class, 'index');
+$router->get('/admin/tabac/categories/creer', AdminTabacController::class, 'createCategory');
+$router->post('/admin/tabac/categories', AdminTabacController::class, 'storeCategory');
+$router->get('/admin/tabac/categories/{id}/modifier', AdminTabacController::class, 'editCategory');
+$router->post('/admin/tabac/categories/{id}', AdminTabacController::class, 'updateCategory');
+$router->post('/admin/tabac/categories/{id}/statut', AdminTabacController::class, 'toggleCategory');
+$router->post('/admin/tabac/categories/{id}/supprimer', AdminTabacController::class, 'destroyCategory');
+$router->get('/admin/tabac/services/creer', AdminTabacController::class, 'createService');
+$router->post('/admin/tabac/services', AdminTabacController::class, 'storeService');
+$router->get('/admin/tabac/services/{id}/modifier', AdminTabacController::class, 'editService');
+$router->post('/admin/tabac/services/{id}', AdminTabacController::class, 'updateService');
+$router->post('/admin/tabac/services/{id}/supprimer', AdminTabacController::class, 'destroyService');
+
+// --- PMU (catégories de paris & services affichés sur /pmu) ---
+$router->get('/admin/pmu', AdminPmuController::class, 'index');
+$router->get('/admin/pmu/categories/creer', AdminPmuController::class, 'createCategory');
+$router->post('/admin/pmu/categories', AdminPmuController::class, 'storeCategory');
+$router->get('/admin/pmu/categories/{id}/modifier', AdminPmuController::class, 'editCategory');
+$router->post('/admin/pmu/categories/{id}', AdminPmuController::class, 'updateCategory');
+$router->post('/admin/pmu/categories/{id}/statut', AdminPmuController::class, 'toggleCategory');
+$router->post('/admin/pmu/categories/{id}/supprimer', AdminPmuController::class, 'destroyCategory');
+$router->get('/admin/pmu/services/creer', AdminPmuController::class, 'createService');
+$router->post('/admin/pmu/services', AdminPmuController::class, 'storeService');
+$router->get('/admin/pmu/services/{id}/modifier', AdminPmuController::class, 'editService');
+$router->post('/admin/pmu/services/{id}', AdminPmuController::class, 'updateService');
+$router->post('/admin/pmu/services/{id}/supprimer', AdminPmuController::class, 'destroyService');
+
+// --- FDJ (catégories de jeux & services affichés sur /fdj) ---
+$router->get('/admin/fdj', AdminFdjController::class, 'index');
+$router->get('/admin/fdj/categories/creer', AdminFdjController::class, 'createCategory');
+$router->post('/admin/fdj/categories', AdminFdjController::class, 'storeCategory');
+$router->get('/admin/fdj/categories/{id}/modifier', AdminFdjController::class, 'editCategory');
+$router->post('/admin/fdj/categories/{id}', AdminFdjController::class, 'updateCategory');
+$router->post('/admin/fdj/categories/{id}/statut', AdminFdjController::class, 'toggleCategory');
+$router->post('/admin/fdj/categories/{id}/supprimer', AdminFdjController::class, 'destroyCategory');
+$router->get('/admin/fdj/services/creer', AdminFdjController::class, 'createService');
+$router->post('/admin/fdj/services', AdminFdjController::class, 'storeService');
+$router->get('/admin/fdj/services/{id}/modifier', AdminFdjController::class, 'editService');
+$router->post('/admin/fdj/services/{id}', AdminFdjController::class, 'updateService');
+$router->post('/admin/fdj/services/{id}/supprimer', AdminFdjController::class, 'destroyService');
 
 // --- Services du quotidien (catalogue affiché sur /nos-services) ---
 $router->get('/admin/services', AdminServiceController::class, 'index');
@@ -157,6 +234,11 @@ $router->get('/admin/statistiques', AdminStatisticsController::class, 'index');
 $router->get('/admin/statistiques/export', AdminStatisticsController::class, 'export');
 $router->get('/admin/google-analytics', AdminGoogleAnalyticsController::class, 'index');
 
+// --- Connexion OAuth Google Analytics (compte de service indisponible) ---
+$router->get('/admin/google-analytics/connecter', AdminGoogleOAuthController::class, 'connect');
+$router->post('/admin/google-analytics/deconnecter', AdminGoogleOAuthController::class, 'disconnect');
+$router->get('/callback/google/analytics', AdminGoogleOAuthController::class, 'callback');
+
 $router->get('/admin/facturation', AdminBillingController::class, 'index');
 $router->get('/admin/facturation/export', AdminBillingController::class, 'export');
 $router->get('/admin/facturation/{id}', AdminBillingController::class, 'show');
@@ -198,6 +280,8 @@ $router->post('/admin/loterie', AdminLotteryController::class, 'store');
 $router->post('/admin/loterie/{id}/statut', AdminLotteryController::class, 'toggleStatus');
 $router->post('/admin/loterie/{id}/tirage', AdminLotteryController::class, 'draw');
 $router->post('/admin/loterie/{id}/supprimer', AdminLotteryController::class, 'destroy');
+$router->get('/admin/loterie/{id}/qrcode', AdminLotteryController::class, 'qrcode');
+$router->get('/admin/loterie/{id}/qrcode.png', AdminLotteryController::class, 'qrcodeImage');
 
 // Routes "prochainement" pour les autres sections du menu admin (Lots 6 à 10)
 // IMPORTANT : doit rester déclarée en dernier pour ne pas intercepter les routes ci-dessus

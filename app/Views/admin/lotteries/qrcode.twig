@@ -1,0 +1,27 @@
+{% set pageTitle = 'QR code — ' ~ lottery.title %}
+{% set pageSubtitle = 'À afficher ou imprimer en boutique : les clients scannent ce code pour participer, sans créer de compte au préalable.' %}
+{% set pageActions = [] %}
+{% include 'partials/admin-page-header.twig' %}
+
+<div class="max-w-xl">
+  <a href="{{ base_path }}/admin/loterie" class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-brand-500 mb-4">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+    Retour à la Loterie
+  </a>
+
+  <div class="card card-md sm:p-8 text-center">
+    <p class="text-xs uppercase tracking-[0.25em] font-bold text-brand-500 mb-2">{{ lottery.title }}</p>
+    <p class="text-sm text-gray-500 mb-6">Lot à gagner : <span class="font-semibold text-ink">{{ lottery.prize }}</span></p>
+
+    <img src="{{ base_path }}/admin/loterie/{{ lottery.id }}/qrcode.png" alt="QR code de participation" class="mx-auto rounded-xl border border-gray-100" width="300" height="300">
+
+    <div class="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+      <a href="{{ base_path }}/admin/loterie/{{ lottery.id }}/qrcode.png" target="_blank" class="btn-primary">Ouvrir l'image (imprimer / télécharger)</a>
+    </div>
+
+    <div class="mt-6 pt-6 border-t border-gray-100">
+      <p class="text-xs font-semibold text-gray-500 mb-1.5">Lien public</p>
+      <p class="text-sm text-ink break-all bg-gray-50 rounded-lg px-4 py-2.5">{{ publicUrl }}</p>
+    </div>
+  </div>
+</div>

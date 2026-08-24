@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controllers\Admin;
 
 use App\Core\Controller;
+use App\Core\GoogleAnalyticsClient;
 use App\Core\Middleware;
 use App\Models\Settings;
 
@@ -15,6 +18,10 @@ class AdminSettingsController extends Controller
         $this->view('admin/settings/index', [
             'title'     => 'Paramètres — Administration Le Commerce',
             'pageTitle' => 'Paramètres',
+
+            'ga4OAuthClientPresent'    => GoogleAnalyticsClient::hasOAuthClient(),
+            'ga4OAuthAuthorized'       => GoogleAnalyticsClient::isOAuthAuthorized(),
+            'ga4PropertyId'            => GoogleAnalyticsClient::propertyId(),
         ], 'admin');
     }
 
@@ -33,9 +40,6 @@ class AdminSettingsController extends Controller
             'legal_hebergeur_nom'         => trim((string) $this->input('legal_hebergeur_nom', '')),
             'legal_hebergeur_adresse'     => trim((string) $this->input('legal_hebergeur_adresse', '')),
             'legal_hebergeur_telephone'   => trim((string) $this->input('legal_hebergeur_telephone', '')),
-
-            'ga4_property_id'          => trim((string) $this->input('ga4_property_id', '')),
-            'ga4_service_account_json' => trim((string) $this->input('ga4_service_account_json', '')),
         ];
 
         Settings::updateMany($data);

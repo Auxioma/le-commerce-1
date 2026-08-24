@@ -1,13 +1,24 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controllers\Admin;
 
 use App\Core\Controller;
 use App\Core\Middleware;
 use App\Models\Invoice;
+use App\Service\CsvExportService;
 
 class AdminBillingController extends Controller
 {
+    private CsvExportService $csvExportService;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->csvExportService = new CsvExportService();
+    }
+
     private function filters(): array
     {
         return [
@@ -51,25 +62,21 @@ class AdminBillingController extends Controller
         $filters = $this->filters();
         $invoices = Invoice::allWithFilters($filters);
 
-        header('Content-Type: text/csv; charset=utf-8');
-        header('Content-Disposition: attachment; filename="facturation_' . date('Y-m-d') . '.csv"');
-
-        $output = fopen('php://output', 'w');
-        fwrite($output, "\xEF\xBB\xBF"); // BOM UTF-8
-
-        fputcsv($output, ['N° Facture', 'Client', 'Email', 'Date', 'Montant (€)']);
-        foreach ($invoices as $inv) {
-            fputcsv($output, [
-                '#' . str_pad((string) $inv['id'], 6, '0', STR_PAD_LEFT),
-                $inv['first_name'] . ' ' . $inv['last_name'],
-                $inv['email'],
-                date('d/m/Y', strtotime($inv['created_at'])),
-                number_format((float) $inv['amount'], 2, ',', ''),
-            ]);
-        }
-
-        fclose($output);
-        exit;
+        $this->csvExportService->streamDownload(
+            'facturation_' . date('Y-m-d') . '.csv',
+            function ($output) use ($invoices): void {
+                $this->csvExportService->writeRow($output, ['N° Facture', 'Client', 'Email', 'Date', 'Montant (€)']);
+                foreach ($invoices as $inv) {
+                    $this->csvExportService->writeRow($output, [
+                        '#' . str_pad((string) $inv['id'], 6, '0', STR_PAD_LEFT),
+                        $inv['first_name'] . ' ' . $inv['last_name'],
+                        $inv['email'],
+                        date('d/m/Y', strtotime($inv['created_at'])),
+                        number_format((float) $inv['amount'], 2, ',', ''),
+                    ]);
+                }
+            }
+        );
     }
 
     /**

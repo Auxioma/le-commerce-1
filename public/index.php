@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Front Controller — point d'entrée unique de l'application
  * Toutes les requêtes HTTP passent par ce fichier (voir .htaccess)
@@ -8,10 +10,8 @@
 use App\Core\App;
 use App\Core\Router;
 
-require dirname(__DIR__) . '/app/Core/App.php';
-require dirname(__DIR__) . '/app/helpers.php';
+require dirname(__DIR__) . '/vendor/autoload.php';
 
-App::registerAutoloader();
 App::boot();
 
 // BASE_PATH : chemin du dossier /public si le projet n'est pas servi à la racine du domaine

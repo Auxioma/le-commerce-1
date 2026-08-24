@@ -1,14 +1,24 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controllers\Admin;
 
 use App\Core\Controller;
 use App\Core\Middleware;
 use App\Models\OfferRedemption;
-use App\Models\WhatsappMessage;
+use App\Service\NotificationService;
 
 class AdminOfferScanController extends Controller
 {
+    private NotificationService $notificationService;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->notificationService = new NotificationService();
+    }
+
     public function index(): void
     {
         Middleware::requireRole('admin');
@@ -86,12 +96,11 @@ class AdminOfferScanController extends Controller
         $redemption = $result['data'];
 
         // Notifie le client que son offre a bien été utilisée
-        WhatsappMessage::create([
-            'user_id'   => $redemption['user_id'],
-            'direction' => 'sortant',
-            'content'   => "✅ Votre offre a été utilisée !\nOffre : " . $redemption['offer_title']
-                . "\nUtilisée le : " . date('d/m/Y à H:i') . "\nMerci de votre visite, à très bientôt !",
-        ]);
+        $this->notificationService->sendWhatsapp(
+            (int) $redemption['user_id'],
+            "✅ Votre offre a été utilisée !\nOffre : " . $redemption['offer_title']
+                . "\nUtilisée le : " . date('d/m/Y à H:i') . "\nMerci de votre visite, à très bientôt !"
+        );
 
         $this->view('admin/offers/scanner', [
             'title'      => 'Scanner une offre — Administration Le Commerce',

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Core;
 
 /**
@@ -23,7 +25,7 @@ class Csrf
      */
     public static function field(): string
     {
-        return '<input type="hidden" name="_csrf" value="' . htmlspecialchars(self::token()) . '">';
+        return '<input type="hidden" name="_csrf" value="' . htmlspecialchars(self::token(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '">';
     }
 
     public static function verify(?string $token): bool

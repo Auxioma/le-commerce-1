@@ -1,14 +1,25 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controllers\Admin;
 
 use App\Core\Controller;
 use App\Core\Middleware;
 use App\Models\Employee;
 use App\Models\User;
+use App\Service\EmployeeAccountService;
 
 class AdminEmployeeController extends Controller
 {
+    private EmployeeAccountService $employeeAccountService;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->employeeAccountService = new EmployeeAccountService();
+    }
+
     public function index(): void
     {
         Middleware::requireRole('admin');
@@ -32,11 +43,13 @@ class AdminEmployeeController extends Controller
             return;
         }
 
-        $userId = $this->syncBackofficeAccess(null, $data);
-        if ($userId === false) {
+        $sync = $this->employeeAccountService->sync(null, $data, (bool) $this->input('grant_access'), (string) $this->input('password', ''));
+        if (!$sync['success']) {
+            $this->setFlash('error', $sync['error']);
+            $this->redirect('/admin/employes');
             return;
         }
-        $data['user_id'] = $userId;
+        $data['user_id'] = $sync['userId'];
 
         Employee::create($data);
         $this->setFlash('success', 'Employé ajouté.');
@@ -60,11 +73,13 @@ class AdminEmployeeController extends Controller
             return;
         }
 
-        $userId = $this->syncBackofficeAccess($employee, $data);
-        if ($userId === false) {
+        $sync = $this->employeeAccountService->sync($employee, $data, (bool) $this->input('grant_access'), (string) $this->input('password', ''));
+        if (!$sync['success']) {
+            $this->setFlash('error', $sync['error']);
+            $this->redirect('/admin/employes');
             return;
         }
-        $data['user_id'] = $userId;
+        $data['user_id'] = $sync['userId'];
 
         Employee::update($id, $data);
         $this->setFlash('success', 'Fiche employé mise à jour.');
@@ -137,79 +152,4 @@ class AdminEmployeeController extends Controller
         ];
     }
 
-    /**
-     * Crée, met à jour ou désactive le compte `users` (rôle 'employe') lié
-     * à cette fiche employé, selon la case "accès back-office" du formulaire.
-     * Redirige et renvoie false en cas d'erreur de validation ; renvoie
-     * l'id du compte lié (ou null si aucun accès) sinon.
-     *
-     * @return int|null|false
-     */
-    private function syncBackofficeAccess(?array $employee, array $data)
-    {
-        $grantAccess   = (bool) $this->input('grant_access');
-        $password      = (string) $this->input('password', '');
-        $existingUserId = $employee['user_id'] ?? null;
-
-        if (!$grantAccess) {
-            if ($existingUserId) {
-                User::update((int) $existingUserId, ['status' => 'inactif']);
-            }
-            return $existingUserId;
-        }
-
-        if ($data['email'] === null) {
-            $this->setFlash('error', "Une adresse e-mail est nécessaire pour donner un accès back-office.");
-            $this->redirect('/admin/employes');
-            return false;
-        }
-
-        if ($existingUserId) {
-            $userData = [
-                'first_name' => $data['first_name'],
-                'last_name'  => $data['last_name'],
-                'email'      => $data['email'],
-                'role'       => 'employe',
-                'status'     => 'actif',
-            ];
-            if ($password !== '') {
-                $userData['password_hash'] = password_hash($password, PASSWORD_DEFAULT);
-            }
-            User::update((int) $existingUserId, $userData);
-            return $existingUserId;
-        }
-
-        if ($password === '') {
-            $this->setFlash('error', 'Un mot de passe est nécessaire pour créer un accès back-office.');
-            $this->redirect('/admin/employes');
-            return false;
-        }
-        if ($data['phone'] === null) {
-            $this->setFlash('error', 'Un numéro de téléphone est nécessaire pour créer un accès back-office.');
-            $this->redirect('/admin/employes');
-            return false;
-        }
-
-        $phone = User::normalizePhone($data['phone']);
-        if (User::phoneExists($phone)) {
-            $this->setFlash('error', 'Ce numéro de téléphone est déjà utilisé par un autre compte.');
-            $this->redirect('/admin/employes');
-            return false;
-        }
-        if (User::emailExists($data['email'])) {
-            $this->setFlash('error', 'Cette adresse e-mail est déjà utilisée par un autre compte.');
-            $this->redirect('/admin/employes');
-            return false;
-        }
-
-        return User::create([
-            'first_name'     => $data['first_name'],
-            'last_name'      => $data['last_name'],
-            'phone_whatsapp' => $phone,
-            'email'          => $data['email'],
-            'password_hash'  => password_hash($password, PASSWORD_DEFAULT),
-            'role'           => 'employe',
-            'status'         => 'actif',
-        ]);
-    }
 }

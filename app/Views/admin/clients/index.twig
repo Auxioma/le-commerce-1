@@ -1,0 +1,244 @@
+<!-- En-tête page -->
+<div class="flex items-start justify-between mb-6 gap-4 flex-wrap">
+  <div>
+    <h1 class="font-extrabold text-ink" style="font-size:22px; letter-spacing:-0.5px;">Clients inscrits</h1>
+    <p class="text-gray-500 mt-1" style="font-size:13px;">Retrouvez la liste de vos clients inscrits via WhatsApp et communiquez facilement avec eux.</p>
+  </div>
+  <div class="flex items-center gap-3 shrink-0">
+    <!-- Stat total -->
+    <div class="flex items-center gap-3 bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4zm6 0a4 4 0 10-4-4"/></svg>
+      <div>
+        <p class="text-gray-500" style="font-size:11px; font-weight:600;">Total clients inscrits</p>
+        <p class="font-black text-ink" style="font-size:22px; line-height:1;">{{ totalAll }} <span class="text-green-500 font-semibold" style="font-size:12px;">+{{ newThisMonth }} ce mois-ci</span></p>
+      </div>
+    </div>
+    <!-- Bouton export -->
+    <a href="{{ base_path }}/admin/clients/export?q={{ filters.q|url_encode }}&status={{ filters.status|url_encode }}&segment={{ filters.segment|url_encode }}&from={{ filters.from|url_encode }}&to={{ filters.to|url_encode }}"
+       class="inline-flex items-center gap-2 text-white font-bold rounded-xl px-5 py-3 transition-opacity hover:opacity-90"
+       style="background:#1a1a2e; font-size:13px;">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      EXPORTER LA LISTE
+    </a>
+  </div>
+</div>
+
+<!-- Filtres sur une ligne -->
+<form method="GET" action="{{ base_path }}/admin/clients">
+  <div class="bg-white border border-gray-200 rounded-xl px-5 py-4 mb-5 shadow-sm flex flex-wrap items-center gap-3">
+    <!-- Recherche -->
+    <div class="relative flex-1 min-w-[180px]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
+      <input type="text" name="q" placeholder="Rechercher un client..." value="{{ filters.q }}"
+             class="w-full border border-gray-200 rounded-lg pl-10 pr-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500" style="font-size:13px;">
+    </div>
+    <!-- Statut -->
+    <select name="status" class="border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500" style="font-size:13px;">
+      <option value="tous"    {{ filters.status == 'tous' ? 'selected' : '' }}>Tous les statuts</option>
+      <option value="actif"   {{ filters.status == 'actif' ? 'selected' : '' }}>Actif</option>
+      <option value="inactif" {{ filters.status == 'inactif' ? 'selected' : '' }}>Inactif</option>
+    </select>
+    <!-- Segment -->
+    <select name="segment" class="border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500" style="font-size:13px;">
+      <option value="tous"        {{ filters.segment == 'tous' ? 'selected' : '' }}>Tous les segments</option>
+      <option value="nouveau"     {{ filters.segment == 'nouveau' ? 'selected' : '' }}>Nouveau</option>
+      <option value="fidele"      {{ filters.segment == 'fidele' ? 'selected' : '' }}>Fidèle</option>
+      <option value="occasionnel" {{ filters.segment == 'occasionnel' ? 'selected' : '' }}>Occasionnel</option>
+    </select>
+    <!-- Date de -->
+    <div class="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2.5" style="font-size:13px;">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      <span class="text-gray-500 shrink-0">Inscription :</span>
+      <input type="date" name="from" value="{{ filters.from }}" class="focus:outline-none bg-transparent" style="font-size:13px;">
+      <span class="text-gray-400">—</span>
+      <input type="date" name="to" value="{{ filters.to }}" class="focus:outline-none bg-transparent" style="font-size:13px;">
+    </div>
+    <!-- Bouton filtrer -->
+    <button type="submit" class="inline-flex items-center gap-2 text-white font-bold rounded-lg px-5 py-2.5 transition-opacity hover:opacity-90" style="background:#c8272c; font-size:13px;">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4h18M7 10h10M11 16h2"/></svg>
+      FILTRER
+    </button>
+    <!-- Bouton réinitialiser -->
+    <a href="{{ base_path }}/admin/clients" class="inline-flex items-center gap-2 font-bold rounded-lg px-4 py-2.5 border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors" style="font-size:13px;">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+      Réinitialiser
+    </a>
+  </div>
+</form>
+
+<!-- Tableau -->
+<div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mb-6">
+  {% if clients is empty %}
+    <div class="text-center py-16 px-6">
+      <p class="text-gray-500 font-medium mb-1">Aucun client ne correspond à ces critères.</p>
+      <p class="text-gray-400 text-sm">Essayez d'élargir votre recherche ou vos filtres.</p>
+    </div>
+  {% else %}
+    {% set segmentStyles = {'fidele': 'bg-green-100 text-green-800', 'nouveau': 'bg-blue-100 text-blue-800', 'occasionnel': 'bg-yellow-100 text-yellow-800'} %}
+    {% set segmentLabels = {'fidele': 'Fidèle', 'nouveau': 'Nouveau', 'occasionnel': 'Occasionnel'} %}
+    {% set avatarColors  = ['bg-blue-500', 'bg-purple-500', 'bg-green-500', 'bg-orange-500', 'bg-pink-500', 'bg-teal-500'] %}
+    <div class="overflow-x-auto">
+      <table class="min-w-full">
+        <thead class="bg-gray-50 border-b border-gray-100">
+          <tr>
+            <th class="px-5 py-3 text-left font-bold text-gray-500 uppercase" style="font-size:11px; letter-spacing:0.5px;">Client</th>
+            <th class="px-5 py-3 text-left font-bold text-gray-500 uppercase" style="font-size:11px; letter-spacing:0.5px;">Téléphone WhatsApp</th>
+            <th class="px-5 py-3 text-left font-bold text-gray-500 uppercase" style="font-size:11px; letter-spacing:0.5px;">Date d'inscription</th>
+            <th class="px-5 py-3 text-left font-bold text-gray-500 uppercase" style="font-size:11px; letter-spacing:0.5px;">Segment</th>
+            <th class="px-5 py-3 text-left font-bold text-gray-500 uppercase" style="font-size:11px; letter-spacing:0.5px;">Statut</th>
+            <th class="px-5 py-3 text-left font-bold text-gray-500 uppercase" style="font-size:11px; letter-spacing:0.5px;">Dernière activité</th>
+            <th class="px-5 py-3 text-right font-bold text-gray-500 uppercase" style="font-size:11px; letter-spacing:0.5px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-100">
+          {% for client in clients %}
+            {% set colorIdx = hash_mod(client.first_name, avatarColors|length) %}
+            {% set initials = (client.first_name|slice(0, 1) ~ client.last_name|slice(0, 1))|upper %}
+            {% set lastActivity = client.updated_at is not empty ? client.updated_at|date('d/m/Y') : client.created_at|date('d/m/Y') %}
+            {% set isToday = lastActivity == "now"|date('d/m/Y') %}
+            {% set isYesterday = lastActivity == "-1 day"|date('d/m/Y') %}
+          <tr class="hover:bg-gray-50 transition-colors">
+            <td class="px-5 py-3.5 whitespace-nowrap">
+              <a href="{{ base_path }}/admin/clients/{{ client.id }}" class="flex items-center gap-3 group">
+                <div class="w-9 h-9 rounded-full {{ avatarColors[colorIdx] }} flex items-center justify-center shrink-0">
+                  <span class="text-white font-bold" style="font-size:12px;">{{ initials }}</span>
+                </div>
+                <span class="font-semibold text-ink group-hover:text-brand-500 transition-colors" style="font-size:13px;">{{ client.first_name }} {{ client.last_name }}</span>
+              </a>
+            </td>
+            <td class="px-5 py-3.5 whitespace-nowrap">
+              <div class="flex items-center gap-2" style="font-size:13px; color:#2a2a2a;">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" style="color:#25D366;" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.4A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-2.9.8.8-2.8-.2-.3A8 8 0 1 1 12 20z"/></svg>
+                {{ client.phone_whatsapp }}
+              </div>
+            </td>
+            <td class="px-5 py-3.5 whitespace-nowrap text-gray-500" style="font-size:13px;">
+              {{ client.created_at|date('d/m/Y') }}
+            </td>
+            <td class="px-5 py-3.5 whitespace-nowrap">
+              <span class="px-2.5 py-1 rounded-full font-semibold {{ segmentStyles[client.segment]|default('bg-gray-100 text-gray-800') }}" style="font-size:11.5px;">
+                {{ segmentLabels[client.segment]|default(client.segment) }}
+              </span>
+            </td>
+            <td class="px-5 py-3.5 whitespace-nowrap">
+              <span class="px-2.5 py-1 rounded-full font-semibold {{ client.status == 'actif' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500' }}" style="font-size:11.5px;">
+                {{ client.status == 'actif' ? 'Actif' : 'Inactif' }}
+              </span>
+            </td>
+            <td class="px-5 py-3.5 whitespace-nowrap text-gray-500" style="font-size:13px;">
+              {{ isToday ? "Aujourd'hui" : (isYesterday ? 'Hier' : lastActivity) }}
+            </td>
+            <td class="px-5 py-3.5 whitespace-nowrap text-right">
+              <div class="inline-flex items-center gap-2">
+                <a href="{{ base_path }}/admin/clients/{{ client.id }}"
+                   class="inline-flex items-center gap-1.5 font-semibold px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors"
+                   style="font-size:12px;">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.5 12a3.5 3.5 0 11-7 0 3.5 3.5 0 017 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.5 12S6 5 12 5s9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7z"/></svg>
+                  Voir la fiche
+                </a>
+                <button type="button"
+                        onclick="document.getElementById('msg-modal-{{ client.id }}').classList.remove('hidden')"
+                        class="inline-flex items-center gap-1.5 font-semibold px-3 py-1.5 rounded-lg border transition-colors hover:bg-green-50"
+                        style="font-size:12px; color:#25D366; border-color:#d1fae5;">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.4A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-2.9.8.8-2.8-.2-.3A8 8 0 1 1 12 20z"/></svg>
+                  Message
+                </button>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="flex flex-wrap items-center justify-end gap-3 px-5 py-4 border-t border-gray-100 bg-gray-50">
+      {% if totalPages > 1 %}
+        <div class="flex items-center gap-1.5">
+          {% set maxPages = min(totalPages, 13) %}
+          {% for p in 1..maxPages %}
+            <a href="{{ base_path }}/admin/clients?q={{ filters.q|url_encode }}&status={{ filters.status|url_encode }}&segment={{ filters.segment|url_encode }}&from={{ filters.from|url_encode }}&to={{ filters.to|url_encode }}&page={{ p }}"
+               class="w-9 h-9 flex items-center justify-center rounded-lg font-bold transition-colors"
+               style="font-size:13px; {{ p == page ? 'background:#c8272c; color:#fff;' : 'color:#6b7280;' }}">
+              {{ p }}
+            </a>
+          {% endfor %}
+          {% if totalPages > 13 %}
+            <span class="text-gray-400 font-semibold px-1" style="font-size:13px;">...</span>
+            <a href="{{ base_path }}/admin/clients?q={{ filters.q|url_encode }}&status={{ filters.status|url_encode }}&segment={{ filters.segment|url_encode }}&from={{ filters.from|url_encode }}&to={{ filters.to|url_encode }}&page={{ totalPages }}"
+               class="w-9 h-9 flex items-center justify-center rounded-lg font-bold text-gray-500 hover:bg-gray-100 transition-colors" style="font-size:13px;">
+              {{ totalPages }}
+            </a>
+          {% endif %}
+          {% if page < totalPages %}
+            <a href="{{ base_path }}/admin/clients?q={{ filters.q|url_encode }}&status={{ filters.status|url_encode }}&segment={{ filters.segment|url_encode }}&from={{ filters.from|url_encode }}&to={{ filters.to|url_encode }}&page={{ page + 1 }}"
+               class="w-9 h-9 flex items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/></svg>
+            </a>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+
+<!-- Blocs promo bas de page -->
+<div class="grid grid-cols-2 gap-5 mb-2 items-stretch">
+  <!-- WhatsApp -->
+  <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex items-start gap-4">
+    <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style="background:#25D366;">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.4A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-2.9.8.8-2.8-.2-.3A8 8 0 1 1 12 20z"/></svg>
+    </div>
+    <div class="flex-1">
+      <p class="font-extrabold text-ink mb-1" style="font-size:14px;">Communiquez avec vos clients</p>
+      <p class="text-gray-500 mb-3" style="font-size:12.5px;">Envoyez vos promotions, événements et nouveautés directement sur WhatsApp.</p>
+      <div class="flex flex-col gap-1.5">
+        {% for item in ['Promotions exclusives', 'Événements à venir', 'Nouveautés et bons plans'] %}
+          <div class="flex items-center gap-2 text-gray-600" style="font-size:12.5px;">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-green-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            {{ item }}
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  <!-- QR Code -->
+  <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex items-start gap-4">
+    <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style="background:#25D366;">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM17 17h3v3h-3z"/></svg>
+    </div>
+    <div class="flex-1">
+      <p class="font-extrabold text-ink mb-1" style="font-size:14px;">Agrandissez votre communauté</p>
+      <p class="text-gray-500 mb-4" style="font-size:12.5px;">Partagez votre QR code et invitez plus de clients à s'inscrire pour recevoir vos infos.</p>
+      <a href="{{ base_path }}/assets/images/qrcode.jpg" download
+         class="inline-flex items-center gap-2 font-bold border border-gray-200 rounded-lg px-4 py-2.5 transition-colors hover:bg-gray-50" style="font-size:12.5px; color:#2a2a2a;">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        TÉLÉCHARGER LE QR CODE
+      </a>
+    </div>
+    <img src="{{ base_path }}/assets/images/qrcode.jpg" alt="QR Code WhatsApp" class="w-20 h-20 rounded-lg object-cover shrink-0" loading="lazy">
+  </div>
+</div>
+
+<!-- Modales d'envoi de message -->
+{% for client in clients %}
+  <div id="msg-modal-{{ client.id }}" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+    <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
+      <h3 class="font-extrabold text-ink mb-1" style="font-size:16px;">Message à {{ client.first_name }}</h3>
+      <p class="text-gray-500 mb-4" style="font-size:13px;">{{ client.phone_whatsapp }}</p>
+      <form method="POST" action="{{ base_path }}/admin/clients/{{ client.id }}/message">
+        {{ csrf_field() }}
+        <textarea name="content" rows="4" required placeholder="Votre message WhatsApp..."
+                  class="w-full border border-gray-200 rounded-xl px-4 py-3 mb-4 focus:outline-none focus:ring-2 focus:ring-green-500/30 focus:border-green-500 resize-none" style="font-size:13px;"></textarea>
+        <div class="flex gap-2 justify-end">
+          <button type="button" onclick="document.getElementById('msg-modal-{{ client.id }}').classList.add('hidden')"
+                  class="px-4 py-2.5 font-semibold text-gray-500 hover:text-ink transition-colors" style="font-size:13px;">Annuler</button>
+          <button type="submit" class="inline-flex items-center gap-2 text-white font-bold px-5 py-2.5 rounded-lg transition-opacity hover:opacity-90" style="background:#25D366; font-size:13px;">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.4A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-2.9.8.8-2.8-.2-.3A8 8 0 1 1 12 20z"/></svg>
+            Envoyer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+{% endfor %}

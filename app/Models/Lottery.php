@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use App\Core\Model;
@@ -69,5 +71,28 @@ class Lottery extends Model
         return (int) self::db()->query(
             "SELECT COUNT(*) FROM lottery_entries WHERE DATE(created_at) = CURDATE()"
         )->fetchColumn();
+    }
+
+    public static function findByQrToken(string $token): ?array
+    {
+        $stmt = self::db()->prepare('SELECT * FROM lotteries WHERE qr_token = :token AND deleted_at IS NULL LIMIT 1');
+        $stmt->execute(['token' => $token]);
+        $row = $stmt->fetch();
+        return $row ?: null;
+    }
+
+    /**
+     * Jeton public unique encodé dans le QR code de la loterie (URL :
+     * /loterie/{qr_token}) — généré une fois à la création, jamais réutilisé.
+     */
+    public static function generateUniqueQrToken(): string
+    {
+        do {
+            $token = bin2hex(random_bytes(10));
+            $stmt = self::db()->prepare('SELECT 1 FROM lotteries WHERE qr_token = :token');
+            $stmt->execute(['token' => $token]);
+        } while ($stmt->fetchColumn());
+
+        return $token;
     }
 }

@@ -1,0 +1,164 @@
+<!-- En-tête -->
+<div class="mb-8">
+  <h1 class="font-extrabold text-3xl text-ink mb-2">Bienvenue {{ user.first_name }} 👋</h1>
+  <p class="text-gray-500">Voici un aperçu de votre compte et de vos activités au Commerce.</p>
+</div>
+
+<!-- KPIs principales -->
+<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+
+  <!-- Portefeuille -->
+  <div class="reveal bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl p-6 text-white shadow-lg hover-lift">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <p class="text-emerald-100 text-sm font-semibold mb-2">Mon portefeuille</p>
+        <p class="font-extrabold text-3xl">{{ wallet.balance|number_format(2, ',', ' ') }} €</p>
+      </div>
+      <svg class="w-12 h-12 opacity-20" fill="currentColor" viewBox="0 0 24 24"><path d="M17 8H5c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm0 12H5V10h14v10zM6 13h12v2H6z"/></svg>
+    </div>
+    <a href="#recharger" class="inline-flex items-center justify-center w-full mt-4 bg-white text-emerald-600 font-bold text-sm px-4 py-2.5 rounded-lg hover:bg-emerald-50 transition-all">
+      <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 22s7-7.5 7-13a7 7 0 10-14 0c0 5.5 7 13 7 13z"/><circle cx="12" cy="9" r="2.5"/></svg>
+      Comment recharger ?
+    </a>
+  </div>
+
+  <!-- Dernière transaction -->
+  <div class="reveal bg-white border border-gray-100 rounded-2xl p-6 hover-lift" style="transition-delay:50ms;">
+    <p class="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-3">Dernière transaction</p>
+    {% if lastTransaction %}
+      <p class="font-extrabold text-2xl mb-1 {{ lastTransaction.type == 'debit' ? 'text-brand-500' : 'text-emerald-500' }}">
+        {{ lastTransaction.type == 'debit' ? '−' : '+' }}{{ lastTransaction.amount|number_format(2, ',', ' ') }} €
+      </p>
+      <p class="text-xs text-gray-400">{{ lastTransaction.label|default(lastTransaction.type|capitalize) }}</p>
+      <p class="text-xs text-gray-400 mt-0.5">{{ lastTransaction.created_at|date('d/m/Y à H:i') }}</p>
+      <a href="{{ base_path }}/mon-compte/transactions" class="inline-flex items-center gap-1 text-xs font-bold text-brand-500 hover:text-brand-600 mt-3 transition-colors">
+        Voir plus →
+      </a>
+    {% else %}
+      <p class="text-gray-400 text-sm mt-2">Aucune transaction pour le moment</p>
+    {% endif %}
+  </div>
+
+  <!-- Total dépensé -->
+  <div class="reveal bg-white border border-gray-100 rounded-2xl p-6 hover-lift" style="transition-delay:100ms;">
+    <p class="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-3">Dépensé ce mois</p>
+    <p class="font-extrabold text-2xl text-ink mb-1">{{ spentThisMonth|number_format(2, ',', ' ') }} €</p>
+    <p class="text-xs text-gray-400">€ · Statistiques mensuelles</p>
+    <a href="{{ base_path }}/mon-compte/transactions" class="inline-flex items-center gap-1 text-xs font-bold text-brand-500 hover:text-brand-600 mt-3 transition-colors">
+      Voir statistiques →
+    </a>
+  </div>
+
+  <!-- Points fidélité -->
+  <div class="reveal bg-white border border-gray-100 rounded-2xl p-6 hover-lift" style="transition-delay:150ms;">
+    <p class="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-3">Fidélité</p>
+    <p class="font-extrabold text-2xl text-amber-500 mb-1">{{ user.loyalty_points|round(0, 'floor') }} ⭐</p>
+    <p class="text-xs text-gray-400">Points fidélité</p>
+    <a href="{{ base_path }}/mon-compte/avantages" class="inline-flex items-center gap-1 text-xs font-bold text-brand-500 hover:text-brand-600 mt-3 transition-colors">
+      Voir avantages →
+    </a>
+  </div>
+</div>
+
+<!-- Section recharge + autres cartes -->
+<div class="grid lg:grid-cols-3 gap-6 mb-8">
+
+  <!-- Comment recharger -->
+  <div id="recharger" class="lg:col-span-2 bg-white border border-gray-100 rounded-2xl p-8 scroll-mt-20">
+    <h2 class="font-extrabold text-xl text-ink mb-1">Comment recharger mon portefeuille ?</h2>
+    <p class="text-gray-500 text-sm mb-6">La recharge se fait directement en boutique, en toute simplicité.</p>
+
+    <div class="grid sm:grid-cols-3 gap-5">
+      <div class="flex flex-col items-center text-center gap-2 p-4 bg-gray-50 rounded-xl">
+        <span class="w-10 h-10 rounded-full bg-brand-500 text-white flex items-center justify-center font-bold">1</span>
+        <p class="text-sm font-semibold text-ink">Rendez-vous en caisse</p>
+        <p class="text-xs text-gray-500">Indiquez le montant que vous souhaitez ajouter et réglez en espèces ou par carte.</p>
+      </div>
+      <div class="flex flex-col items-center text-center gap-2 p-4 bg-gray-50 rounded-xl">
+        <span class="w-10 h-10 rounded-full bg-brand-500 text-white flex items-center justify-center font-bold">2</span>
+        <p class="text-sm font-semibold text-ink">Présentez votre QR Code</p>
+        <p class="text-xs text-gray-500">Notre équipe scanne votre code ou retrouve votre compte pour créditer votre portefeuille.</p>
+      </div>
+      <div class="flex flex-col items-center text-center gap-2 p-4 bg-gray-50 rounded-xl">
+        <span class="w-10 h-10 rounded-full bg-brand-500 text-white flex items-center justify-center font-bold">3</span>
+        <p class="text-sm font-semibold text-ink">Solde mis à jour aussitôt</p>
+        <p class="text-xs text-gray-500">Le montant apparaît immédiatement sur votre compte, prêt à être utilisé.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Card promotionnelle -->
+  <div class="bg-white border border-gray-100 rounded-2xl p-6 flex flex-col">
+    <h3 class="font-bold text-ink mb-3">💡 Conseil</h3>
+    <p class="text-sm text-gray-600 flex-1">Rechargez votre portefeuille une seule fois pour accumuler les points fidélité et profiter de réductions exclusives.</p>
+    <a href="{{ base_path }}/mon-compte/avantages" class="mt-4 inline-flex items-center gap-2 text-xs font-bold text-brand-500 hover:text-brand-600 transition-colors">
+      Découvrir les avantages →
+    </a>
+  </div>
+
+</div>
+
+<!-- Actions rapides -->
+<div class="grid sm:grid-cols-2 gap-4 mb-8">
+  <a href="{{ base_path }}/mon-compte/offres" class="bg-white border border-gray-100 rounded-xl p-4 hover:border-brand-300 transition-all hover-lift">
+    <p class="font-bold text-ink flex items-center gap-2 mb-1">
+      <svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v-1m0 0H9m3 0h3m-3 4h12a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2v-8a2 2 0 012-2z"/></svg>
+      Mes offres
+    </p>
+    <p class="text-xs text-gray-500">Consultez vos codes promotionnels</p>
+  </a>
+  <a href="{{ base_path }}/mon-compte/sondages" class="bg-white border border-gray-100 rounded-xl p-4 hover:border-brand-300 transition-all hover-lift">
+    <p class="font-bold text-ink flex items-center gap-2 mb-1">
+      <svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14"/></svg>
+      Sondages
+    </p>
+    <p class="text-xs text-gray-500">Participez et gagnez des points</p>
+  </a>
+</div>
+
+<!-- QR + parrainage -->
+<div class="grid sm:grid-cols-2 gap-6 mb-8">
+    <div class="bg-white border border-gray-100 rounded-2xl p-6 text-center">
+      <h2 class="font-bold text-ink mb-1">Mon QR Code client</h2>
+      <p class="text-xs text-gray-400 mb-4">Montrez ce code en caisse pour accéder à votre portefeuille.</p>
+      <div class="bg-white border border-gray-200 rounded-xl p-3 inline-block">
+        <svg viewBox="0 0 100 100" class="w-32 h-32">
+          <rect width="100" height="100" fill="#fff"/>
+          {{ qr_pattern(wallet.qr_code, 14, 6, 6) }}
+          <rect x="6" y="6" width="18" height="18" fill="none" stroke="#111" stroke-width="4"/>
+          <rect x="76" y="6" width="18" height="18" fill="none" stroke="#111" stroke-width="4"/>
+          <rect x="6" y="76" width="18" height="18" fill="none" stroke="#111" stroke-width="4"/>
+        </svg>
+      </div>
+      <p class="text-xs text-gray-400 mt-3 font-mono">{{ wallet.qr_code }}</p>
+    </div>
+
+    <div class="bg-ink rounded-2xl p-6 text-white">
+      <h2 class="font-bold mb-1">Parrainez vos amis !</h2>
+      <p class="text-gray-400 text-sm mb-4">Gagnez 10 € de crédit pour chaque ami qui s'inscrit et effectue sa première recharge.</p>
+      <p class="text-xs text-gray-500 mb-4">{{ referralCount }} filleul{{ referralCount > 1 ? 's' : '' }} pour le moment</p>
+      <a href="{{ base_path }}/mon-compte/parrainage" class="block text-center bg-brand-500 hover:bg-brand-600 text-white font-bold text-sm px-4 py-3 rounded-lg transition-colors">
+        Parrainer un ami
+      </a>
+    </div>
+</div>
+
+<!-- Comment ça marche -->
+<div class="bg-white border border-gray-100 rounded-2xl p-6">
+  <h2 class="font-bold text-ink mb-5">Comment ça marche ?</h2>
+  <div class="grid sm:grid-cols-4 gap-6">
+    {% set steps = [
+        {num: '1', title: 'Rechargez votre compte', desc: 'Ajoutez du crédit directement en caisse, en espèces ou par carte.'},
+        {num: '2', title: 'Scannez votre QR Code', desc: 'Présentez votre QR Code en caisse pour accéder à votre portefeuille.'},
+        {num: '3', title: 'Payez en toute simplicité', desc: 'Le montant de votre consommation est déduit automatiquement.'},
+        {num: '4', title: 'Suivez vos dépenses', desc: 'Consultez vos transactions et votre solde à tout moment.'},
+    ] %}
+    {% for step in steps %}
+      <div>
+        <span class="w-8 h-8 rounded-full bg-ink text-white flex items-center justify-center font-bold text-sm mb-3">{{ step.num }}</span>
+        <p class="font-semibold text-ink text-sm mb-1">{{ step.title }}</p>
+        <p class="text-xs text-gray-500 leading-relaxed">{{ step.desc }}</p>
+      </div>
+    {% endfor %}
+  </div>
+</div>

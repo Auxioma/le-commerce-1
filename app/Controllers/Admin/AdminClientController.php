@@ -1,17 +1,32 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controllers\Admin;
 
 use App\Core\Controller;
-use App\Core\Database;
 use App\Core\Middleware;
 use App\Models\User;
 use App\Models\Wallet;
 use App\Models\WalletTransaction;
-use App\Models\WhatsappMessage;
+use App\Service\CsvExportService;
+use App\Service\NotificationService;
+use App\Service\WalletService;
 
 class AdminClientController extends Controller
 {
+    private WalletService $walletService;
+    private NotificationService $notificationService;
+    private CsvExportService $csvExportService;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->walletService = new WalletService();
+        $this->notificationService = new NotificationService();
+        $this->csvExportService = new CsvExportService();
+    }
+
     public function index(): void
     {
         Middleware::requireRole('admin');
@@ -59,28 +74,25 @@ class AdminClientController extends Controller
         // perPage volontairement très large pour tout récupérer en un export
         $result = User::paginateClients($filters, 1, 100000);
 
-        header('Content-Type: text/csv; charset=utf-8');
-        header('Content-Disposition: attachment; filename="clients-le-commerce-' . date('Y-m-d') . '.csv"');
+        $this->csvExportService->streamDownload(
+            'clients-le-commerce-' . date('Y-m-d') . '.csv',
+            function ($out) use ($result): void {
+                $this->csvExportService->writeRow($out, ['Prénom', 'Nom', 'Téléphone WhatsApp', 'E-mail', 'Segment', 'Statut', 'Solde portefeuille', 'Date d\'inscription'], ';');
 
-        $out = fopen('php://output', 'w');
-        fwrite($out, "\xEF\xBB\xBF"); // BOM pour un affichage correct des accents dans Excel
-        fputcsv($out, ['Prénom', 'Nom', 'Téléphone WhatsApp', 'E-mail', 'Segment', 'Statut', 'Solde portefeuille', 'Date d\'inscription'], ';');
-
-        foreach ($result['data'] as $client) {
-            fputcsv($out, [
-                $client['first_name'],
-                $client['last_name'],
-                $client['phone_whatsapp'],
-                $client['email'],
-                $client['segment'],
-                $client['status'],
-                number_format((float) $client['wallet_balance'], 2, ',', ''),
-                date('d/m/Y', strtotime($client['created_at'])),
-            ], ';');
-        }
-
-        fclose($out);
-        exit;
+                foreach ($result['data'] as $client) {
+                    $this->csvExportService->writeRow($out, [
+                        $client['first_name'],
+                        $client['last_name'],
+                        $client['phone_whatsapp'],
+                        $client['email'],
+                        $client['segment'],
+                        $client['status'],
+                        number_format((float) $client['wallet_balance'], 2, ',', ''),
+                        date('d/m/Y', strtotime($client['created_at'])),
+                    ], ';');
+                }
+            }
+        );
     }
 
     /**
@@ -204,35 +216,12 @@ class AdminClientController extends Controller
             return;
         }
 
-        // Bonus fidélité : +2 € offerts pour une recharge en caisse de 50 €.
-        $bonus = ($direction === 'credit' && (int) $amount === 50) ? 2.0 : 0.0;
+        $result = $this->walletService->adjustBalance($wallet, $direction, $amount, $label, $paymentMethod);
 
-        $pdo = Database::connection();
-        $pdo->beginTransaction();
-        try {
-            Wallet::adjustBalance($wallet['id'], $direction === 'debit' ? -$amount : $amount + $bonus);
-            WalletTransaction::create([
-                'wallet_id'      => $wallet['id'],
-                'type'           => $direction === 'debit' ? 'debit' : 'recharge',
-                'amount'         => $amount,
-                'payment_method' => $direction === 'debit' ? 'portefeuille' : $paymentMethod,
-                'status'         => 'reussi',
-                'label'          => $label !== '' ? $label : ($direction === 'debit' ? 'Ajustement manuel (admin)' : 'Recharge en caisse'),
-            ]);
-            if ($bonus > 0) {
-                WalletTransaction::create([
-                    'wallet_id'      => $wallet['id'],
-                    'type'           => 'recharge',
-                    'amount'         => $bonus,
-                    'payment_method' => $paymentMethod,
-                    'status'         => 'reussi',
-                    'label'          => 'Bonus fidélité',
-                ]);
-            }
-            $pdo->commit();
+        if ($result['success']) {
+            $bonus = $result['bonus'];
             $this->setFlash('success', 'Solde du portefeuille mis à jour.' . ($bonus > 0 ? ' (+' . $bonus . ' € de bonus fidélité offerts)' : ''));
-        } catch (\Throwable $e) {
-            $pdo->rollBack();
+        } else {
             $this->setFlash('error', 'Une erreur est survenue, le solde n\'a pas été modifié.');
         }
 
@@ -279,11 +268,7 @@ class AdminClientController extends Controller
 
         $content = trim((string) $this->input('content', ''));
         if ($content !== '') {
-            WhatsappMessage::create([
-                'user_id'   => $id,
-                'direction' => 'sortant',
-                'content'   => $content,
-            ]);
+            $this->notificationService->sendWhatsapp($id, $content);
             $this->setFlash('success', 'Message envoyé à ' . $client['first_name'] . ' ' . $client['last_name'] . '.');
         }
 

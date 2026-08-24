@@ -1,0 +1,177 @@
+{% set pageTitle = 'Le Bar' %}
+{% set pageSubtitle = 'Gérez les bières, planches à partager et boissons softs affichées sur la page publique « Le Bar ».' %}
+{% set pageActions = [
+    {href: base_path ~ '/admin/bar/creer', label: 'Ajouter une boisson', class: 'btn-primary'},
+    {href: base_path ~ '/le-bar', label: 'Voir la page publique', class: 'btn-secondary'},
+] %}
+{% include 'partials/admin-page-header.twig' %}
+
+<!-- KPIs -->
+<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+  <div class="card card-md">
+    <p class="text-sm font-semibold text-gray-500 mb-2">Boissons au total</p>
+    <p class="font-extrabold text-3xl text-ink">{{ totalDrinks }}</p>
+    <p class="text-xs text-gray-400 mt-1">Visibles sur /le-bar</p>
+  </div>
+  {% for key, label in categories %}
+    <div class="card card-md">
+      <p class="text-sm font-semibold text-gray-500 mb-2">{{ label }}</p>
+      <p class="font-extrabold text-3xl text-ink">{{ countByCategory[key]|default(0) }}</p>
+    </div>
+  {% endfor %}
+</div>
+
+<!-- Bières -->
+<div class="card overflow-hidden mb-6">
+  <div class="px-5 py-4 border-b border-gray-50">
+    <h2 class="font-bold text-ink">Bières à la pression et en bouteille</h2>
+    <p class="text-sm text-gray-500 mt-0.5">Affichées sur /le-bar, regroupées par catégorie.</p>
+  </div>
+  {% if drinks is empty %}
+    <div class="text-center py-16 px-6">
+      <p class="text-gray-500 font-medium mb-1">Aucune boisson pour le moment.</p>
+      <a href="{{ base_path }}/admin/bar/creer" class="text-brand-500 text-sm font-semibold hover:underline">Ajouter votre première boisson</a>
+    </div>
+  {% else %}
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50">
+          <tr class="text-left text-gray-500 text-xs uppercase tracking-wide">
+            <th class="px-5 py-3 font-semibold">Nom</th>
+            <th class="px-5 py-3 font-semibold">Catégorie</th>
+            <th class="px-5 py-3 font-semibold">Degré</th>
+            <th class="px-5 py-3 font-semibold">Prix</th>
+            <th class="px-5 py-3 font-semibold text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+          {% for drink in drinks %}
+            <tr class="hover:bg-gray-50/50">
+              <td class="px-5 py-3.5 font-semibold text-ink">{{ drink.name }}</td>
+              <td class="px-5 py-3.5 text-gray-500">{{ categories[drink.category]|default(drink.category) }}</td>
+              <td class="px-5 py-3.5 text-gray-500">{{ drink.degree ? drink.degree|number_format(1, ',', '') ~ '°' : '—' }}</td>
+              <td class="px-5 py-3.5 text-gray-500">{{ drink.price ? drink.price|number_format(2, ',', ' ') ~ ' €' : '—' }}</td>
+              <td class="px-5 py-3.5 text-right">
+                <div class="inline-flex items-center gap-3">
+                  <a href="{{ base_path }}/admin/bar/{{ drink.id }}/modifier" class="text-xs font-bold text-gray-500 hover:text-brand-500">Modifier</a>
+                  <form method="POST" action="{{ base_path }}/admin/bar/{{ drink.id }}/supprimer" class="inline"
+                        onsubmit="return confirm('Supprimer définitivement cette boisson ?');">
+                    {{ csrf_field() }}
+                    <button type="submit" class="text-xs font-bold text-brand-500 hover:text-brand-600">Supprimer</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Planches -->
+<div class="card overflow-hidden mb-6">
+  <div class="px-5 py-4 border-b border-gray-50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div>
+      <h2 class="font-bold text-ink">Planches à partager</h2>
+      <p class="text-sm text-gray-500 mt-0.5">Affichées sur /le-bar. Photo, nom, description et prix personnalisables pour chaque planche.</p>
+    </div>
+    <a href="{{ base_path }}/admin/bar/planches/creer" class="btn-primary shrink-0">Ajouter une planche</a>
+  </div>
+  {% if planches is empty %}
+    <div class="text-center py-16 px-6">
+      <p class="text-gray-500 font-medium mb-1">Aucune planche pour le moment.</p>
+      <a href="{{ base_path }}/admin/bar/planches/creer" class="text-brand-500 text-sm font-semibold hover:underline">Ajouter votre première planche</a>
+    </div>
+  {% else %}
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50">
+          <tr class="text-left text-gray-500 text-xs uppercase tracking-wide">
+            <th class="px-5 py-3 font-semibold">Planche</th>
+            <th class="px-5 py-3 font-semibold">Description</th>
+            <th class="px-5 py-3 font-semibold">Prix</th>
+            <th class="px-5 py-3 font-semibold">Statut</th>
+            <th class="px-5 py-3 font-semibold text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+          {% for planche in planches %}
+            <tr class="hover:bg-gray-50/50">
+              <td class="px-5 py-3.5">
+                <div class="flex items-center gap-3">
+                  {% if planche.image %}
+                    <img src="{{ base_path }}{{ planche.image }}" alt="{{ planche.name }}" class="w-14 h-11 object-cover rounded-lg shrink-0">
+                  {% else %}
+                    <div class="w-14 h-11 rounded-lg shrink-0 bg-brand-50 flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-brand-200" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M5 6h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z"/></svg>
+                    </div>
+                  {% endif %}
+                  <p class="font-semibold text-ink">{{ planche.name }}</p>
+                </div>
+              </td>
+              <td class="px-5 py-3.5 text-gray-500 max-w-[320px] truncate">{{ planche.description|default('') }}</td>
+              <td class="px-5 py-3.5 text-gray-500">{{ planche.price ? planche.price|number_format(2, ',', ' ') ~ ' €' : '—' }}</td>
+              <td class="px-5 py-3.5">
+                {% if planche.status == 'active' %}
+                  <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600">Active</span>
+                {% else %}
+                  <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-gray-500">Inactive</span>
+                {% endif %}
+              </td>
+              <td class="px-5 py-3.5 text-right">
+                <div class="inline-flex items-center gap-3">
+                  <a href="{{ base_path }}/admin/bar/planches/{{ planche.id }}/modifier" class="text-xs font-bold text-gray-500 hover:text-brand-500">Modifier</a>
+                  <form method="POST" action="{{ base_path }}/admin/bar/planches/{{ planche.id }}/statut" class="inline">
+                    {{ csrf_field() }}
+                    <button type="submit" class="text-xs font-bold text-gray-500 hover:text-brand-500">
+                      {{ planche.status == 'active' ? 'Désactiver' : 'Activer' }}
+                    </button>
+                  </form>
+                  <form method="POST" action="{{ base_path }}/admin/bar/planches/{{ planche.id }}/supprimer" class="inline"
+                        onsubmit="return confirm('Supprimer définitivement cette planche ?');">
+                    {{ csrf_field() }}
+                    <button type="submit" class="text-xs font-bold text-brand-500 hover:text-brand-600">Supprimer</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Softs -->
+<div class="card overflow-hidden max-w-2xl">
+  <div class="px-5 py-4 border-b border-gray-50 flex items-center justify-between gap-3">
+    <div>
+      <h2 class="font-bold text-ink">Softs, cafés &amp; boissons chaudes</h2>
+      <p class="text-sm text-gray-500 mt-0.5">Affichés sur /le-bar.</p>
+    </div>
+    <a href="{{ base_path }}/admin/bar/softs/creer" class="btn-primary shrink-0">Ajouter un soft</a>
+  </div>
+  {% if softs is empty %}
+    <div class="text-center py-16 px-6">
+      <p class="text-gray-500 font-medium mb-1">Aucun soft pour le moment.</p>
+      <a href="{{ base_path }}/admin/bar/softs/creer" class="text-brand-500 text-sm font-semibold hover:underline">Ajouter votre premier soft</a>
+    </div>
+  {% else %}
+    <ul class="divide-y divide-gray-50">
+      {% for soft in softs %}
+        <li class="flex items-center justify-between gap-3 px-5 py-3">
+          <p class="font-semibold text-ink text-sm">{{ soft.name }}</p>
+          <div class="inline-flex items-center gap-3 shrink-0">
+            <a href="{{ base_path }}/admin/bar/softs/{{ soft.id }}/modifier" class="text-xs font-bold text-gray-500 hover:text-brand-500">Modifier</a>
+            <form method="POST" action="{{ base_path }}/admin/bar/softs/{{ soft.id }}/supprimer" class="inline"
+                  onsubmit="return confirm('Supprimer définitivement ce soft ?');">
+              {{ csrf_field() }}
+              <button type="submit" class="text-xs font-bold text-brand-500 hover:text-brand-600">Supprimer</button>
+            </form>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+</div>

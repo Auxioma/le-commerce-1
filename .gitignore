@@ -1,5 +1,9 @@
 node_modules/
+vendor/
 .env
 *.log
 storage/logs/*.txt
+storage/cache/twig/*
 public/uploads/
+app/Google/*.json
+storage/logs/*.json

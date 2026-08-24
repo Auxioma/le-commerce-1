@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controllers;
 
 use App\Core\Controller;
@@ -10,6 +12,7 @@ class PresseController extends Controller
     {
         $this->view('pages/presse', [
             'title'   => 'Presse — Le Commerce',
+            'description' => 'Presse et magazines à Forges-les-Eaux : quotidiens nationaux et régionaux, magazines spécialisés et presse jeunesse, réservation possible.',
             'heading' => 'Presse',
             'categories' => [
                 [

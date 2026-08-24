@@ -1,0 +1,60 @@
+{% set heroEyebrow = 'RÉSERVATION' %}
+{% set heroText = "Une table pour un moment convivial ? Laissez-nous vos coordonnées, nous confirmons votre réservation rapidement par téléphone." %}
+{% set heroActions = [] %}
+{% set heroSlug = 'hero_bar' %}
+{% include 'partials/page-hero.twig' %}
+
+<section class="max-w-[1536px] mx-auto px-6 lg:px-10 py-12">
+  <div class="max-w-xl mx-auto card card-md">
+    <h2 class="font-bold text-lg text-ink mb-1">Vos informations</h2>
+    <p class="text-sm text-gray-500 mb-6">Tous les champs marqués d'un * sont obligatoires.</p>
+
+    <form method="POST" action="{{ base_path }}/reservation" class="space-y-4">
+      {{ csrf_field() }}
+
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Nom complet *</label>
+        <input type="text" name="name" required value="{{ old.name|default('') }}" placeholder="Votre nom" class="form-input">
+        {% if errors.name is defined and errors.name %}<p class="text-xs text-brand-500 mt-1">{{ errors.name }}</p>{% endif %}
+      </div>
+
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-semibold text-ink mb-1.5">Téléphone *</label>
+          <input type="tel" name="phone" required value="{{ old.phone|default('') }}" placeholder="06 12 34 56 78" class="form-input">
+          {% if errors.phone is defined and errors.phone %}<p class="text-xs text-brand-500 mt-1">{{ errors.phone }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-ink mb-1.5">E-mail</label>
+          <input type="email" name="email" value="{{ old.email|default('') }}" placeholder="vous@exemple.fr" class="form-input">
+          {% if errors.email is defined and errors.email %}<p class="text-xs text-brand-500 mt-1">{{ errors.email }}</p>{% endif %}
+        </div>
+      </div>
+
+      <div class="grid sm:grid-cols-3 gap-4">
+        <div>
+          <label class="block text-sm font-semibold text-ink mb-1.5">Date *</label>
+          <input type="date" name="reservation_date" required min="{{ "now"|date("Y-m-d") }}" value="{{ old.date|default('') }}" class="form-input">
+          {% if errors.reservation_date is defined and errors.reservation_date %}<p class="text-xs text-brand-500 mt-1">{{ errors.reservation_date }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-ink mb-1.5">Heure *</label>
+          <input type="time" name="reservation_time" required value="{{ old.time|default('') }}" class="form-input">
+          {% if errors.reservation_time is defined and errors.reservation_time %}<p class="text-xs text-brand-500 mt-1">{{ errors.reservation_time }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-ink mb-1.5">Personnes *</label>
+          <input type="number" name="party_size" required min="1" max="30" value="{{ old.partySize|default(2) }}" class="form-input">
+          {% if errors.party_size is defined and errors.party_size %}<p class="text-xs text-brand-500 mt-1">{{ errors.party_size }}</p>{% endif %}
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Précisions (facultatif)</label>
+        <textarea name="note" rows="3" placeholder="Anniversaire, allergies, préférence de table..." class="form-textarea">{{ old.note|default('') }}</textarea>
+      </div>
+
+      <button type="submit" class="btn-primary w-full">Envoyer ma demande de réservation</button>
+    </form>
+  </div>
+</section>

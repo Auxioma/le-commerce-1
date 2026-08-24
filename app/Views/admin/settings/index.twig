@@ -1,0 +1,129 @@
+{% set pageTitle = 'Paramètres' %}
+{% set pageSubtitle = "Mentions légales, hébergeur et configuration Google Analytics. L'identité, les coordonnées et les horaires du commerce se gèrent désormais depuis Mon établissement." %}
+{% set pageActions = [
+    {href: base_path ~ '/admin/etablissement', label: 'Mon établissement', class: 'btn-primary'},
+] %}
+{% include 'partials/admin-page-header.twig' %}
+
+<div class="max-w-4xl mx-auto space-y-6">
+  <div class="card card-md bg-brand-50 border-brand-100">
+    <p class="text-sm text-brand-800">L'identité du commerce (nom, contact, adresse, horaires, réseaux sociaux) se modifie désormais depuis <a href="{{ base_path }}/admin/etablissement" class="font-semibold underline">Mon établissement</a>. Cette page ne conserve que les mentions légales et la configuration technique (Google Analytics).</p>
+  </div>
+
+  <form method="POST" action="{{ base_path }}/admin/parametres" class="space-y-6">
+    {{ csrf_field() }}
+
+    <div class="card card-md">
+      <h2 class="font-bold text-ink mb-4">Mentions légales &amp; hébergeur</h2>
+      <p class="text-sm text-gray-500 mb-4">Ces informations apparaissent sur la page « Mentions légales ». Elles peuvent être complétées plus tard.</p>
+      <div class="space-y-4">
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-semibold text-ink mb-1.5">Forme juridique</label>
+            <input type="text" name="legal_forme_juridique" placeholder="Ex : Entreprise individuelle, SARL..."
+                   value="{{ shop.legal.forme_juridique }}" class="form-input">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-ink mb-1.5">Capital social <span class="text-gray-400 font-normal">(si société)</span></label>
+            <input type="text" name="legal_capital_social" placeholder="Ex : 10 000 €"
+                   value="{{ shop.legal.capital_social }}" class="form-input">
+          </div>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-semibold text-ink mb-1.5">SIRET</label>
+            <input type="text" name="legal_siret" value="{{ shop.legal.siret }}" class="form-input">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-ink mb-1.5">Directeur de la publication</label>
+            <input type="text" name="legal_directeur_publication" value="{{ shop.legal.directeur_publication }}" class="form-input">
+          </div>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-semibold text-ink mb-1.5">Numéro RCS</label>
+            <input type="text" name="legal_rcs_numero" value="{{ shop.legal.rcs_numero }}" class="form-input">
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-ink mb-1.5">Ville d'immatriculation (RCS)</label>
+            <input type="text" name="legal_rcs_ville" value="{{ shop.legal.rcs_ville }}" class="form-input">
+          </div>
+        </div>
+        <div class="border-t border-gray-100 pt-4">
+          <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Hébergeur du site</p>
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-semibold text-ink mb-1.5">Nom de l'hébergeur</label>
+              <input type="text" name="legal_hebergeur_nom" value="{{ shop.legal.hebergeur_nom }}" class="form-input">
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-ink mb-1.5">Téléphone de l'hébergeur</label>
+              <input type="text" name="legal_hebergeur_telephone" value="{{ shop.legal.hebergeur_telephone }}" class="form-input">
+            </div>
+          </div>
+          <div class="mt-4">
+            <label class="block text-sm font-semibold text-ink mb-1.5">Adresse de l'hébergeur</label>
+            <input type="text" name="legal_hebergeur_adresse" value="{{ shop.legal.hebergeur_adresse }}" class="form-input">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button type="submit" class="btn-primary w-full">
+      Enregistrer les modifications
+    </button>
+  </form>
+
+  <div class="card card-md">
+    <h2 class="font-bold text-ink mb-4">Google Analytics (GA4)</h2>
+    <p class="text-sm text-gray-500 mb-4">
+      Alimente la page <a href="{{ base_path }}/admin/google-analytics" class="text-brand-500 font-semibold hover:underline">Google Analytics</a> du back-office.
+    </p>
+
+    <div class="mb-5">
+      <label class="block text-sm font-semibold text-ink mb-1.5">Identifiant de propriété GA4 (Property ID)</label>
+      {% if ga4PropertyId %}
+        <p class="text-sm text-ink font-mono">{{ ga4PropertyId }}</p>
+      {% else %}
+        <p class="flex items-center gap-1.5 text-sm text-amber-600 font-medium">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-8.99 3h.008v.008h-.008V15z"/></svg>
+          Non défini.
+        </p>
+      {% endif %}
+      <p class="text-xs text-gray-400 mt-1">
+        Se règle désormais dans le fichier <code class="text-gray-600">.env</code> du serveur, variable <code class="text-gray-600">GA4_PROPERTY_ID</code>
+        (numérique, ex. <code class="text-gray-600">347028931</code> — trouvable dans Google Analytics → Administration → Propriété → Détails de la propriété ;
+        à ne pas confondre avec l'ID de mesure <code class="text-gray-600">G-XXXXXXXXXX</code> ni l'ID de flux).
+      </p>
+    </div>
+
+    {% if ga4OAuthAuthorized %}
+      <p class="flex items-center gap-1.5 text-sm text-emerald-600 font-medium mb-3">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+        Connecté à Google Analytics.
+      </p>
+      <div class="flex flex-wrap gap-3">
+        <a href="{{ base_path }}/admin/google-analytics/connecter" class="btn-secondary">Se reconnecter (changer de compte)</a>
+        <form method="POST" action="{{ base_path }}/admin/google-analytics/deconnecter" onsubmit="return confirm('Déconnecter Google Analytics ?');">
+          {{ csrf_field() }}
+          <button type="submit" class="btn-secondary text-red-600">Déconnecter</button>
+        </form>
+      </div>
+    {% elseif ga4OAuthClientPresent %}
+      <p class="text-sm text-gray-500 mb-3">
+        Connectez-vous avec le compte Google ayant accès (rôle « Lecteur ») à votre propriété GA4.
+      </p>
+      <a href="{{ base_path }}/admin/google-analytics/connecter" class="btn-primary inline-block">Se connecter à Google Analytics</a>
+    {% else %}
+      <p class="flex items-center gap-1.5 text-sm text-amber-600 font-medium mb-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-8.99 3h.008v.008h-.008V15z"/></svg>
+        Aucune connexion Google Analytics configurée.
+      </p>
+      <p class="text-xs text-gray-400">
+        Ajoutez <code class="text-gray-600">GA4_OAUTH_CLIENT_ID</code> et <code class="text-gray-600">GA4_OAUTH_CLIENT_SECRET</code>
+        dans le fichier <code class="text-gray-600">.env</code> du serveur (identifiant OAuth Web obtenu depuis
+        Google Cloud Console → Identifiants), puis rechargez cette page pour vous connecter.
+      </p>
+    {% endif %}
+  </div>
+</div>

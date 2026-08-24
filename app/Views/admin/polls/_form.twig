@@ -1,0 +1,126 @@
+{#
+ Formulaire partagé Sondage (création + édition).
+ Attend : formAction, submitLabel, rewardLabels, errors, old, optionRows
+ optionRows : liste de ['id' => int|null, 'label' => string, 'votes_count' => int|null]
+#}
+{% if errors.options is defined %}
+  <div class="flex items-center gap-2 bg-brand-50 text-brand-700 border border-brand-100 rounded-lg px-4 py-3 text-sm mb-5">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path stroke-linecap="round" d="M12 8v5M12 16h.01"/></svg>
+    {{ errors.options }}
+  </div>
+{% endif %}
+
+<form method="POST" action="{{ base_path ~ formAction }}" class="space-y-5">
+  {{ csrf_field() }}
+
+  <div>
+    <label class="block text-sm font-semibold text-ink mb-1.5">Question</label>
+    <input type="text" name="question" required value="{{ old.question|default('') }}" placeholder="Ex : Quelle bière souhaitez-vous en pression ?"
+           class="form-input {{ errors.question is defined ? 'border-brand-400' : '' }}">
+    {% if errors.question is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.question }}</p>{% endif %}
+  </div>
+
+  <div>
+    <label class="block text-sm font-semibold text-ink mb-1.5">Description <span class="text-gray-400 font-normal">(facultatif)</span></label>
+    <textarea name="description" rows="2" placeholder="Ex : Choisissez votre bière préférée !"
+              class="form-textarea">{{ old.description|default('') }}</textarea>
+  </div>
+
+  <div>
+    <label class="block text-sm font-semibold text-ink mb-1.5">Options de réponse</label>
+    <div id="options-list" class="space-y-2">
+      {% set rows = optionRows is not empty ? optionRows : [{'id': null, 'label': '', 'votes_count': null}, {'id': null, 'label': '', 'votes_count': null}] %}
+      {% for i, opt in rows %}
+        <div class="flex items-center gap-2 option-row">
+          <input type="hidden" name="options[{{ i }}][id]" value="{{ opt.id|default(0) }}">
+          <input type="text" name="options[{{ i }}][label]" value="{{ opt.label|default('') }}" required placeholder="Option {{ i + 1 }}"
+                 class="form-input">
+          {% if opt.votes_count is defined and opt.votes_count is not null %}
+            <span class="text-xs text-gray-400 shrink-0 whitespace-nowrap">{{ opt.votes_count }} vote{{ opt.votes_count > 1 ? 's' : '' }}</span>
+          {% endif %}
+          <button type="button" onclick="this.closest('.option-row').remove()" class="text-gray-300 hover:text-brand-500 p-2" aria-label="Retirer">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+      {% endfor %}
+    </div>
+    <button type="button" id="add-option" class="mt-2 text-sm font-semibold text-brand-500 hover:underline inline-flex items-center gap-1">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+      Ajouter une option
+    </button>
+    {% if optionRows is not empty %}
+      <p class="text-xs text-gray-400 mt-2">Les options ayant déjà reçu des votes ne peuvent pas être supprimées ici pour préserver l'historique ; vous pouvez uniquement renommer leur libellé ou en ajouter de nouvelles.</p>
+    {% endif %}
+  </div>
+
+  <div class="grid sm:grid-cols-2 gap-4">
+    <div>
+      <label class="block text-sm font-semibold text-ink mb-1.5">Fin du sondage</label>
+      <input type="date" name="ends_at" required value="{{ old.endsAt|default('') }}"
+             class="form-input {{ errors.ends_at is defined ? 'border-brand-400' : '' }}">
+      {% if errors.ends_at is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.ends_at }}</p>{% endif %}
+    </div>
+    <div>
+      <label class="block text-sm font-semibold text-ink mb-1.5">Récompense</label>
+      <select name="reward_type" id="reward-type" required class="form-select">
+        {% for key, label in rewardLabels %}
+          <option value="{{ key }}" {{ old.rewardType|default('points') == key ? 'selected' : '' }}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <div id="reward-value-wrapper">
+    <label class="block text-sm font-semibold text-ink mb-1.5" id="reward-value-label">Nombre de points</label>
+    <input type="number" name="reward_value" step="0.01" min="0" value="{{ old.rewardValue|default('10') }}"
+           class="form-input {{ errors.reward_value is defined ? 'border-brand-400' : '' }}">
+    {% if errors.reward_value is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.reward_value }}</p>{% endif %}
+  </div>
+
+  <label class="flex items-center gap-2.5 text-sm text-gray-600 bg-gray-50 rounded-lg px-4 py-3">
+    <input type="checkbox" name="publish" value="1" {{ old.publish|default(true) ? 'checked' : '' }} class="rounded border-gray-300 text-brand-500 focus:ring-brand-500/30">
+    Publier immédiatement (sinon le sondage est enregistré comme programmé)
+  </label>
+
+  <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold text-sm px-6 py-3.5 rounded-lg transition-colors">
+    {{ submitLabel }}
+  </button>
+</form>
+
+<script>
+  let optionIndex = {{ rows|length }};
+  document.getElementById('add-option').addEventListener('click', () => {
+    const list = document.getElementById('options-list');
+    const row = document.createElement('div');
+    row.className = 'flex items-center gap-2 option-row';
+    row.innerHTML = `
+      <input type="hidden" name="options[${optionIndex}][id]" value="0">
+      <input type="text" name="options[${optionIndex}][label]" placeholder="Nouvelle option" required
+             class="flex-1 border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30">
+      <button type="button" onclick="this.closest('.option-row').remove()" class="text-gray-300 hover:text-brand-500 p-2" aria-label="Retirer">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>`;
+    list.appendChild(row);
+    optionIndex++;
+  });
+
+  const rewardLabels = {
+    'points': 'Nombre de points',
+    'credit': 'Montant du crédit (€)',
+    'tirage_sort': null,
+    'aucune': null,
+  };
+  function updateRewardValueField() {
+    const type = document.getElementById('reward-type').value;
+    const wrapper = document.getElementById('reward-value-wrapper');
+    const label = rewardLabels[type];
+    if (!label) {
+      wrapper.classList.add('hidden');
+    } else {
+      wrapper.classList.remove('hidden');
+      document.getElementById('reward-value-label').textContent = label;
+    }
+  }
+  document.getElementById('reward-type').addEventListener('change', updateRewardValueField);
+  updateRewardValueField();
+</script>

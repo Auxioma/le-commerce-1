@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /mon-compte
+Disallow: /connexion
+Disallow: /inscription
+Disallow: /callback/
+
+Sitemap: http://lecommercetabac.test/sitemap.xml

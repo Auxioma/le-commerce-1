@@ -1,0 +1,77 @@
+{# Formulaire partagé Offre (création + édition).
+   Attend : formAction, submitLabel, typeLabels, segmentLabels, errors, old #}
+<form method="POST" action="{{ base_path ~ formAction }}" class="space-y-5">
+  {{ csrf_field() }}
+
+  <div>
+    <label class="block text-sm font-semibold text-ink mb-1.5">Nom de l'offre</label>
+    <input type="text" name="title" required value="{{ old.title|default('') }}" placeholder="Ex : Café offert"
+           class="form-input {{ errors.title is defined ? 'border-brand-400' : '' }}">
+    {% if errors.title is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.title }}</p>{% endif %}
+  </div>
+
+  <div>
+    <label class="block text-sm font-semibold text-ink mb-1.5">Description</label>
+    <textarea name="description" rows="2" placeholder="Ex : Un café offert pour bien commencer la journée !"
+              class="form-textarea">{{ old.description|default('') }}</textarea>
+  </div>
+
+  <div class="grid sm:grid-cols-2 gap-4">
+    <div>
+      <label class="block text-sm font-semibold text-ink mb-1.5">Type d'offre</label>
+      <select name="type" id="offer-type" required class="form-select {{ errors.type is defined ? 'border-brand-400' : '' }}">
+        <option value="">Choisir un type</option>
+        {% for key, label in typeLabels %}
+          <option value="{{ key }}" {{ old.type|default('') == key ? 'selected' : '' }}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      {% if errors.type is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.type }}</p>{% endif %}
+    </div>
+
+    <div>
+      <label class="block text-sm font-semibold text-ink mb-1.5" id="value-label">Valeur estimée (€)</label>
+      <input type="number" name="value" step="0.01" min="0" value="{{ old.value|default('') }}" placeholder="Ex : 3.50"
+             class="form-input {{ errors.value is defined ? 'border-brand-400' : '' }}">
+      {% if errors.value is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.value }}</p>{% endif %}
+    </div>
+  </div>
+
+  <div class="grid sm:grid-cols-2 gap-4">
+    <div>
+      <label class="block text-sm font-semibold text-ink mb-1.5">Clients concernés</label>
+      <select name="target_segment" required class="form-select">
+        {% for key, label in segmentLabels %}
+          <option value="{{ key }}" {{ old.segment|default('tous') == key ? 'selected' : '' }}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block text-sm font-semibold text-ink mb-1.5">Valable jusqu'au</label>
+      <input type="date" name="valid_until" required value="{{ old.validUntil|default('') }}"
+             class="form-input {{ errors.valid_until is defined ? 'border-brand-400' : '' }}">
+      {% if errors.valid_until is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.valid_until }}</p>{% endif %}
+    </div>
+  </div>
+
+  <label class="flex items-center gap-2.5 text-sm text-gray-600 bg-gray-50 rounded-2xl px-4 py-3">
+    <input type="checkbox" name="publish" value="1" {{ old.publish|default(true) ? 'checked' : '' }} class="rounded border-gray-300 text-brand-500 focus:ring-brand-500/30">
+    Publier immédiatement (sinon l'offre est enregistrée en brouillon)
+  </label>
+
+  <button type="submit" class="btn-primary w-full">
+    {{ submitLabel }}
+  </button>
+</form>
+
+<script>
+  const valueLabels = {
+    'reduction_pourcentage': 'Pourcentage de réduction (%)',
+    'gratuite': 'Valeur estimée offerte (€)',
+    'x_plus_1': 'Valeur du produit offert (€)',
+    'montant_minimum': 'Montant minimum d\'achat (€)',
+    'personnalisee': 'Valeur estimée (€)',
+  };
+  document.getElementById('offer-type').addEventListener('change', (e) => {
+    document.getElementById('value-label').textContent = valueLabels[e.target.value] || 'Valeur estimée (€)';
+  });
+</script>

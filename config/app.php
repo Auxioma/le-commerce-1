@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * Configuration générale de l'application
  */
@@ -15,6 +18,9 @@ return [
     // Le script n'est chargé côté navigateur qu'après consentement de
     // l'utilisateur via la bannière cookies (voir partials/cookie-consent.php).
     'google_analytics_id' => getenv('GOOGLE_ANALYTICS_ID') ?: '',
+    // ID de propriété GA4 (numérique) pour l'API GA4 Data (/admin/google-analytics),
+    // distinct de l'ID de mesure ci-dessus. Voir .env.example.
+    'ga4_property_id'     => getenv('GA4_PROPERTY_ID') ?: '',
 
     // Informations de l'établissement (affichées dans header/footer)
     'shop' => [

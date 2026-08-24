@@ -1,0 +1,104 @@
+<section class="max-w-[1536px] mx-auto px-6 lg:px-10 py-12">
+  <div class="max-w-3xl mx-auto">
+    <h1 class="text-3xl font-extrabold text-ink mb-2">{{ heading }}</h1>
+    <p class="text-xs text-gray-400 mb-8">Dernière mise à jour : {{ "now"|date("d/m/Y") }}</p>
+
+    <h2 class="text-xl font-bold text-ink mt-8 mb-3">1. Responsable de traitement</h2>
+    <p class="text-sm text-slate-600 leading-relaxed mb-4">
+      Le responsable du traitement des données personnelles collectées sur ce site est
+      <strong>{{ shop.name }}</strong>
+      {% if shop.legal.directeur_publication != '' %}
+        , représenté par {{ shop.legal.directeur_publication }},
+      {% endif %}
+      joignable à l'adresse {{ shop.email }}.
+    </p>
+
+    <h2 class="text-xl font-bold text-ink mt-8 mb-3">2. Données collectées</h2>
+    <p class="text-sm text-slate-600 leading-relaxed mb-4">Nous collectons les données suivantes :</p>
+    <ul class="list-disc list-inside text-sm text-slate-600 leading-relaxed space-y-1 mb-4">
+      <li><strong>À l'inscription</strong> ({{ base_path }}/inscription) : prénom, nom, numéro de téléphone (obligatoire), adresse e-mail (facultative), mot de passe (stocké haché, jamais en clair).</li>
+      <li><strong>Géolocalisation</strong> : uniquement si vous cochez la case dédiée lors de l'inscription — votre position GPS est transmise ponctuellement à des fins d'offres de proximité.</li>
+      <li><strong>Données générées par votre compte</strong> : rôle, segment marketing, statut, code de parrainage, solde de points de fidélité, date de création du compte.</li>
+      <li><strong>Formulaire de contact</strong> ({{ base_path }}/contact) : nom, e-mail, sujet et contenu de votre message.</li>
+    </ul>
+    <p class="text-sm text-slate-600 leading-relaxed mb-4">
+      Aucune donnée bancaire ou de carte de paiement n'est stockée par {{ shop.name }}.
+    </p>
+
+    <h2 class="text-xl font-bold text-ink mt-8 mb-3">3. Finalités du traitement</h2>
+    <ul class="list-disc list-inside text-sm text-slate-600 leading-relaxed space-y-1 mb-4">
+      <li>Gestion de votre compte client et du programme de fidélité.</li>
+      <li>Réponse à vos demandes via le formulaire de contact.</li>
+      <li>Envoi d'offres de proximité géolocalisées, uniquement si vous y avez consenti.</li>
+      <li>Amélioration du service et de la relation client.</li>
+    </ul>
+
+    <h2 class="text-xl font-bold text-ink mt-8 mb-3">4. Bases légales</h2>
+    <ul class="list-disc list-inside text-sm text-slate-600 leading-relaxed space-y-1 mb-4">
+      <li><strong>Exécution du contrat</strong> : gestion du compte client et du portefeuille fidélité.</li>
+      <li><strong>Consentement</strong> : géolocalisation pour les offres de proximité (opt-in explicite, révocable à tout moment).</li>
+      <li><strong>Intérêt légitime</strong> : traitement des demandes adressées via le formulaire de contact.</li>
+    </ul>
+
+    <h2 class="text-xl font-bold text-ink mt-8 mb-3">5. Destinataires des données</h2>
+    <p class="text-sm text-slate-600 leading-relaxed mb-4">
+      Vos données sont exclusivement destinées à l'équipe de {{ shop.name }}.
+      Elles ne sont ni vendues, ni cédées, ni partagées avec des tiers à des fins commerciales.
+      Elles peuvent être hébergées techniquement par notre prestataire d'hébergement,
+      {{ shop.legal.hebergeur_nom|default('') != '' ? shop.legal.hebergeur_nom : '—' }}, dans le cadre strict de l'hébergement du site.
+    </p>
+
+    <h2 class="text-xl font-bold text-ink mt-8 mb-3">6. Durée de conservation</h2>
+    <p class="text-sm text-slate-600 leading-relaxed mb-4">
+      Les données de votre compte client sont conservées tant que celui-ci est actif, puis pendant une durée
+      raisonnable après votre dernière activité (3 ans d'inactivité), avant suppression ou anonymisation.
+      Les messages envoyés via le formulaire de contact sont conservés le temps nécessaire au traitement de
+      votre demande.
+    </p>
+
+    <h2 id="cookies" class="text-xl font-bold text-ink mt-8 mb-3">7. Cookies</h2>
+    <p class="text-sm text-slate-600 leading-relaxed mb-4">
+      Ce site utilise un cookie de session strictement nécessaire à son fonctionnement
+      (<code class="text-xs bg-slate-100 px-1.5 py-0.5 rounded">PHPSESSID</code>), permettant de vous maintenir
+      connecté à votre espace client. Ce cookie ne collecte aucune donnée à des fins statistiques ou
+      publicitaires et n'est pas partagé avec des tiers.
+    </p>
+    {% if app.google_analytics_id is not empty %}
+    <p class="text-sm text-slate-600 leading-relaxed mb-4">
+      Avec votre consentement, ce site utilise également <strong>Google Analytics</strong> (cookies de mesure
+      d'audience) pour comprendre la fréquentation du site (pages visitées, provenance des visites) de façon
+      agrégée et anonymisée. Ces cookies ne sont déposés qu'après avoir cliqué sur « Accepter » dans la bannière
+      cookies, et vous pouvez refuser leur dépôt sans que cela n'affecte votre navigation. Google peut être
+      amené à traiter ces données en dehors de l'Union européenne ; consultez la
+      <a href="https://policies.google.com/privacy" target="_blank" rel="noopener" class="text-brand-500 hover:text-brand-600 underline">politique de confidentialité de Google</a>
+      pour plus d'informations.
+    </p>
+    {% else %}
+    <p class="text-sm text-slate-600 leading-relaxed mb-4">
+      Aucun cookie de mesure d'audience ni de publicité n'est utilisé sur ce site.
+    </p>
+    {% endif %}
+
+    <h2 class="text-xl font-bold text-ink mt-8 mb-3">8. Vos droits</h2>
+    <p class="text-sm text-slate-600 leading-relaxed mb-4">
+      Conformément au Règlement Général sur la Protection des Données (RGPD), vous disposez d'un droit d'accès,
+      de rectification, d'effacement, de limitation, de portabilité et d'opposition sur vos données
+      personnelles. Vous pouvez exercer ces droits en écrivant à {{ shop.email }}
+      ou par courrier à {{ shop.address }}, {{ shop.zipcode ~ ' ' ~ shop.city }}.
+      Nous nous engageons à répondre dans un délai d'un mois. Vous disposez également du droit d'introduire
+      une réclamation auprès de la CNIL (www.cnil.fr).
+    </p>
+
+    <h2 class="text-xl font-bold text-ink mt-8 mb-3">9. Sécurité</h2>
+    <p class="text-sm text-slate-600 leading-relaxed mb-4">
+      Les mots de passe sont stockés sous forme hachée et des mesures raisonnables sont mises en œuvre pour
+      protéger vos données contre tout accès non autorisé, perte ou divulgation.
+    </p>
+
+    <h2 class="text-xl font-bold text-ink mt-8 mb-3">10. Modification de cette politique</h2>
+    <p class="text-sm text-slate-600 leading-relaxed mb-4">
+      Cette politique de confidentialité peut être mise à jour. La date de dernière mise à jour figure en
+      haut de cette page.
+    </p>
+  </div>
+</section>

@@ -1,0 +1,28 @@
+{% set pageTitle = 'Modifier « ' ~ service.name ~ ' »' %}
+{% set pageSubtitle = 'Les changements sont visibles immédiatement sur la page publique « PMU ».' %}
+{% set pageActions = [] %}
+{% include 'partials/admin-page-header.twig' %}
+
+<div class="max-w-2xl">
+  <a href="{{ base_path }}/admin/pmu" class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-brand-500 mb-4">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+    Retour au PMU
+  </a>
+
+  <div class="card card-md sm:p-8">
+    <form method="POST" action="{{ base_path }}/admin/pmu/services/{{ service.id }}" class="space-y-5">
+      {{ csrf_field() }}
+
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Nom</label>
+        <input type="text" name="name" required value="{{ old.name|default(service.name) }}"
+               class="form-input {{ errors.name is defined ? 'border-brand-400' : '' }}">
+        {% if errors.name is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.name }}</p>{% endif %}
+      </div>
+
+      <button type="submit" class="btn-primary w-full">
+        Enregistrer les modifications
+      </button>
+    </form>
+  </div>
+</div>

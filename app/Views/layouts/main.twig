@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% set pageDescription = description|default(shop.name ~ ' — Bar, Tabac, PMU, FDJ, Presse à ' ~ shop.city ~ '. Votre commerce de proximité.') %}
+{% set pageUrl = app.url ~ base_path ~ currentUri %}
+{% set pageImage = image|default(app.url ~ base_path ~ '/assets/images/hero-facade.jpg') %}
+<title>{{ title|default(shop.name) }}</title>
+<meta name="description" content="{{ pageDescription }}">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="{{ pageUrl }}">
+
+<!-- Favicon -->
+<link rel="icon" type="image/svg+xml" href="{{ base_path }}/favicon.svg">
+
+<!-- Open Graph / réseaux sociaux -->
+<meta property="og:type" content="business.business">
+<meta property="og:site_name" content="{{ shop.name }}">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:title" content="{{ title|default(shop.name) }}">
+<meta property="og:description" content="{{ pageDescription }}">
+<meta property="og:url" content="{{ pageUrl }}">
+<meta property="og:image" content="{{ pageImage }}">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ title|default(shop.name) }}">
+<meta name="twitter:description" content="{{ pageDescription }}">
+<meta name="twitter:image" content="{{ pageImage }}">
+
+<!-- Données structurées (Google) : fiche établissement -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BarOrPub",
+  "name": {{ shop.name|json_encode|raw }},
+  "image": {{ pageImage|json_encode|raw }},
+  "url": {{ app.url|json_encode|raw }},
+  "telephone": {{ shop.phone_href|json_encode|raw }},
+  "priceRange": "€€",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": {{ shop.address|json_encode|raw }},
+    "postalCode": {{ shop.zipcode|json_encode|raw }},
+    "addressLocality": {{ shop.city|json_encode|raw }},
+    "addressCountry": "FR"
+  },
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": {{ shop.latitude }},
+    "longitude": {{ shop.longitude }}
+  },
+  {% if shop.google_rating and shop.google_reviews_count %}
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": {{ shop.google_rating }},
+    "reviewCount": {{ shop.google_reviews_count }}
+  },
+  {% endif %}
+  "openingHoursSpecification": [
+    {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+      "opens": "06:40",
+      "closes": "20:30"
+    },
+    {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": ["Sunday"],
+      "opens": "06:40",
+      "closes": "20:00"
+    }
+  ]
+}
+</script>
+
+<!-- Polices -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Pacifico&display=swap" rel="stylesheet">
+
+<!-- CSS compilé (Tailwind + DaisyUI, build local via `npm run build`) -->
+<link rel="stylesheet" href="{{ asset_version('assets/css/app.css') }}">
+<style>
+  html, body { scrollbar-width: none !important; }
+  ::-webkit-scrollbar { width: 0px !important; height: 0px !important; display: none !important; }
+  ::-webkit-scrollbar-track { background: transparent !important; }
+  ::-webkit-scrollbar-thumb { background: transparent !important; }
+  ::-webkit-scrollbar-corner { background: transparent !important; }
+</style>
+</head>
+<body class="bg-white text-ink antialiased font-sans overflow-x-hidden">
+
+{% include 'partials/header.twig' %}
+{% include 'partials/flash.twig' %}
+
+<main>
+{{ content|raw }}
+</main>
+
+{% include 'partials/footer.twig' %}
+{% include 'partials/chat-widget.twig' %}
+{% include 'partials/cookie-consent.twig' %}
+
+<script src="{{ base_path }}/assets/js/app.js"></script>
+</body>
+</html>

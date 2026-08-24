@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use App\Core\Database;
@@ -12,8 +14,8 @@ class Settings
      * Retourne tous les paramètres sous forme de tableau clé => valeur.
      * Renvoie un tableau vide (au lieu de planter) si la table n'existe
      * pas encore — utile en transition, avant application de la migration.
-     * Mis en cache pour la durée de la requête (appelé plusieurs fois par
-     * page via siteImage()).
+     * Mis en cache pour la durée de la requête (le tableau brut est
+     * transmis à toutes les vues via ShopSettingsService).
      */
     public static function all(): array
     {

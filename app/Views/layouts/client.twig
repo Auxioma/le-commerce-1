@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ title|default(shop.name) }}</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/svg+xml" href="{{ base_path }}/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Pacifico&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ asset_version('assets/css/app.css') }}">
+<style>
+  html, body { scrollbar-width: none; }
+  ::-webkit-scrollbar { display: none; }
+  @media (max-width: 1024px) {
+    body { background: white; }
+  }
+</style>
+</head>
+<body class="bg-gray-50 text-ink antialiased font-sans overflow-x-hidden">
+
+{% include 'partials/header.twig' %}
+{% include 'partials/flash.twig' %}
+
+<div class="flex flex-col lg:flex-row min-h-[calc(100vh-80px)]">
+  <!-- Sidebar (partials/client-sidebar.twig fournit déjà son propre <aside>) -->
+  <div class="hidden lg:flex flex-col w-64 border-r border-gray-100 bg-white sticky top-[80px] h-[calc(100vh-80px)]">
+    {% include 'partials/client-sidebar.twig' %}
+  </div>
+
+  <!-- Main content -->
+  <main class="flex-1 px-6 lg:px-10 py-8 lg:py-10 bg-gray-50">
+    <div class="max-w-6xl mx-auto">
+      {{ content|raw }}
+    </div>
+  </main>
+</div>
+
+{% include 'partials/footer.twig' %}
+{% include 'partials/chat-widget.twig' %}
+{% include 'partials/cookie-consent.twig' %}
+{% include 'partials/proximity-widget.twig' %}
+
+<script src="{{ base_path }}/assets/js/app.js"></script>
+</body>
+</html>

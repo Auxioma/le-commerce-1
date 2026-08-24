@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Core;
 
 /**
@@ -46,13 +48,6 @@ class App
     /**
      * Charge les variables du fichier .env dans l'environnement (getenv/$_ENV),
      * car aucune dépendance externe (phpdotenv) n'est utilisée.
-     *
-     * Le parsing est fait ligne à ligne "à la main" plutôt qu'avec
-     * parse_ini_file() : le lexer INI natif de PHP échoue sur des caractères
-     * pourtant courants dans des valeurs (parenthèses, &, |, !, ~, ^...) dès
-     * qu'ils ne sont pas quotés, quel que soit le mode de scan utilisé. Ce
-     * parseur maison n'a pas cette limite : chaque valeur est prise telle
-     * quelle, sans grammaire d'expression à respecter.
      */
     private static function loadEnv(): void
     {
@@ -60,6 +55,28 @@ class App
 
         if (!file_exists($envFile)) {
             error_log("[App::loadEnv] Fichier .env introuvable : $envFile");
+            return;
+        }
+
+        self::loadEnvFile($envFile);
+    }
+
+    /**
+     * Charge un fichier .env dans l'environnement (getenv/$_ENV).
+     *
+     * Le parsing est fait ligne à ligne "à la main" plutôt qu'avec
+     * parse_ini_file() : le lexer INI natif de PHP échoue sur des caractères
+     * pourtant courants dans des valeurs (parenthèses, &, |, !, ~, ^...) dès
+     * qu'ils ne sont pas quotés, quel que soit le mode de scan utilisé. Ce
+     * parseur maison n'a pas cette limite : chaque valeur est prise telle
+     * quelle, sans grammaire d'expression à respecter.
+     *
+     * Public (contrairement à loadEnv()) : réutilisé tel quel par phinx.php,
+     * qui tourne en CLI hors du bootstrap web (pas de session/logging à configurer).
+     */
+    public static function loadEnvFile(string $envFile): void
+    {
+        if (!file_exists($envFile)) {
             return;
         }
 
@@ -74,21 +91,18 @@ class App
             }
 
             $equalsPos = strpos($line, '=');
-
             if ($equalsPos === false) {
                 continue;
             }
 
             $key = trim(substr($line, 0, $equalsPos));
             $value = trim(substr($line, $equalsPos + 1));
-
             if ($key === '') {
                 continue;
             }
 
             $isQuoted = strlen($value) >= 2
                 && (($value[0] === '"' && $value[-1] === '"') || ($value[0] === "'" && $value[-1] === "'"));
-
             if ($isQuoted) {
                 $value = substr($value, 1, -1);
             }
@@ -100,30 +114,5 @@ class App
             putenv("$key=$value");
             $_ENV[$key] = $value;
         }
-
-        error_log('[App::loadEnv] .env chargé (' . count($vars) . ' variables) : ' . implode(', ', array_keys($vars)));
-    }
-
-    /**
-     * Autoloader maison (aucune dépendance à Composer) : mappe le namespace
-     * App\... vers le dossier /app en respectant l'arborescence PSR-4.
-     */
-    public static function registerAutoloader(): void
-    {
-        spl_autoload_register(function (string $class) {
-            $prefix  = 'App\\';
-            $baseDir = dirname(__DIR__) . '/';
-
-            if (!str_starts_with($class, $prefix)) {
-                return;
-            }
-
-            $relative = substr($class, strlen($prefix));
-            $file = $baseDir . str_replace('\\', '/', $relative) . '.php';
-
-            if (file_exists($file)) {
-                require $file;
-            }
-        });
     }
 }
