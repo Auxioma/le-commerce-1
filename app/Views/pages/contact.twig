@@ -19,6 +19,12 @@
       <form id="contact-form" method="POST" action="{{ base_path }}/contact" class="space-y-4">
         {{ csrf_field() }}
 
+        <!-- Piège à robots : champ invisible pour un humain, ne pas remplir -->
+        <div class="absolute -left-[9999px] w-px h-px overflow-hidden" aria-hidden="true">
+          <label for="website">Laisser ce champ vide</label>
+          <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+        </div>
+
         <div class="grid sm:grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-semibold text-ink mb-1.5">Nom complet</label>

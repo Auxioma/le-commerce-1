@@ -43,4 +43,19 @@ class ContactMessage extends Model
         $stmt = self::db()->prepare('UPDATE contact_messages SET is_read = :read WHERE id = :id');
         $stmt->execute(['read' => $read ? 1 : 0, 'id' => $id]);
     }
+
+    /**
+     * Nombre de messages envoyés depuis cette IP dans les $minutes dernières minutes
+     * (anti-spam : limite la fréquence de soumission du formulaire public).
+     */
+    public static function countRecentByIp(string $ip, int $minutes): int
+    {
+        $stmt = self::db()->prepare(
+            'SELECT COUNT(*) FROM contact_messages WHERE ip = :ip AND created_at >= (NOW() - INTERVAL :minutes MINUTE)'
+        );
+        $stmt->bindValue('ip', $ip);
+        $stmt->bindValue('minutes', $minutes, \PDO::PARAM_INT);
+        $stmt->execute();
+        return (int) $stmt->fetchColumn();
+    }
 }
