@@ -19,6 +19,7 @@ class RegisterController extends Controller
             'title' => 'Créer mon compte — Le Commerce',
             'errors' => [],
             'old' => [],
+            'signupSourceLabels' => User::SIGNUP_SOURCE_LABELS,
         ], 'auth');
     }
 
@@ -33,9 +34,9 @@ class RegisterController extends Controller
         $email     = trim((string) $this->input('email', ''));
         $password  = (string) $this->input('password', '');
         $geoOptIn  = $this->input('geolocation_opt_in') ? 1 : 0;
-        $source    = (string) $this->input('registration_source', 'bar');
+        $source    = (string) $this->input('registration_source', 'autre');
         if (!array_key_exists($source, User::SOURCE_LABELS)) {
-            $source = 'bar';
+            $source = 'autre';
         }
 
         $errors = [];
@@ -65,6 +66,7 @@ class RegisterController extends Controller
                 'title'  => 'Créer mon compte — Le Commerce',
                 'errors' => $errors,
                 'old'    => compact('firstName', 'lastName', 'phone', 'email', 'source'),
+                'signupSourceLabels' => User::SIGNUP_SOURCE_LABELS,
             ], 'auth');
             return;
         }

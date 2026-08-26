@@ -11,12 +11,34 @@ class User extends Model
     protected static string $table = 'users';
     protected static bool $softDeletes = true;
 
+    /**
+     * Tous les libellés possibles pour registration_source, y compris les
+     * anciennes valeurs "rayon du magasin" (conservées pour les comptes déjà
+     * enregistrés et les graphiques d'acquisition existants) — utilisé pour
+     * l'affichage admin. Le formulaire d'inscription public, lui, n'utilise
+     * que SIGNUP_SOURCE_LABELS ci-dessous.
+     */
     public const SOURCE_LABELS = [
         'bar'           => 'Bar',
         'tabac'         => 'Tabac',
         'jeux_services' => 'Jeux & Services',
         'pmu'           => 'PMU',
         'nirio'         => 'NIRIO',
+        'loterie'       => 'Loterie',
+    ] + self::SIGNUP_SOURCE_LABELS;
+
+    /**
+     * Choix standards affichés dans "Comment nous avez-vous connu ?" du
+     * formulaire d'inscription public — remplace les anciens rayons du
+     * magasin par les catégories habituelles d'un formulaire d'acquisition.
+     */
+    public const SIGNUP_SOURCE_LABELS = [
+        'bouche_a_oreille'    => 'Bouche à oreille / recommandation',
+        'reseaux_sociaux'     => 'Réseaux sociaux (Facebook, Instagram...)',
+        'recherche_internet'  => 'Recherche Google / Internet',
+        'passage_devant'      => 'En passant devant la boutique',
+        'publicite'           => 'Publicité',
+        'autre'               => 'Autre',
     ];
 
     public static function findByPhone(string $phone): ?array
@@ -100,7 +122,7 @@ class User extends Model
             'geolocation_opt_in' => (int) ($data['geolocation_opt_in'] ?? 0),
             'registration_source' => array_key_exists($data['registration_source'] ?? '', self::SOURCE_LABELS)
                 ? $data['registration_source']
-                : 'bar',
+                : 'autre',
         ]);
     }
 

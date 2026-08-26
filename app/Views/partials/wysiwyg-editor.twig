@@ -1,0 +1,45 @@
+{#
+  Éditeur WYSIWYG basé sur Quill.js (open-source, licence BSD-3-Clause,
+  gratuit sans compte ni clé API, chargé depuis un CDN comme Chart.js et
+  Leaflet ailleurs dans l'admin — voir admin/dashboard.twig).
+
+  Usage : {% set wysiwygName = 'content' %}{% set wysiwygValue = old.content|default('') %}{% include 'partials/wysiwyg-editor.twig' %}
+
+  Le HTML produit par l'éditeur est recopié dans un <textarea> classique
+  (même name que d'habitude) juste avant l'envoi du formulaire : côté
+  serveur, rien ne change, le champ POST reste une simple chaîne HTML.
+#}
+{% set wysiwygName = wysiwygName|default('content') %}
+{% set wysiwygValue = wysiwygValue|default('') %}
+{% set wysiwygId = 'wysiwyg_' ~ wysiwygName %}
+
+<link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet">
+
+<div id="{{ wysiwygId }}_editor" class="bg-white border border-gray-200 rounded-lg" style="min-height:260px;"></div>
+<textarea name="{{ wysiwygName }}" id="{{ wysiwygId }}_input" class="hidden">{{ wysiwygValue }}</textarea>
+
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+<script>
+(function () {
+  var input = document.getElementById('{{ wysiwygId }}_input');
+  var quill = new Quill('#{{ wysiwygId }}_editor', {
+    theme: 'snow',
+    placeholder: "Le texte complet de l'article...",
+    modules: {
+      toolbar: [
+        [{ header: [2, 3, false] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        ['blockquote', 'link'],
+        ['clean'],
+      ],
+    },
+  });
+  quill.clipboard.dangerouslyPasteHTML(input.value);
+
+  var form = input.closest('form');
+  form.addEventListener('submit', function () {
+    input.value = quill.getText().trim() === '' ? '' : quill.root.innerHTML;
+  });
+})();
+</script>

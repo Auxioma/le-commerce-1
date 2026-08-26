@@ -19,8 +19,9 @@ return [
         'hero_pmu'      => 'Page PMU',
         'hero_fdj'      => 'Page FDJ',
         'hero_presse'   => 'Page Presse',
-        'hero_services' => 'Page Nos Services',
-        'hero_contact'  => 'Page Contact',
+        'hero_services'   => 'Page Nos Services',
+        'hero_actualites' => 'Page Actualités',
+        'hero_contact'    => 'Page Contact',
     ],
     'Identité' => [
         'logo_site' => 'Logo du commerce',

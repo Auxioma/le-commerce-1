@@ -1,0 +1,49 @@
+{% if article is null %}
+  <section class="max-w-3xl mx-auto px-6 py-24 text-center">
+    <span class="inline-block bg-brand-50 text-brand-500 text-xs font-bold tracking-wide px-4 py-1.5 rounded-full mb-5">
+      INTROUVABLE
+    </span>
+    <h1 class="font-extrabold text-3xl text-ink mb-4">Cette actualité n'existe pas ou plus.</h1>
+    <a href="{{ base_path }}/actualites" class="inline-flex items-center gap-2 bg-brand-500 hover:bg-brand-600 text-white font-bold text-sm px-6 py-3.5 rounded-lg transition-colors">
+      Retour aux actualités
+    </a>
+  </section>
+{% else %}
+  <article class="max-w-6xl mx-auto px-6 py-12">
+    <a href="{{ base_path }}/actualites" class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-brand-500 mb-6">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+      Toutes les actualités
+    </a>
+
+    <p class="text-xs font-semibold text-brand-500 mb-2">{{ article.published_at|date('d/m/Y') }}</p>
+    <h1 class="font-extrabold text-3xl sm:text-4xl text-ink leading-tight mb-6">{{ article.title }}</h1>
+
+    {% if article.image %}
+      <img src="{{ base_path }}{{ article.image }}" alt="{{ article.title }}" class="w-full h-auto max-h-[420px] object-cover rounded-2xl mb-8" loading="lazy" decoding="async">
+    {% endif %}
+
+    <style>
+      /* Pas de plugin @tailwindcss/typography installé : styles minimaux
+         pour le HTML produit par l'éditeur WYSIWYG (partials/wysiwyg-editor.twig). */
+      .prose-content p { margin-bottom: 1em; }
+      .prose-content h2 { font-size: 1.4em; font-weight: 800; color: #1a1a1a; margin: 1.2em 0 .5em; }
+      .prose-content h3 { font-size: 1.15em; font-weight: 700; color: #1a1a1a; margin: 1em 0 .5em; }
+      .prose-content ul, .prose-content ol { margin: 0 0 1em 1.4em; }
+      .prose-content ul { list-style: disc; }
+      .prose-content ol { list-style: decimal; }
+      .prose-content blockquote { border-left: 3px solid #c8272c; padding-left: 1em; margin: 1em 0; color: #6b7280; font-style: italic; }
+      .prose-content a { color: #c8272c; text-decoration: underline; }
+      .prose-content strong { font-weight: 700; color: #1a1a1a; }
+    </style>
+    <div class="prose-content text-gray-600 leading-relaxed">
+      {{ article.content|raw }}
+    </div>
+
+    <div class="mt-10 pt-6 border-t border-gray-100">
+      <a href="{{ base_path }}/actualites" class="inline-flex items-center gap-2 font-bold text-sm text-brand-500 hover:text-brand-600">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        Retour aux actualités
+      </a>
+    </div>
+  </article>
+{% endif %}

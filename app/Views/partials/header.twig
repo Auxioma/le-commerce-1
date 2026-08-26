@@ -68,6 +68,18 @@
           {{ shop.phone }}
         </a>
 
+        <!-- Login (desktop) : toujours affiché, même une fois connecté
+             (ex. admin connecté qui veut aussi se connecter avec un compte client). -->
+        <a href="{{ base_path }}/connexion"
+           class="hidden md:inline-flex items-center gap-1.5 font-semibold text-slate-600 hover:text-brand-500 transition-colors" style="font-size:13px;">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10 17l5-5-5-5"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12H3"/>
+          </svg>
+          Login
+        </a>
+
         <!-- Burger mobile -->
         <button id="mobile-menu-btn" class="xl:hidden p-2 text-slate-900" aria-label="Menu">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -101,10 +113,10 @@
           {{ csrf_field() }}
           <button type="submit" class="font-bold" style="color:#c8272c;">Déconnexion</button>
         </form>
-      {% else %}
-        <a href="{{ base_path }}/connexion" class="py-3 border-b text-slate-700" style="border-color:#f0f0f0;">Connexion</a>
-        <a href="{{ base_path }}/inscription" class="py-3 border-b text-slate-700" style="border-color:#f0f0f0;">Créer un compte</a>
       {% endif %}
+      {# Toujours affiché, même une fois connecté (ex. admin qui veut aussi se connecter avec un compte client). #}
+      <a href="{{ base_path }}/connexion" class="py-3 border-b text-slate-700" style="border-color:#f0f0f0;">Connexion</a>
+      <a href="{{ base_path }}/inscription" class="py-3 border-b text-slate-700" style="border-color:#f0f0f0;">Créer un compte</a>
 
       <a href="tel:{{ shop.phone_href }}"
          class="mt-4 inline-flex items-center justify-center gap-2 text-white font-bold rounded-full py-3 px-6 transition-opacity hover:opacity-90"

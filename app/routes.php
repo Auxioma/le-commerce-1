@@ -43,6 +43,7 @@ use App\Controllers\Admin\AdminGoogleOAuthController;
 use App\Controllers\Admin\AdminPlaceholderController;
 use App\Controllers\Admin\AdminEstablishmentController;
 use App\Controllers\Admin\AdminServiceController;
+use App\Controllers\Admin\AdminNewsController;
 use App\Controllers\Admin\AdminBarController;
 use App\Controllers\Admin\AdminTabacController;
 use App\Controllers\Admin\AdminPmuController;
@@ -66,6 +67,7 @@ $router->get('/fdj', FdjController::class, 'index');
 $router->get('/presse', PresseController::class, 'index');
 $router->get('/nos-services', ServicesController::class, 'index');
 $router->get('/actualites', ActualitesController::class, 'index');
+$router->get('/actualites/{slug}', ActualitesController::class, 'show');
 $router->get('/contact', ContactController::class, 'index');
 $router->post('/contact', ContactController::class, 'send');
 $router->get('/reservation', ReservationController::class, 'index');
@@ -198,6 +200,15 @@ $router->post('/admin/services/{id}', AdminServiceController::class, 'update');
 $router->post('/admin/services/{id}/statut', AdminServiceController::class, 'toggleStatus');
 $router->post('/admin/services/{id}/supprimer', AdminServiceController::class, 'destroy');
 
+// --- Actualités (billets affichés sur /actualites) ---
+$router->get('/admin/actualites', AdminNewsController::class, 'index');
+$router->get('/admin/actualites/creer', AdminNewsController::class, 'create');
+$router->post('/admin/actualites', AdminNewsController::class, 'store');
+$router->get('/admin/actualites/{id}/modifier', AdminNewsController::class, 'edit');
+$router->post('/admin/actualites/{id}', AdminNewsController::class, 'update');
+$router->post('/admin/actualites/{id}/statut', AdminNewsController::class, 'toggleStatus');
+$router->post('/admin/actualites/{id}/supprimer', AdminNewsController::class, 'destroy');
+
 // --- Offres & Avantages (Lot 6) ---
 $router->get('/admin/offres', AdminOfferController::class, 'index');
 $router->get('/admin/offres/creer', AdminOfferController::class, 'create');
@@ -232,9 +243,6 @@ $router->post('/admin/zonage/{id}/supprimer', AdminProximityController::class, '
 
 // --- Avis Google, Statistiques, Facturation, Paramètres (Lot 10) ---
 $router->get('/admin/avis-google', AdminReviewController::class, 'index');
-$router->post('/admin/avis-google', AdminReviewController::class, 'store');
-$router->post('/admin/avis-google/{id}', AdminReviewController::class, 'update');
-$router->post('/admin/avis-google/{id}/supprimer', AdminReviewController::class, 'destroy');
 
 $router->get('/admin/statistiques', AdminStatisticsController::class, 'index');
 $router->get('/admin/statistiques/export', AdminStatisticsController::class, 'export');

@@ -1,0 +1,94 @@
+{% set pageTitle = 'Actualités' %}
+{% set pageSubtitle = 'Gérez les billets affichés sur la page publique « Actualités » du commerce.' %}
+{% set pageActions = [
+    {href: base_path ~ '/admin/actualites/creer', label: 'Ajouter une actualité', class: 'btn-primary'},
+] %}
+{% include 'partials/admin-page-header.twig' %}
+
+<!-- KPIs -->
+<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
+  <div class="card card-md">
+    <p class="text-sm font-semibold text-gray-500 mb-2">Actualités publiées</p>
+    <p class="font-extrabold text-3xl text-ink">{{ activeCount }}</p>
+    <p class="text-xs text-gray-400 mt-1">Visibles sur /actualites</p>
+  </div>
+  <div class="card card-md">
+    <p class="text-sm font-semibold text-gray-500 mb-2">Brouillons</p>
+    <p class="font-extrabold text-3xl text-ink">{{ inactiveCount }}</p>
+    <p class="text-xs text-gray-400 mt-1">Masqués côté public</p>
+  </div>
+  <div class="card card-md">
+    <p class="text-sm font-semibold text-gray-500 mb-2">Nouvelles ce mois-ci</p>
+    <p class="font-extrabold text-3xl text-ink">{{ newThisMonth }}</p>
+  </div>
+</div>
+
+<div class="card overflow-hidden">
+  {% if articles is empty %}
+    <div class="text-center py-16 px-6">
+      <p class="text-gray-500 font-medium mb-1">Aucune actualité pour le moment.</p>
+      <a href="{{ base_path }}/admin/actualites/creer" class="text-brand-500 text-sm font-semibold hover:underline">Ajouter votre première actualité</a>
+    </div>
+  {% else %}
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50">
+          <tr class="text-left text-gray-500 text-xs uppercase tracking-wide">
+            <th class="px-5 py-3 font-semibold">Actualité</th>
+            <th class="px-5 py-3 font-semibold">Publiée le</th>
+            <th class="px-5 py-3 font-semibold">Statut</th>
+            <th class="px-5 py-3 font-semibold text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+          {% for article in articles %}
+            <tr class="hover:bg-gray-50/50">
+              <td class="px-5 py-3.5">
+                <div class="flex items-center gap-3">
+                  {% if article.image %}
+                    <img src="{{ base_path }}{{ article.image }}" alt="{{ article.title }}" class="w-11 h-11 rounded-xl object-cover shrink-0">
+                  {% else %}
+                    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-500">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4h16v16H4V4zm2 2v5l3-3 4 4 5-5V6H6zm0 9h12v2H6v-2z"/></svg>
+                    </span>
+                  {% endif %}
+                  <div class="min-w-0">
+                    <p class="font-semibold text-ink truncate max-w-[280px]">{{ article.title }}</p>
+                    {% if article.excerpt %}<p class="text-xs text-gray-400 truncate max-w-[280px]">{{ article.excerpt }}</p>{% endif %}
+                  </div>
+                </div>
+              </td>
+              <td class="px-5 py-3.5 text-gray-500">{{ article.published_at|date('d/m/Y') }}</td>
+              <td class="px-5 py-3.5">
+                {% if article.status == 'active' %}
+                  <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600">Publiée</span>
+                {% else %}
+                  <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-gray-500">Brouillon</span>
+                {% endif %}
+              </td>
+              <td class="px-5 py-3.5 text-right">
+                <div class="inline-flex items-center gap-3">
+                  {% if article.status == 'active' %}
+                    <a href="{{ base_path }}/actualites/{{ article.slug }}" target="_blank" rel="noopener" class="text-xs font-bold text-gray-500 hover:text-brand-500">Voir</a>
+                  {% endif %}
+                  <a href="{{ base_path }}/admin/actualites/{{ article.id }}/modifier" class="text-xs font-bold text-gray-500 hover:text-brand-500">Modifier</a>
+                  <form method="POST" action="{{ base_path }}/admin/actualites/{{ article.id }}/statut" class="inline">
+                    {{ csrf_field() }}
+                    <button type="submit" class="text-xs font-bold text-gray-500 hover:text-brand-500">
+                      {{ article.status == 'active' ? 'Dépublier' : 'Publier' }}
+                    </button>
+                  </form>
+                  <form method="POST" action="{{ base_path }}/admin/actualites/{{ article.id }}/supprimer" class="inline"
+                        onsubmit="return confirm('Supprimer définitivement cette actualité ?');">
+                    {{ csrf_field() }}
+                    <button type="submit" class="text-xs font-bold text-brand-500 hover:text-brand-600">Supprimer</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+</div>

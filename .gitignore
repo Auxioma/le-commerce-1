@@ -7,3 +7,4 @@ storage/cache/twig/*
 public/uploads/
 app/Google/*.json
 storage/logs/*.json
+storage/cache/google-places.json

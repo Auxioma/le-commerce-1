@@ -4,7 +4,8 @@
     'tabac': '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2c3 0 6 3 6 7 0 4-3 7-6 10-3-3-6-6-6-10 0-4 3-7 6-7z"/></svg>',
     'jeux': '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M10 2h4v3h2a2 2 0 012 2v2h3v4h-3v2a2 2 0 01-2 2h-2v3h-4v-3H8a2 2 0 01-2-2v-2H3V9h3V7a2 2 0 012-2h2V2z"/></svg>',
     'pmu': '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M12 2c2 0 3.5 1 4.5 2.5l1.5 4-1 2 2 5-1 5h-2l-1-4-1-3-2 7h-2l-2-7-1 3-1 4H5l-1-5 2-5-1-2 1-2.5C7.5 3 9 2 12 2z"/></svg>',
-    'nirio': '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M2 6a2 2 0 012-2h16a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6zm2 0h16v4H4V6zm0 6h16v4H4v-4z"/></svg>',
+    'services': '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M2 6a2 2 0 012-2h16a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6zm2 0h16v4H4V6zm0 6h16v4H4v-4z"/></svg>',
+    'actualites': '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4h16v16H4V4zm2 2v5l3-3 4 4 5-5V6H6zm0 9h12v2H6v-2z"/></svg>',
     'employes': '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>',
     'users': '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4zm6 0a4 4 0 10-4-4"/></svg>',
     'client-list': '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4zm6 0a4 4 0 10-4-4"/></svg>',
@@ -79,9 +80,13 @@
       {{ icons.pmu|raw }}
       <span class="flex-1">PMU</span>
     </a>
-    <a href="{{ base_path }}/admin/services" class="{{ itemDefault }}">
-      {{ icons.nirio|raw }}
-      <span class="flex-1">NIRIO</span>
+    <a href="{{ base_path }}/admin/services" class="{{ currentUri starts with '/admin/services' ? itemActive : itemDefault }}">
+      {{ icons.services|raw }}
+      <span class="flex-1">Nos services</span>
+    </a>
+    <a href="{{ base_path }}/admin/actualites" class="{{ currentUri starts with '/admin/actualites' ? itemActive : itemDefault }}">
+      {{ icons.actualites|raw }}
+      <span class="flex-1">Actualités</span>
     </a>
 
     <a href="{{ base_path }}/admin/employes" class="{{ currentUri == '/admin/employes' ? itemActive : itemDefault }}">

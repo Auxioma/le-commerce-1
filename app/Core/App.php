@@ -105,6 +105,11 @@ class App
                 && (($value[0] === '"' && $value[-1] === '"') || ($value[0] === "'" && $value[-1] === "'"));
             if ($isQuoted) {
                 $value = substr($value, 1, -1);
+            } elseif (preg_match('/^(.*?)\s+#/', $value, $m)) {
+                // Commentaire en fin de ligne sur une valeur non quotée (ex. "FOO=bar #note"),
+                // seulement si un espace précède le '#' pour ne pas tronquer une valeur
+                // qui contient légitimement un '#' collé (URL avec ancre, couleur hexa...).
+                $value = rtrim($m[1]);
             }
 
             $vars[$key] = $value;

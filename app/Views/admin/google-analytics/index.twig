@@ -3,7 +3,7 @@
 {% set pageActions = [] %}
 {% include 'partials/admin-page-header.twig' %}
 
-{% set sourceColors = {'bar': '#3b82f6', 'tabac': '#ef4444', 'jeux_services': '#10b981', 'pmu': '#f59e0b', 'nirio': '#a855f7'} %}
+{% set sourceColors = {'bar': '#3b82f6', 'tabac': '#ef4444', 'jeux_services': '#10b981', 'pmu': '#f59e0b', 'nirio': '#a855f7', 'loterie': '#0ea5e9', 'bouche_a_oreille': '#14b8a6', 'reseaux_sociaux': '#ec4899', 'recherche_internet': '#6366f1', 'passage_devant': '#84cc16', 'publicite': '#f97316', 'autre': '#94a3b8'} %}
 
 <div class="grid lg:grid-cols-4 gap-6 mt-6">
   <div class="lg:col-span-3 space-y-6">
@@ -386,7 +386,7 @@
 
   const sources = {{ registrationsBySource|json_encode|raw }};
   const sourceLabels = {{ registrationSourceLabels|json_encode|raw }};
-  const sourceColors = { bar: '#3b82f6', tabac: '#ef4444', jeux_services: '#10b981', pmu: '#f59e0b', nirio: '#a855f7' };
+  const sourceColors = { bar: '#3b82f6', tabac: '#ef4444', jeux_services: '#10b981', pmu: '#f59e0b', nirio: '#a855f7', loterie: '#0ea5e9', bouche_a_oreille: '#14b8a6', reseaux_sociaux: '#ec4899', recherche_internet: '#6366f1', passage_devant: '#84cc16', publicite: '#f97316', autre: '#94a3b8' };
   const labels = sources.map(s => sourceLabels[s.registration_source] || s.registration_source);
   const data = sources.map(s => parseInt(s.nb));
   const colors = sources.map(s => sourceColors[s.registration_source] || '#6b7280');

@@ -1,0 +1,55 @@
+{% set pageTitle = 'Ajouter une actualité' %}
+{% set pageSubtitle = 'Cette actualité apparaîtra sur la page publique « Actualités » une fois publiée.' %}
+{% set pageActions = [] %}
+{% include 'partials/admin-page-header.twig' %}
+
+<div class="max-w-2xl">
+  <a href="{{ base_path }}/admin/actualites" class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-brand-500 mb-4">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+    Retour aux actualités
+  </a>
+
+  <div class="card card-md sm:p-8">
+    <form method="POST" action="{{ base_path }}/admin/actualites" enctype="multipart/form-data" class="space-y-5">
+      {{ csrf_field() }}
+
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Titre</label>
+        <input type="text" name="title" required value="{{ old.title|default('') }}" placeholder="Ex : Nouvelle carte des bières pour l'été"
+               class="form-input {{ errors.title is defined ? 'border-brand-400' : '' }}">
+        {% if errors.title is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.title }}</p>{% endif %}
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Résumé</label>
+        <textarea name="excerpt" rows="2" placeholder="Une ou deux phrases affichées dans la liste des actualités"
+                  class="form-textarea {{ errors.excerpt is defined ? 'border-brand-400' : '' }}">{{ old.excerpt|default('') }}</textarea>
+        {% if errors.excerpt is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.excerpt }}</p>{% endif %}
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Contenu de l'article</label>
+        {% set wysiwygName = 'content' %}
+        {% set wysiwygValue = old.content|default('') %}
+        {% include 'partials/wysiwyg-editor.twig' %}
+        {% if errors.content is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.content }}</p>{% endif %}
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Photo de couverture</label>
+        <input type="file" name="image" accept="image/jpeg,image/png,image/webp" class="form-input">
+        {% if errors.image is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.image }}</p>{% endif %}
+        <p class="text-xs text-gray-400 mt-1">JPEG, PNG ou WEBP, 5 Mo maximum. Facultatif.</p>
+      </div>
+
+      <label class="flex items-center gap-2.5 text-sm text-gray-600 bg-gray-50 rounded-2xl px-4 py-3">
+        <input type="checkbox" name="publish" value="1" checked class="rounded border-gray-300 text-brand-500 focus:ring-brand-500/30">
+        Publier immédiatement sur /actualites (sinon l'actualité est enregistrée en brouillon)
+      </label>
+
+      <button type="submit" class="btn-primary w-full">
+        Ajouter l'actualité
+      </button>
+    </form>
+  </div>
+</div>

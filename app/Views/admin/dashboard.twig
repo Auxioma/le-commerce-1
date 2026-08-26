@@ -2,7 +2,7 @@
 {% set monthNames = {1: 'janvier', 2: 'février', 3: 'mars', 4: 'avril', 5: 'mai', 6: 'juin', 7: 'juillet', 8: 'août', 9: 'septembre', 10: 'octobre', 11: 'novembre', 12: 'décembre'} %}
 {% set todayLabel = dayNames[("now"|date('N'))] ~ ' ' ~ ("now"|date('j')) ~ ' ' ~ monthNames[("now"|date('n'))] ~ ' ' ~ ("now"|date('Y')) %}
 
-{% set sourceColors = {'bar': '#3b82f6', 'tabac': '#ef4444', 'jeux_services': '#10b981', 'pmu': '#f59e0b', 'nirio': '#a855f7'} %}
+{% set sourceColors = {'bar': '#3b82f6', 'tabac': '#ef4444', 'jeux_services': '#10b981', 'pmu': '#f59e0b', 'nirio': '#a855f7', 'loterie': '#0ea5e9', 'bouche_a_oreille': '#14b8a6', 'reseaux_sociaux': '#ec4899', 'recherche_internet': '#6366f1', 'passage_devant': '#84cc16', 'publicite': '#f97316', 'autre': '#94a3b8'} %}
 
 {% set activityIcons = {
     'client':      {bg: 'bg-blue-100',    text: 'text-blue-500',    icon: 'M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4zm6 0a4 4 0 10-4-4'},
@@ -372,7 +372,7 @@
   // --- Doughnut répartition par outil ---
   const sources = {{ registrationsBySource|json_encode|raw }};
   const sourceLabels = {{ registrationSourceLabels|json_encode|raw }};
-  const sourceColors = { bar: '#3b82f6', tabac: '#ef4444', jeux_services: '#10b981', pmu: '#f59e0b', nirio: '#a855f7' };
+  const sourceColors = { bar: '#3b82f6', tabac: '#ef4444', jeux_services: '#10b981', pmu: '#f59e0b', nirio: '#a855f7', loterie: '#0ea5e9', bouche_a_oreille: '#14b8a6', reseaux_sociaux: '#ec4899', recherche_internet: '#6366f1', passage_devant: '#84cc16', publicite: '#f97316', autre: '#94a3b8' };
   const labels = sources.map(s => sourceLabels[s.registration_source] || s.registration_source);
   const data = sources.map(s => parseInt(s.nb));
   const colors = sources.map(s => sourceColors[s.registration_source] || '#6b7280');
