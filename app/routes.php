@@ -36,6 +36,7 @@ use App\Controllers\Admin\AdminReviewController;
 use App\Controllers\Admin\AdminStatisticsController;
 use App\Controllers\Admin\AdminBillingController;
 use App\Controllers\Admin\AdminSettingsController;
+use App\Controllers\Admin\AdminMaintenanceController;
 use App\Controllers\Admin\AdminImageController;
 use App\Controllers\Admin\AdminGoogleAnalyticsController;
 use App\Controllers\Admin\AdminGoogleOAuthController;
@@ -250,6 +251,8 @@ $router->get('/admin/facturation/{id}', AdminBillingController::class, 'show');
 
 $router->get('/admin/parametres', AdminSettingsController::class, 'index');
 $router->post('/admin/parametres', AdminSettingsController::class, 'update');
+$router->get('/admin/maintenance', AdminMaintenanceController::class, 'index');
+$router->post('/admin/maintenance', AdminMaintenanceController::class, 'update');
 
 $router->get('/admin/images', AdminImageController::class, 'index');
 $router->post('/admin/images', AdminImageController::class, 'store');

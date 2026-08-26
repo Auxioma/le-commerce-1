@@ -61,6 +61,8 @@ class Router
             $uri = '/';
         }
 
+        Maintenance::enforce($uri);
+
         foreach ($this->routes[$method] ?? [] as $pattern => $target) {
             $params = $this->match($pattern, $uri);
             if ($params !== null) {
