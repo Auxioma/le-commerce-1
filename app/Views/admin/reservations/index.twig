@@ -19,6 +19,11 @@
         <p class="font-black text-ink" style="font-size:22px; line-height:1;">{{ upcomingCount }}</p>
       </div>
     </div>
+    <button type="button" onclick="document.getElementById('reservation-add-modal').classList.remove('hidden')"
+            class="inline-flex items-center gap-2 text-white font-bold rounded-xl px-5 py-3 transition-opacity hover:opacity-90" style="background:#c8272c; font-size:13px;">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+      AJOUTER UNE RÉSERVATION
+    </button>
   </div>
 </div>
 
@@ -95,6 +100,16 @@
                       <button type="submit" class="font-semibold text-gray-400 hover:text-brand-500 px-2" style="font-size:12px;">Annuler</button>
                     </form>
                   {% endif %}
+                  <button type="button" class="js-edit-reservation font-semibold text-gray-500 hover:text-ink px-2" style="font-size:12px;"
+                          data-id="{{ r.id }}"
+                          data-name="{{ r.name }}"
+                          data-phone="{{ r.phone }}"
+                          data-email="{{ r.email|default('') }}"
+                          data-party-size="{{ r.party_size }}"
+                          data-date="{{ r.reservation_date }}"
+                          data-time="{{ r.reservation_time|slice(0, 5) }}"
+                          data-note="{{ r.note|default('') }}"
+                          data-status="{{ r.status }}">Modifier</button>
                   <form method="POST" action="{{ base_path }}/admin/reservations/{{ r.id }}/supprimer"
                         onsubmit="return confirm('Supprimer cette réservation ?');">
                     {{ csrf_field() }}
@@ -109,3 +124,138 @@
     </div>
   {% endif %}
 </div>
+
+<!-- Modale : ajouter -->
+<div id="reservation-add-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+  <div class="bg-white rounded-2xl p-6 w-full max-w-lg shadow-xl">
+    <h3 class="font-extrabold text-ink mb-4" style="font-size:16px;">Ajouter une réservation</h3>
+    <form method="POST" action="{{ base_path }}/admin/reservations" class="space-y-3">
+      {{ csrf_field() }}
+      <div class="grid sm:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-gray-500 mb-1">Nom du client</label>
+          <input type="text" name="name" required maxlength="120" class="form-input">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-500 mb-1">Téléphone</label>
+          <input type="tel" name="phone" required placeholder="06 12 34 56 78" class="form-input">
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-gray-500 mb-1">E-mail <span class="text-gray-400 font-normal">(facultatif)</span></label>
+        <input type="email" name="email" class="form-input">
+      </div>
+      <div class="grid sm:grid-cols-3 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-gray-500 mb-1">Date</label>
+          <input type="date" name="reservation_date" required class="form-input">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-500 mb-1">Heure</label>
+          <input type="time" name="reservation_time" required class="form-input">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-500 mb-1">Personnes</label>
+          <input type="number" name="party_size" min="1" max="30" value="2" required class="form-input">
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-gray-500 mb-1">Note <span class="text-gray-400 font-normal">(facultatif)</span></label>
+        <input type="text" name="note" maxlength="255" class="form-input">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-gray-500 mb-1">Statut</label>
+        <select name="status" class="form-select">
+          <option value="en_attente">En attente</option>
+          <option value="confirmee">Confirmée</option>
+          <option value="annulee">Annulée</option>
+        </select>
+      </div>
+      <div class="flex gap-2 justify-end pt-2">
+        <button type="button" onclick="document.getElementById('reservation-add-modal').classList.add('hidden')"
+                class="px-4 py-2.5 font-semibold text-gray-500 hover:text-ink transition-colors" style="font-size:13px;">Annuler</button>
+        <button type="submit" class="btn-primary">Ajouter</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modale unique de modification, remplie en JS -->
+<div id="reservation-edit-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+  <div class="bg-white rounded-2xl p-6 w-full max-w-lg shadow-xl">
+    <h3 id="reservation-edit-title" class="font-extrabold text-ink mb-4" style="font-size:16px;">Modifier la réservation</h3>
+    <form id="reservation-edit-form" method="POST" action="{{ base_path }}/admin/reservations/0" class="space-y-3">
+      {{ csrf_field() }}
+      <div class="grid sm:grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-gray-500 mb-1">Nom du client</label>
+          <input type="text" name="name" required maxlength="120" class="form-input">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-500 mb-1">Téléphone</label>
+          <input type="tel" name="phone" required placeholder="06 12 34 56 78" class="form-input">
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-gray-500 mb-1">E-mail <span class="text-gray-400 font-normal">(facultatif)</span></label>
+        <input type="email" name="email" class="form-input">
+      </div>
+      <div class="grid sm:grid-cols-3 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-gray-500 mb-1">Date</label>
+          <input type="date" name="reservation_date" required class="form-input">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-500 mb-1">Heure</label>
+          <input type="time" name="reservation_time" required class="form-input">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-500 mb-1">Personnes</label>
+          <input type="number" name="party_size" min="1" max="30" required class="form-input">
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-gray-500 mb-1">Note <span class="text-gray-400 font-normal">(facultatif)</span></label>
+        <input type="text" name="note" maxlength="255" class="form-input">
+      </div>
+      <div>
+        <label class="block text-xs font-semibold text-gray-500 mb-1">Statut</label>
+        <select name="status" class="form-select">
+          <option value="en_attente">En attente</option>
+          <option value="confirmee">Confirmée</option>
+          <option value="annulee">Annulée</option>
+        </select>
+      </div>
+      <div class="flex gap-2 justify-end pt-2">
+        <button type="button" onclick="document.getElementById('reservation-edit-modal').classList.add('hidden')"
+                class="px-4 py-2.5 font-semibold text-gray-500 hover:text-ink transition-colors" style="font-size:13px;">Annuler</button>
+        <button type="submit" class="btn-primary">Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+(function () {
+  var modal = document.getElementById('reservation-edit-modal');
+  var form = document.getElementById('reservation-edit-form');
+  var title = document.getElementById('reservation-edit-title');
+
+  document.querySelectorAll('.js-edit-reservation').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var el = form.elements;
+      form.action = '{{ base_path }}/admin/reservations/' + btn.dataset.id;
+      el['name'].value = btn.dataset.name || '';
+      el['phone'].value = btn.dataset.phone || '';
+      el['email'].value = btn.dataset.email || '';
+      el['party_size'].value = btn.dataset.partySize || '2';
+      el['reservation_date'].value = btn.dataset.date || '';
+      el['reservation_time'].value = btn.dataset.time || '';
+      el['note'].value = btn.dataset.note || '';
+      el['status'].value = btn.dataset.status || 'en_attente';
+      title.textContent = 'Modifier la réservation de ' + (btn.dataset.name || '');
+      modal.classList.remove('hidden');
+    });
+  });
+})();
+</script>

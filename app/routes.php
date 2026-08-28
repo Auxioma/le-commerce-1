@@ -286,8 +286,10 @@ $router->post('/admin/employes/{id}/supprimer', AdminEmployeeController::class, 
 
 // --- Réservations ---
 $router->get('/admin/reservations', AdminReservationController::class, 'index');
+$router->post('/admin/reservations', AdminReservationController::class, 'store');
 $router->post('/admin/reservations/{id}/statut', AdminReservationController::class, 'updateStatus');
 $router->post('/admin/reservations/{id}/supprimer', AdminReservationController::class, 'destroy');
+$router->post('/admin/reservations/{id}', AdminReservationController::class, 'update');
 
 // --- Loterie ---
 $router->get('/admin/loterie', AdminLotteryController::class, 'index');

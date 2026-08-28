@@ -90,8 +90,8 @@ class AdminOfferController extends Controller
             'description'    => $data['description'] ?: null,
             'type'           => $data['type'],
             'value'          => (float) $data['value'],
-            'target_segment' => $data['target_segment'],
-            'valid_until'    => date('Y-m-d', strtotime($data['valid_until'])),
+            'target_segment' => $data['segment'],
+            'valid_until'    => date('Y-m-d', strtotime($data['validUntil'])),
             'status'         => $data['publish'] ? 'active' : 'brouillon',
         ]);
 
@@ -165,8 +165,8 @@ class AdminOfferController extends Controller
             'description'    => $data['description'] ?: null,
             'type'           => $data['type'],
             'value'          => (float) $data['value'],
-            'target_segment' => $data['target_segment'],
-            'valid_until'    => date('Y-m-d', strtotime($data['valid_until'])),
+            'target_segment' => $data['segment'],
+            'valid_until'    => date('Y-m-d', strtotime($data['validUntil'])),
             'status'         => $data['publish'] ? 'active' : 'brouillon',
         ]);
 
