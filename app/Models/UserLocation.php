@@ -33,6 +33,19 @@ class UserLocation extends Model
     }
 
     /**
+     * Dernière position connue d'un client, ou null.
+     */
+    public static function forUser(int $userId): ?array
+    {
+        $stmt = self::db()->prepare(
+            'SELECT latitude, longitude, updated_at FROM user_locations WHERE user_id = :id LIMIT 1'
+        );
+        $stmt->execute(['id' => $userId]);
+        $row = $stmt->fetch();
+        return $row ?: null;
+    }
+
+    /**
      * Clients dont la position connue date de moins de $withinMinutes,
      * avec leurs informations, pour la carte "Clients à proximité".
      */

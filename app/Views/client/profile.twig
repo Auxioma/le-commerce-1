@@ -1,0 +1,239 @@
+{% set inputBase = 'w-full rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500' %}
+
+<div class="mb-8">
+  <h1 class="font-extrabold text-3xl text-ink mb-2">Mes informations</h1>
+  <p class="text-gray-500">Consultez et mettez à jour votre identité, vos coordonnées et votre adresse.</p>
+</div>
+
+<div class="space-y-8 max-w-2xl">
+
+  <!-- Carte : informations personnelles -->
+  <form method="POST" action="{{ base_path }}/mon-compte/informations" id="profile-form"
+        class="bg-white border border-gray-100 rounded-2xl p-6 lg:p-8">
+    {{ csrf_field() }}
+
+    <h2 class="font-bold text-lg text-ink mb-5">Coordonnées</h2>
+
+    <div class="grid sm:grid-cols-2 gap-4 mb-4">
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Prénom</label>
+        <input type="text" name="first_name" required maxlength="80"
+               value="{{ old.first_name|default(user.first_name) }}"
+               class="{{ inputBase }} border {{ errors.first_name is defined ? 'border-brand-400' : 'border-gray-200' }}">
+        {% if errors.first_name is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.first_name }}</p>{% endif %}
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Nom</label>
+        <input type="text" name="last_name" required maxlength="80"
+               value="{{ old.last_name|default(user.last_name) }}"
+               class="{{ inputBase }} border {{ errors.last_name is defined ? 'border-brand-400' : 'border-gray-200' }}">
+        {% if errors.last_name is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.last_name }}</p>{% endif %}
+      </div>
+    </div>
+
+    <div class="grid sm:grid-cols-2 gap-4 mb-4">
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Numéro WhatsApp</label>
+        <input type="tel" name="phone_whatsapp" required placeholder="06 12 34 56 78"
+               value="{{ old.phone|default(user.phone_whatsapp) }}"
+               class="{{ inputBase }} border {{ errors.phone_whatsapp is defined ? 'border-brand-400' : 'border-gray-200' }}">
+        {% if errors.phone_whatsapp is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.phone_whatsapp }}</p>{% endif %}
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">E-mail <span class="text-gray-400 font-normal">(facultatif)</span></label>
+        <input type="email" name="email"
+               value="{{ old.email|default(user.email) }}"
+               class="{{ inputBase }} border {{ errors.email is defined ? 'border-brand-400' : 'border-gray-200' }}">
+        {% if errors.email is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.email }}</p>{% endif %}
+      </div>
+    </div>
+
+    <h2 class="font-bold text-lg text-ink mt-8 mb-1">Adresse</h2>
+    <p class="text-gray-400 text-xs mb-4">
+      Cliquez sur « Utiliser ma position actuelle » pour remplir automatiquement votre
+      adresse à partir de votre position GPS. Votre navigateur vous demandera l'autorisation.
+    </p>
+
+    <div class="mb-4">
+      <label class="block text-sm font-semibold text-ink mb-1.5">Adresse <span class="text-gray-400 font-normal">(facultatif)</span></label>
+      <input type="text" name="address_line" id="address_line" maxlength="255" autocomplete="street-address"
+             placeholder="12 rue de la République"
+             value="{{ old.address_line|default(user.address_line) }}"
+             class="{{ inputBase }} border {{ errors.address_line is defined ? 'border-brand-400' : 'border-gray-200' }}">
+      {% if errors.address_line is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.address_line }}</p>{% endif %}
+    </div>
+
+    <div class="grid sm:grid-cols-3 gap-4 mb-4">
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Code postal</label>
+        <input type="text" name="postal_code" id="postal_code" inputmode="numeric" maxlength="5" autocomplete="postal-code"
+               placeholder="76440"
+               value="{{ old.postal_code|default(user.postal_code) }}"
+               class="{{ inputBase }} border {{ errors.postal_code is defined ? 'border-brand-400' : 'border-gray-200' }}">
+        {% if errors.postal_code is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.postal_code }}</p>{% endif %}
+      </div>
+      <div class="sm:col-span-2">
+        <label class="block text-sm font-semibold text-ink mb-1.5">Ville</label>
+        <input type="text" name="city" id="city" maxlength="120" autocomplete="address-level2"
+               placeholder="Forges-les-Eaux"
+               value="{{ old.city|default(user.city) }}"
+               class="{{ inputBase }} border {{ errors.city is defined ? 'border-brand-400' : 'border-gray-200' }}">
+        {% if errors.city is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.city }}</p>{% endif %}
+      </div>
+    </div>
+
+    <!-- Position GPS transmise par le navigateur -->
+    <input type="hidden" name="latitude" id="latitude" value="">
+    <input type="hidden" name="longitude" id="longitude" value="">
+
+    <div class="flex flex-wrap items-center gap-3 mb-5">
+      <button type="button" id="geo-btn"
+              class="inline-flex items-center gap-2 text-sm font-semibold text-brand-600 border border-brand-200 bg-brand-50 hover:bg-brand-100 rounded-lg px-4 py-2.5 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+        Utiliser ma position actuelle
+      </button>
+      <span id="geo-status" class="text-xs text-gray-400">
+        {% if location %}Position enregistrée le {{ location.updated_at|date('d/m/Y à H:i') }} ({{ location.latitude }}, {{ location.longitude }}){% endif %}
+      </span>
+    </div>
+
+    <label class="flex items-start gap-2.5 text-sm text-gray-600 mb-6">
+      <input type="checkbox" name="geolocation_opt_in" id="geolocation_opt_in" value="1"
+             class="mt-0.5 rounded border-gray-300 text-brand-500 focus:ring-brand-500/30"
+             {{ (old.geo is defined ? old.geo : user.geolocation_opt_in) ? 'checked' : '' }}>
+      Je souhaite recevoir des offres exclusives lorsque je suis à proximité du Commerce.
+    </label>
+
+    <button type="submit"
+            class="w-full sm:w-auto bg-brand-500 hover:bg-brand-600 text-white font-bold text-sm px-8 py-3.5 rounded-lg transition-colors">
+      Enregistrer mes informations
+    </button>
+  </form>
+
+  <!-- Carte : mot de passe -->
+  <form method="POST" action="{{ base_path }}/mon-compte/informations/mot-de-passe"
+        class="bg-white border border-gray-100 rounded-2xl p-6 lg:p-8">
+    {{ csrf_field() }}
+    <h2 class="font-bold text-lg text-ink mb-5">Mot de passe</h2>
+
+    <div class="space-y-4 mb-6">
+      {% if user.password_hash %}
+        <div>
+          <label class="block text-sm font-semibold text-ink mb-1.5">Mot de passe actuel</label>
+          <input type="password" name="current_password" autocomplete="current-password"
+                 class="{{ inputBase }} border {{ errors.current_password is defined ? 'border-brand-400' : 'border-gray-200' }}">
+          {% if errors.current_password is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.current_password }}</p>{% endif %}
+        </div>
+      {% endif %}
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-semibold text-ink mb-1.5">Nouveau mot de passe</label>
+          <input type="password" name="new_password" minlength="6" autocomplete="new-password" placeholder="6 caractères minimum"
+                 class="{{ inputBase }} border {{ errors.new_password is defined ? 'border-brand-400' : 'border-gray-200' }}">
+          {% if errors.new_password is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.new_password }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-ink mb-1.5">Confirmer</label>
+          <input type="password" name="new_password_confirm" minlength="6" autocomplete="new-password"
+                 class="{{ inputBase }} border {{ errors.new_password_confirm is defined ? 'border-brand-400' : 'border-gray-200' }}">
+          {% if errors.new_password_confirm is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.new_password_confirm }}</p>{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <button type="submit"
+            class="w-full sm:w-auto bg-ink hover:bg-black text-white font-bold text-sm px-8 py-3.5 rounded-lg transition-colors">
+      Modifier mon mot de passe
+    </button>
+  </form>
+</div>
+
+<script>
+(function () {
+  var latEl = document.getElementById('latitude');
+  var lngEl = document.getElementById('longitude');
+  var statusEl = document.getElementById('geo-status');
+  var btn = document.getElementById('geo-btn');
+  var optIn = document.getElementById('geolocation_opt_in');
+  var addressFields = ['address_line', 'postal_code', 'city']
+    .map(function (id) { return document.getElementById(id); });
+  var asked = false;
+
+  function setStatus(text, isError) {
+    statusEl.textContent = text;
+    statusEl.className = 'text-xs ' + (isError ? 'text-brand-500' : 'text-emerald-600');
+  }
+
+  // Remplit les champs d'adresse depuis une réponse de la Base Adresse Nationale.
+  // overwrite = true : écrase la saisie existante (clic explicite sur le bouton).
+  function fillAddress(props, overwrite) {
+    var line = props.name || [props.housenumber, props.street].filter(Boolean).join(' ');
+    var values = { address_line: line, postal_code: props.postcode, city: props.city };
+    Object.keys(values).forEach(function (id) {
+      var el = document.getElementById(id);
+      if (!el || !values[id]) return;
+      if (overwrite || !el.value.trim()) el.value = values[id];
+    });
+  }
+
+  // Géocodage inverse gratuit et sans clé (api-adresse.data.gouv.fr, adresses FR).
+  function reverseGeocode(lat, lng, overwrite) {
+    fetch('https://api-adresse.data.gouv.fr/reverse/?lat=' + lat + '&lon=' + lng)
+      .then(function (r) { return r.ok ? r.json() : Promise.reject(r.status); })
+      .then(function (data) {
+        var feat = data && data.features && data.features[0];
+        if (!feat) {
+          setStatus('Position captée (' + lat + ', ' + lng + '), adresse introuvable.', false);
+          return;
+        }
+        fillAddress(feat.properties, overwrite);
+        setStatus('Adresse remplie depuis votre position : ' + (feat.properties.label || ''), false);
+      })
+      .catch(function () {
+        setStatus('Position captée (' + lat + ', ' + lng + '), adresse non récupérée.', false);
+      });
+  }
+
+  function capture(explicit) {
+    if (!('geolocation' in navigator)) {
+      if (explicit) setStatus("La géolocalisation n'est pas disponible sur cet appareil.", true);
+      return;
+    }
+    if (explicit) setStatus('Localisation en cours…', false);
+    navigator.geolocation.getCurrentPosition(
+      function (pos) {
+        latEl.value = pos.coords.latitude.toFixed(7);
+        lngEl.value = pos.coords.longitude.toFixed(7);
+        // Renseigner l'adresse implique l'intérêt pour les offres de proximité.
+        if (optIn && !optIn.checked) optIn.checked = true;
+        reverseGeocode(latEl.value, lngEl.value, explicit);
+      },
+      function (err) {
+        if (explicit || err.code === err.PERMISSION_DENIED) {
+          setStatus("Position non récupérée : " + err.message, true);
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+    );
+  }
+
+  // Récupération automatique à la première saisie d'un champ d'adresse.
+  addressFields.forEach(function (el) {
+    if (!el) return;
+    el.addEventListener('focus', function () {
+      if (asked) return;
+      asked = true;
+      capture(false);
+    }, { once: true });
+  });
+
+  if (btn) {
+    btn.addEventListener('click', function () {
+      asked = true;
+      capture(true);
+    });
+  }
+})();
+</script>

@@ -62,6 +62,28 @@ class User extends Model
     }
 
     /**
+     * Le numéro est-il déjà pris par un AUTRE compte que $excludeId ?
+     * (utilisé quand un client met à jour ses informations sans changer de numéro).
+     */
+    public static function phoneExistsForOther(string $phone, int $excludeId): bool
+    {
+        $stmt = self::db()->prepare(
+            'SELECT 1 FROM users WHERE phone_whatsapp = :phone AND id <> :id AND deleted_at IS NULL LIMIT 1'
+        );
+        $stmt->execute(['phone' => $phone, 'id' => $excludeId]);
+        return (bool) $stmt->fetchColumn();
+    }
+
+    public static function emailExistsForOther(string $email, int $excludeId): bool
+    {
+        $stmt = self::db()->prepare(
+            'SELECT 1 FROM users WHERE email = :email AND id <> :id AND deleted_at IS NULL LIMIT 1'
+        );
+        $stmt->execute(['email' => $email, 'id' => $excludeId]);
+        return (bool) $stmt->fetchColumn();
+    }
+
+    /**
      * Normalise un numéro de téléphone français saisi sous différents formats
      * (espaces, +33...) vers un format local à 10 chiffres commençant par 0.
      */

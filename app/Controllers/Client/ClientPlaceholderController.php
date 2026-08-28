@@ -10,7 +10,6 @@ use App\Core\Middleware;
 class ClientPlaceholderController extends Controller
 {
     private const SECTIONS = [
-        'informations'  => 'Mes informations',
         'notifications' => 'Notifications',
         'aide'          => 'Aide & support',
     ];

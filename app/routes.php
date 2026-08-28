@@ -21,6 +21,7 @@ use App\Controllers\LegalController;
 use App\Controllers\Client\ClientDashboardController;
 use App\Controllers\Client\WalletController;
 use App\Controllers\Client\ClientPlaceholderController;
+use App\Controllers\Client\ClientProfileController;
 use App\Controllers\Auth\LoginController;
 use App\Controllers\Auth\RegisterController;
 use App\Controllers\Auth\LogoutController;
@@ -99,6 +100,9 @@ $router->get('/mon-compte/sondages/{id}', PollController::class, 'show');
 $router->post('/mon-compte/sondages/{id}/voter', PollController::class, 'vote');
 $router->post('/mon-compte/proximite/verifier', ProximityController::class, 'check');
 $router->post('/mon-compte/proximite/{id}/profiter', ProximityController::class, 'claim');
+$router->get('/mon-compte/informations', ClientProfileController::class, 'edit');
+$router->post('/mon-compte/informations', ClientProfileController::class, 'update');
+$router->post('/mon-compte/informations/mot-de-passe', ClientProfileController::class, 'updatePassword');
 
 // Routes "prochainement" pour les autres sections du menu client
 // IMPORTANT : doit rester déclarée en dernier pour ne pas intercepter les routes ci-dessus
