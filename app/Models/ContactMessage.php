@@ -58,4 +58,34 @@ class ContactMessage extends Model
         $stmt->execute();
         return (int) $stmt->fetchColumn();
     }
+
+    /**
+     * Demandes d'aide envoyées par un client depuis son espace
+     * (/mon-compte/aide) — pour lui afficher l'historique et le statut.
+     */
+    public static function forUser(int $userId, int $limit = 20): array
+    {
+        $stmt = self::db()->prepare(
+            'SELECT subject, message, is_read, created_at
+             FROM contact_messages
+             WHERE user_id = :user_id
+             ORDER BY created_at DESC
+             LIMIT :limit'
+        );
+        $stmt->bindValue('user_id', $userId, \PDO::PARAM_INT);
+        $stmt->bindValue('limit', $limit, \PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    public static function countRecentByUser(int $userId, int $minutes): int
+    {
+        $stmt = self::db()->prepare(
+            'SELECT COUNT(*) FROM contact_messages WHERE user_id = :user_id AND created_at >= (NOW() - INTERVAL :minutes MINUTE)'
+        );
+        $stmt->bindValue('user_id', $userId, \PDO::PARAM_INT);
+        $stmt->bindValue('minutes', $minutes, \PDO::PARAM_INT);
+        $stmt->execute();
+        return (int) $stmt->fetchColumn();
+    }
 }

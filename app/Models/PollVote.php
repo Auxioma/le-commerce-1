@@ -28,6 +28,27 @@ class PollVote extends Model
     }
 
     /**
+     * Votes d'un client, avec la question du sondage et l'option choisie —
+     * pour son fil de notifications personnel.
+     */
+    public static function forUserWithPoll(int $userId, int $limit = 50): array
+    {
+        $stmt = self::db()->prepare(
+            'SELECT v.poll_id, v.created_at, p.question, o.label AS option_label
+             FROM poll_votes v
+             JOIN polls p ON p.id = v.poll_id
+             JOIN poll_options o ON o.id = v.option_id
+             WHERE v.user_id = :user_id
+             ORDER BY v.created_at DESC, v.id DESC
+             LIMIT :limit'
+        );
+        $stmt->bindValue('user_id', $userId, \PDO::PARAM_INT);
+        $stmt->bindValue('limit', $limit, \PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
+    /**
      * Enregistre un vote de façon atomique : la contrainte UNIQUE(poll_id, user_id)
      * en base empêche tout double vote, y compris en cas de doubles clics ou
      * de requêtes concurrentes (on s'appuie sur la BDD plutôt que sur une

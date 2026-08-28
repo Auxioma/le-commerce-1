@@ -203,4 +203,25 @@ class OfferRedemption extends Model
              WHERE r.status = 'utilisee' AND o.type != 'reduction_pourcentage'"
         )->fetchColumn();
     }
+
+    /**
+     * Offres attribuées à un client, avec leur libellé — pour son fil de
+     * notifications personnel.
+     */
+    public static function forUserWithOffer(int $userId, int $limit = 50): array
+    {
+        $stmt = self::db()->prepare(
+            'SELECT r.code, r.channel, r.status, r.created_at,
+                    o.title AS offer_title, o.valid_until
+             FROM offer_redemptions r
+             JOIN offers o ON o.id = r.offer_id
+             WHERE r.user_id = :user_id
+             ORDER BY r.created_at DESC, r.id DESC
+             LIMIT :limit'
+        );
+        $stmt->bindValue('user_id', $userId, \PDO::PARAM_INT);
+        $stmt->bindValue('limit', $limit, \PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
 }

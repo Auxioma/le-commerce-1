@@ -4,54 +4,33 @@ declare(strict_types=1);
 
 use Phinx\Seed\AbstractSeed;
 
+/**
+ * Fixture générée depuis la base de données (instantané du 2026-08-28).
+ * Reproduit à l'identique le contenu de la table `users`, identifiants inclus.
+ */
 final class UserSeeder extends AbstractSeed
 {
     public function run(): void
     {
-        if ($this->fetchRow('SELECT 1 FROM users LIMIT 1')) {
+        if ($this->fetchRow('SELECT 1 FROM `users` LIMIT 1')) {
             return;
         }
 
-        // Mots de passe de démo (migration_lot2_auth.sql) : admin -> "admin123", clients -> "client123"
-        $adminHash = '$2y$10$G/o10NdBzAm8fo3BmVaij.57vmcknkyD/r4fY9eUs9OOZkMGk6p1e';
-        $clientHash = '$2y$10$V8.3Qjjplb4ptylpo1E.v.fqlNA1pGuYT8XOBcsc9qgdt54z.rBeW';
-
         $this->table('users')->insert([
-            [
-                'first_name' => 'Jean', 'last_name' => 'Martin', 'phone_whatsapp' => '0612345678',
-                'email' => 'jean.martin@example.com', 'password_hash' => $clientHash,
-                'role' => 'client', 'segment' => 'fidele', 'status' => 'actif',
-                'loyalty_points' => 120, 'referral_code' => 'JEAN2024', 'geolocation_opt_in' => 1,
-                'registration_source' => 'tabac',
-            ],
-            [
-                'first_name' => 'Sophie', 'last_name' => 'Petit', 'phone_whatsapp' => '0723456789',
-                'email' => 'sophie.petit@example.com', 'password_hash' => $clientHash,
-                'role' => 'client', 'segment' => 'nouveau', 'status' => 'actif',
-                'loyalty_points' => 20, 'referral_code' => 'SOPH2024', 'geolocation_opt_in' => 1,
-                'registration_source' => 'bar',
-            ],
-            [
-                'first_name' => 'Lucas', 'last_name' => 'Dubois', 'phone_whatsapp' => '0645678901',
-                'email' => 'lucas.dubois@example.com', 'password_hash' => $clientHash,
-                'role' => 'client', 'segment' => 'fidele', 'status' => 'actif',
-                'loyalty_points' => 95, 'referral_code' => 'LUCA2024', 'geolocation_opt_in' => 0,
-                'registration_source' => 'pmu',
-            ],
-            [
-                'first_name' => 'Claire', 'last_name' => 'Bernard', 'phone_whatsapp' => '0789012345',
-                'email' => 'claire.bernard@example.com', 'password_hash' => $clientHash,
-                'role' => 'client', 'segment' => 'nouveau', 'status' => 'actif',
-                'loyalty_points' => 15, 'referral_code' => 'CLAI2024', 'geolocation_opt_in' => 1,
-                'registration_source' => 'nirio',
-            ],
-            [
-                'first_name' => 'Admin', 'last_name' => 'Le Commerce', 'phone_whatsapp' => '0235905016',
-                'email' => 'lecommercetabac@gmail.com', 'password_hash' => $adminHash,
-                'role' => 'admin', 'segment' => 'fidele', 'status' => 'actif',
-                'loyalty_points' => 0, 'referral_code' => null, 'geolocation_opt_in' => 0,
-                'registration_source' => 'bar',
-            ],
+            ['id' => 1, 'first_name' => 'Jean', 'last_name' => 'Martin', 'phone_whatsapp' => '0612345678', 'email' => 'jean.martin@example.com', 'password_hash' => '$2y$10$V8.3Qjjplb4ptylpo1E.v.fqlNA1pGuYT8XOBcsc9qgdt54z.rBeW', 'role' => 'client', 'segment' => 'fidele', 'status' => 'actif', 'loyalty_points' => 120, 'referral_code' => 'JEAN2024', 'referred_by' => null, 'geolocation_opt_in' => 1, 'whatsapp_opt_in' => 0, 'registration_source' => 'tabac', 'address_line' => null, 'postal_code' => null, 'city' => null, 'last_activity_at' => null, 'created_at' => '2026-08-19 15:42:57', 'updated_at' => '2026-08-19 15:42:57', 'deleted_at' => null],
+            ['id' => 2, 'first_name' => 'Sophie', 'last_name' => 'Petit', 'phone_whatsapp' => '0723456789', 'email' => 'sophie.petit@example.com', 'password_hash' => '$2y$10$V8.3Qjjplb4ptylpo1E.v.fqlNA1pGuYT8XOBcsc9qgdt54z.rBeW', 'role' => 'client', 'segment' => 'nouveau', 'status' => 'actif', 'loyalty_points' => 20, 'referral_code' => 'SOPH2024', 'referred_by' => null, 'geolocation_opt_in' => 1, 'whatsapp_opt_in' => 0, 'registration_source' => 'bar', 'address_line' => null, 'postal_code' => null, 'city' => null, 'last_activity_at' => null, 'created_at' => '2026-08-19 15:42:57', 'updated_at' => '2026-08-19 15:42:57', 'deleted_at' => null],
+            ['id' => 3, 'first_name' => 'Lucas', 'last_name' => 'Dubois', 'phone_whatsapp' => '0645678901', 'email' => 'lucas.dubois@example.com', 'password_hash' => '$2y$10$V8.3Qjjplb4ptylpo1E.v.fqlNA1pGuYT8XOBcsc9qgdt54z.rBeW', 'role' => 'client', 'segment' => 'fidele', 'status' => 'actif', 'loyalty_points' => 95, 'referral_code' => 'LUCA2024', 'referred_by' => null, 'geolocation_opt_in' => 0, 'whatsapp_opt_in' => 0, 'registration_source' => 'pmu', 'address_line' => null, 'postal_code' => null, 'city' => null, 'last_activity_at' => null, 'created_at' => '2026-08-19 15:42:57', 'updated_at' => '2026-08-19 15:42:57', 'deleted_at' => null],
+            ['id' => 4, 'first_name' => 'Claire', 'last_name' => 'Bernard', 'phone_whatsapp' => '0789012345', 'email' => 'claire.bernard@example.com', 'password_hash' => '$2y$10$V8.3Qjjplb4ptylpo1E.v.fqlNA1pGuYT8XOBcsc9qgdt54z.rBeW', 'role' => 'client', 'segment' => 'nouveau', 'status' => 'actif', 'loyalty_points' => 15, 'referral_code' => 'CLAI2024', 'referred_by' => null, 'geolocation_opt_in' => 1, 'whatsapp_opt_in' => 0, 'registration_source' => 'nirio', 'address_line' => null, 'postal_code' => null, 'city' => null, 'last_activity_at' => null, 'created_at' => '2026-08-19 15:42:57', 'updated_at' => '2026-08-19 15:42:57', 'deleted_at' => null],
+            ['id' => 5, 'first_name' => 'Admin', 'last_name' => 'Le Commerce', 'phone_whatsapp' => '0235905016', 'email' => 'lecommercetabac@gmail.com', 'password_hash' => '$2y$10$G/o10NdBzAm8fo3BmVaij.57vmcknkyD/r4fY9eUs9OOZkMGk6p1e', 'role' => 'admin', 'segment' => 'fidele', 'status' => 'actif', 'loyalty_points' => 0, 'referral_code' => null, 'referred_by' => null, 'geolocation_opt_in' => 0, 'whatsapp_opt_in' => 0, 'registration_source' => 'bar', 'address_line' => null, 'postal_code' => null, 'city' => null, 'last_activity_at' => null, 'created_at' => '2026-08-19 15:42:57', 'updated_at' => '2026-08-24 21:25:07', 'deleted_at' => null],
+            ['id' => 8, 'first_name' => 'devaux', 'last_name' => 'guillaume', 'phone_whatsapp' => '0235448933', 'email' => 'toto@free.fr', 'password_hash' => null, 'role' => 'client', 'segment' => 'nouveau', 'status' => 'actif', 'loyalty_points' => 0, 'referral_code' => 'DEVA5722', 'referred_by' => null, 'geolocation_opt_in' => 0, 'whatsapp_opt_in' => 1, 'registration_source' => 'loterie', 'address_line' => null, 'postal_code' => null, 'city' => null, 'last_activity_at' => null, 'created_at' => '2026-08-23 13:58:23', 'updated_at' => '2026-08-24 10:10:39', 'deleted_at' => null],
+            ['id' => 9, 'first_name' => 'devaux', 'last_name' => 'guillaume', 'phone_whatsapp' => '0235448935', 'email' => 'toto@toto.fr', 'password_hash' => '$2y$12$8UnVdOA/xJdxKiSgEhtI2erYcrYY/OuNv.gm6eTQCkAC13iVhNIWq', 'role' => 'client', 'segment' => 'nouveau', 'status' => 'actif', 'loyalty_points' => 0, 'referral_code' => 'DEVA3877', 'referred_by' => null, 'geolocation_opt_in' => 1, 'whatsapp_opt_in' => 0, 'registration_source' => 'reseaux_sociaux', 'address_line' => null, 'postal_code' => null, 'city' => null, 'last_activity_at' => null, 'created_at' => '2026-08-26 23:55:19', 'updated_at' => '2026-08-26 23:55:19', 'deleted_at' => null],
+            ['id' => 11, 'first_name' => 'jean', 'last_name' => 'michel', 'phone_whatsapp' => '0766068003', 'email' => 'totao@toto.fr', 'password_hash' => '$2y$12$bSRo5wBj2Ew4YVhp2qgMwuPQrLnak90e6e5CY/G74VAK9xSK8dEDW', 'role' => 'client', 'segment' => 'nouveau', 'status' => 'actif', 'loyalty_points' => 0, 'referral_code' => 'JEAN5051', 'referred_by' => null, 'geolocation_opt_in' => 1, 'whatsapp_opt_in' => 0, 'registration_source' => 'bouche_a_oreille', 'address_line' => null, 'postal_code' => null, 'city' => null, 'last_activity_at' => null, 'created_at' => '2026-08-27 08:27:38', 'updated_at' => '2026-08-27 08:27:38', 'deleted_at' => null],
+            ['id' => 12, 'first_name' => 'totoa', 'last_name' => 'zorro', 'phone_whatsapp' => '0766995588', 'email' => 'tpt@free.fr', 'password_hash' => '$2y$12$aUeQFi6MoSf8gbbFio2Eie8N1Ooms8DGyu.qFD7GbxebzOMKAn2Xy', 'role' => 'client', 'segment' => 'nouveau', 'status' => 'actif', 'loyalty_points' => 0, 'referral_code' => 'TOTO9177', 'referred_by' => null, 'geolocation_opt_in' => 1, 'whatsapp_opt_in' => 0, 'registration_source' => 'bouche_a_oreille', 'address_line' => null, 'postal_code' => null, 'city' => null, 'last_activity_at' => null, 'created_at' => '2026-08-27 22:41:41', 'updated_at' => '2026-08-27 22:41:41', 'deleted_at' => null],
+            ['id' => 13, 'first_name' => 'toot', 'last_name' => 'toto', 'phone_whatsapp' => '0235448977', 'email' => 'ptpt@pt.tt', 'password_hash' => '$2y$12$B7mWsQIdIH/qM.71HBlEUuXI78sAfxA5.euj0pgSnsrkRNR4Plm0e', 'role' => 'client', 'segment' => 'nouveau', 'status' => 'actif', 'loyalty_points' => 0, 'referral_code' => 'TOOT5951', 'referred_by' => null, 'geolocation_opt_in' => 1, 'whatsapp_opt_in' => 0, 'registration_source' => 'reseaux_sociaux', 'address_line' => null, 'postal_code' => null, 'city' => null, 'last_activity_at' => null, 'created_at' => '2026-08-28 12:22:37', 'updated_at' => '2026-08-28 12:22:37', 'deleted_at' => null],
+            ['id' => 14, 'first_name' => 'loic', 'last_name' => 'omont', 'phone_whatsapp' => '0805777888', 'email' => 'loic@free.fr', 'password_hash' => null, 'role' => 'client', 'segment' => 'nouveau', 'status' => 'actif', 'loyalty_points' => 0, 'referral_code' => 'LOIC6278', 'referred_by' => null, 'geolocation_opt_in' => 0, 'whatsapp_opt_in' => 1, 'registration_source' => 'loterie', 'address_line' => null, 'postal_code' => null, 'city' => null, 'last_activity_at' => null, 'created_at' => '2026-08-28 12:41:07', 'updated_at' => '2026-08-28 12:41:07', 'deleted_at' => null],
+            ['id' => 15, 'first_name' => 'fddsfdfs', 'last_name' => 'dfsdfsfds', 'phone_whatsapp' => '0235441111', 'email' => 'pp@bb.bb', 'password_hash' => '$2y$12$nCDuokksHB1eqXRBPi/jVeuSOQdaLLd0ywUAcHCtkkzgb4kuFL68m', 'role' => 'client', 'segment' => 'nouveau', 'status' => 'actif', 'loyalty_points' => 0, 'referral_code' => 'FDDS7511', 'referred_by' => null, 'geolocation_opt_in' => 1, 'whatsapp_opt_in' => 0, 'registration_source' => 'recherche_internet', 'address_line' => null, 'postal_code' => null, 'city' => null, 'last_activity_at' => null, 'created_at' => '2026-08-28 12:42:29', 'updated_at' => '2026-08-28 12:42:29', 'deleted_at' => null],
+            ['id' => 16, 'first_name' => 'guillaume', 'last_name' => 'devaux', 'phone_whatsapp' => '0760068003', 'email' => 'auxioma.g@gmail.com', 'password_hash' => '$2y$12$eaeoxopSpCLzB5tbA4Cn2.dte3iP6Yk2TjTg9dlDWBrx2gwOaPtDi', 'role' => 'client', 'segment' => 'nouveau', 'status' => 'actif', 'loyalty_points' => 0, 'referral_code' => 'GUIL6300', 'referred_by' => null, 'geolocation_opt_in' => 1, 'whatsapp_opt_in' => 0, 'registration_source' => 'bouche_a_oreille', 'address_line' => null, 'postal_code' => null, 'city' => null, 'last_activity_at' => null, 'created_at' => '2026-08-28 12:58:52', 'updated_at' => '2026-08-28 12:58:52', 'deleted_at' => null],
+            ['id' => 17, 'first_name' => 'devaux', 'last_name' => 'guillaume', 'phone_whatsapp' => '0678451252', 'email' => 'lecqsqsommercetabac@gmail.com', 'password_hash' => '$2y$12$utzDsdFKR/SDFUbPAHlkautUUKNi9bknpLGjauTqFXz/FUziDwnpO', 'role' => 'client', 'segment' => 'nouveau', 'status' => 'actif', 'loyalty_points' => 0, 'referral_code' => 'DEVA3211', 'referred_by' => null, 'geolocation_opt_in' => 1, 'whatsapp_opt_in' => 0, 'registration_source' => 'bouche_a_oreille', 'address_line' => 'Rue Léon Peulevey', 'postal_code' => '76620', 'city' => 'Le Havre', 'last_activity_at' => null, 'created_at' => '2026-08-28 21:12:32', 'updated_at' => '2026-08-28 21:21:25', 'deleted_at' => null],
         ])->saveData();
     }
 }

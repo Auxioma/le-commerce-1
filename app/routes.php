@@ -22,6 +22,8 @@ use App\Controllers\Client\ClientDashboardController;
 use App\Controllers\Client\WalletController;
 use App\Controllers\Client\ClientPlaceholderController;
 use App\Controllers\Client\ClientProfileController;
+use App\Controllers\Client\ClientNotificationController;
+use App\Controllers\Client\ClientHelpController;
 use App\Controllers\Auth\LoginController;
 use App\Controllers\Auth\RegisterController;
 use App\Controllers\Auth\LogoutController;
@@ -103,6 +105,9 @@ $router->post('/mon-compte/proximite/{id}/profiter', ProximityController::class,
 $router->get('/mon-compte/informations', ClientProfileController::class, 'edit');
 $router->post('/mon-compte/informations', ClientProfileController::class, 'update');
 $router->post('/mon-compte/informations/mot-de-passe', ClientProfileController::class, 'updatePassword');
+$router->get('/mon-compte/notifications', ClientNotificationController::class, 'index');
+$router->get('/mon-compte/aide', ClientHelpController::class, 'index');
+$router->post('/mon-compte/aide', ClientHelpController::class, 'sendRequest');
 
 // Routes "prochainement" pour les autres sections du menu client
 // IMPORTANT : doit rester déclarée en dernier pour ne pas intercepter les routes ci-dessus

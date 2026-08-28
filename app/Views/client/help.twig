@@ -1,0 +1,222 @@
+{% set inputBase = 'w-full rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500' %}
+
+<style>
+  .faq summary { list-style: none; }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq details[open] .faq-chevron { transform: rotate(180deg); }
+  .faq-chevron { transition: transform .18s ease; }
+</style>
+
+<div class="mb-8">
+  <h1 class="font-extrabold text-3xl text-ink mb-2">Aide &amp; support</h1>
+  <p class="text-gray-500">Trouvez une réponse dans la FAQ ou contactez directement notre équipe.</p>
+</div>
+
+<div class="grid lg:grid-cols-3 gap-8 items-start">
+
+  <!-- Colonne principale : FAQ + formulaire -->
+  <div class="lg:col-span-2 space-y-8">
+
+    <!-- FAQ -->
+    <section class="faq bg-white border border-gray-100 rounded-2xl p-6 lg:p-8">
+      <div class="flex items-center justify-between gap-4 mb-5 flex-wrap">
+        <h2 class="font-bold text-lg text-ink">Questions fréquentes</h2>
+        <div class="relative">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          <input type="text" id="faq-search" placeholder="Rechercher…" autocomplete="off"
+                 class="border border-gray-200 rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500">
+        </div>
+      </div>
+
+      {% if faq is empty %}
+        <p class="text-gray-500 text-sm">La FAQ sera bientôt disponible.</p>
+      {% else %}
+        <div id="faq-list" class="space-y-6">
+          {% for category, items in faq %}
+            <div class="faq-category" data-category="{{ category|lower }}">
+              <h3 class="text-xs font-bold uppercase tracking-wide text-gray-400 mb-2">{{ category }}</h3>
+              <div class="border border-gray-100 rounded-xl divide-y divide-gray-100 overflow-hidden">
+                {% for item in items %}
+                  <details class="faq-item group"
+                           data-text="{{ (item.question ~ ' ' ~ item.answer)|lower }}">
+                    <summary class="flex items-start justify-between gap-3 cursor-pointer select-none p-4 hover:bg-gray-50 transition-colors">
+                      <span class="font-semibold text-ink text-sm">{{ item.question }}</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" class="faq-chevron w-4 h-4 text-gray-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                      </svg>
+                    </summary>
+                    <div class="px-4 pb-4 -mt-1 text-sm text-gray-600 leading-relaxed whitespace-pre-line">{{ item.answer }}</div>
+                  </details>
+                {% endfor %}
+              </div>
+            </div>
+          {% endfor %}
+          <p id="faq-empty" class="hidden text-gray-500 text-sm">Aucune réponse ne correspond à votre recherche.</p>
+        </div>
+      {% endif %}
+    </section>
+
+    <!-- Formulaire de demande -->
+    <section id="contact" class="bg-white border border-gray-100 rounded-2xl p-6 lg:p-8">
+      <h2 class="font-bold text-lg text-ink mb-1">Envoyer une demande</h2>
+      <p class="text-gray-400 text-xs mb-5">Vous n'avez pas trouvé de réponse ? Décrivez votre problème, notre équipe vous répond au plus vite.</p>
+
+      <form method="POST" action="{{ base_path }}/mon-compte/aide" class="space-y-4">
+        {{ csrf_field() }}
+
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-semibold text-ink mb-1.5">Sujet</label>
+            <select name="subject" required
+                    class="{{ inputBase }} border {{ errors.subject is defined ? 'border-brand-400' : 'border-gray-200' }}">
+              <option value="" {{ old.subject|default('') == '' ? 'selected' : '' }} disabled>Choisir un sujet…</option>
+              {% for s in subjects %}
+                <option value="{{ s }}" {{ old.subject|default('') == s ? 'selected' : '' }}>{{ s }}</option>
+              {% endfor %}
+            </select>
+            {% if errors.subject is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.subject }}</p>{% endif %}
+          </div>
+          <div>
+            <label class="block text-sm font-semibold text-ink mb-1.5">Objet <span class="text-gray-400 font-normal">(facultatif)</span></label>
+            <input type="text" name="details" maxlength="120" value="{{ old.details|default('') }}"
+                   placeholder="Résumé en quelques mots"
+                   class="{{ inputBase }} border {{ errors.details is defined ? 'border-brand-400' : 'border-gray-200' }}">
+            {% if errors.details is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.details }}</p>{% endif %}
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-ink mb-1.5">Votre message</label>
+          <textarea name="message" rows="5" required minlength="10" maxlength="2000"
+                    class="{{ inputBase }} border {{ errors.message is defined ? 'border-brand-400' : 'border-gray-200' }}"
+                    placeholder="Décrivez votre demande le plus précisément possible…">{{ old.message|default('') }}</textarea>
+          {% if errors.message is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.message }}</p>{% endif %}
+        </div>
+
+        <div class="flex items-center gap-3 text-xs text-gray-400">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.206"/>
+          </svg>
+          Réponse envoyée à {{ user.email ?: 'votre numéro ' ~ user.phone_whatsapp }}.
+        </div>
+
+        <button type="submit"
+                class="w-full sm:w-auto bg-brand-500 hover:bg-brand-600 text-white font-bold text-sm px-8 py-3.5 rounded-lg transition-colors">
+          Envoyer ma demande
+        </button>
+      </form>
+
+      {% if requests is not empty %}
+        <div class="mt-8 pt-6 border-t border-gray-100">
+          <h3 class="font-bold text-sm text-ink mb-3">Vos demandes récentes</h3>
+          <ul class="space-y-3">
+            {% for r in requests %}
+              <li class="flex items-start gap-3">
+                <span class="w-2 h-2 rounded-full mt-1.5 shrink-0 {{ r.is_read ? 'bg-emerald-500' : 'bg-amber-400' }}"></span>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-start justify-between gap-3">
+                    <p class="text-sm font-semibold text-ink">{{ r.subject|replace({'[Aide] ': ''}) }}</p>
+                    <time class="text-[11px] text-gray-400 shrink-0 mt-0.5">{{ r.created_at|date('d/m/Y') }}</time>
+                  </div>
+                  <p class="text-xs text-gray-500 mt-0.5">{{ r.message|slice(0, 140) }}{{ r.message|length > 140 ? '…' : '' }}</p>
+                  <p class="text-[11px] font-semibold mt-1 {{ r.is_read ? 'text-emerald-600' : 'text-amber-600' }}">
+                    {{ r.is_read ? 'Traitée par notre équipe' : 'En attente de réponse' }}
+                  </p>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+    </section>
+  </div>
+
+  <!-- Colonne latérale : contact direct + liens -->
+  <aside class="space-y-6">
+    <section class="bg-white border border-gray-100 rounded-2xl p-6">
+      <h2 class="font-bold text-lg text-ink mb-4">Nous joindre</h2>
+      <ul class="space-y-4 text-sm">
+        <li class="flex items-start gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-brand-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+          <div>
+            <p class="text-gray-400 text-xs font-semibold">Téléphone</p>
+            <a href="tel:{{ shop.phone_href }}" class="font-semibold text-ink hover:text-brand-500 transition-colors">{{ shop.phone }}</a>
+          </div>
+        </li>
+        <li class="flex items-start gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-brand-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+          <div class="min-w-0">
+            <p class="text-gray-400 text-xs font-semibold">E-mail</p>
+            <a href="mailto:{{ shop.email }}" class="font-semibold text-ink hover:text-brand-500 transition-colors break-all">{{ shop.email }}</a>
+          </div>
+        </li>
+        <li class="flex items-start gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-brand-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          <div>
+            <p class="text-gray-400 text-xs font-semibold">Adresse</p>
+            <p class="font-semibold text-ink">{{ shop.address }}, {{ shop.zipcode }} {{ shop.city }}</p>
+            <a href="https://www.google.com/maps/dir/?api=1&destination={{ (shop.address ~ ' ' ~ shop.zipcode ~ ' ' ~ shop.city)|url_encode }}"
+               target="_blank" rel="noopener" class="text-brand-500 text-xs font-semibold hover:underline">Itinéraire →</a>
+          </div>
+        </li>
+        <li class="flex items-start gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-brand-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <div>
+            <p class="text-gray-400 text-xs font-semibold">Horaires</p>
+            <p class="font-semibold text-ink">Lun – Sam : {{ shop.hours.lun_sam }}</p>
+            <p class="font-semibold text-ink">Dimanche : {{ shop.hours.dim }}</p>
+          </div>
+        </li>
+      </ul>
+      <a href="https://wa.me/{{ shop.whatsapp_href|replace({'+': '', ' ': ''}) }}"
+         target="_blank" rel="noopener"
+         class="mt-5 w-full inline-flex items-center justify-center gap-2 text-white font-bold rounded-lg py-3 transition-opacity hover:opacity-90"
+         style="background:#1fa855; font-size:13px;">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.4A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-2.9.8.8-2.8-.2-.3A8 8 0 1 1 12 20z"/></svg>
+        Discuter sur WhatsApp
+      </a>
+    </section>
+
+    <section class="bg-white border border-gray-100 rounded-2xl p-6">
+      <h2 class="font-bold text-lg text-ink mb-3">Liens utiles</h2>
+      <ul class="space-y-2 text-sm">
+        <li><a href="{{ base_path }}/mon-compte/informations" class="text-gray-600 hover:text-brand-500 transition-colors">Gérer mes informations</a></li>
+        <li><a href="{{ base_path }}/mon-compte/transactions" class="text-gray-600 hover:text-brand-500 transition-colors">Historique de mon portefeuille</a></li>
+        <li><a href="{{ base_path }}/mon-compte/parrainage" class="text-gray-600 hover:text-brand-500 transition-colors">Mon code de parrainage</a></li>
+        <li><a href="{{ base_path }}/cgu" class="text-gray-600 hover:text-brand-500 transition-colors">Conditions générales d'utilisation</a></li>
+        <li><a href="{{ base_path }}/confidentialite" class="text-gray-600 hover:text-brand-500 transition-colors">Politique de confidentialité</a></li>
+      </ul>
+    </section>
+  </aside>
+</div>
+
+<script>
+(function () {
+  var search = document.getElementById('faq-search');
+  if (!search) return;
+  var items = Array.prototype.slice.call(document.querySelectorAll('.faq-item'));
+  var categories = Array.prototype.slice.call(document.querySelectorAll('.faq-category'));
+  var empty = document.getElementById('faq-empty');
+
+  search.addEventListener('input', function () {
+    var q = search.value.trim().toLowerCase();
+    var anyVisible = false;
+
+    items.forEach(function (el) {
+      var match = q === '' || (el.dataset.text || '').indexOf(q) !== -1;
+      el.style.display = match ? '' : 'none';
+      if (match) anyVisible = true;
+      if (q !== '' && match) { el.open = true; } else if (q === '') { el.open = false; }
+    });
+
+    categories.forEach(function (cat) {
+      var visible = cat.querySelectorAll('.faq-item:not([style*="display: none"])').length > 0;
+      cat.style.display = visible ? '' : 'none';
+    });
+
+    if (empty) empty.classList.toggle('hidden', anyVisible);
+  });
+})();
+</script>

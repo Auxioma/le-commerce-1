@@ -103,6 +103,23 @@ class User extends Model
         return (int) $stmt->fetchColumn();
     }
 
+    /**
+     * Filleuls parrainés par $userId (prénom + date d'inscription) — pour son
+     * fil de notifications personnel.
+     */
+    public static function referralsWithDetails(int $userId, int $limit = 50): array
+    {
+        $stmt = self::db()->prepare(
+            "SELECT first_name, last_name, created_at FROM users
+             WHERE referred_by = :id AND deleted_at IS NULL
+             ORDER BY created_at DESC LIMIT :limit"
+        );
+        $stmt->bindValue('id', $userId, \PDO::PARAM_INT);
+        $stmt->bindValue('limit', $limit, \PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+
     public static function findByReferralCode(string $code): ?array
     {
         $stmt = self::db()->prepare('SELECT * FROM users WHERE referral_code = :code AND deleted_at IS NULL LIMIT 1');

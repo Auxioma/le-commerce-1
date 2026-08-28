@@ -67,4 +67,21 @@ class SmsMessage extends Model
         $stmt->execute(['id' => $userId]);
         return $stmt->fetchAll();
     }
+
+    /**
+     * SMS envoyés AU client (direction sortante) — pour son fil de
+     * notifications personnel.
+     */
+    public static function outgoingForUser(int $userId, int $limit = 50): array
+    {
+        $stmt = self::db()->prepare(
+            "SELECT content, sent_at FROM sms_messages
+             WHERE user_id = :id AND direction = 'sortant'
+             ORDER BY sent_at DESC, id DESC LIMIT :limit"
+        );
+        $stmt->bindValue('id', $userId, \PDO::PARAM_INT);
+        $stmt->bindValue('limit', $limit, \PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
 }

@@ -9,10 +9,12 @@ use App\Core\Middleware;
 
 class ClientPlaceholderController extends Controller
 {
-    private const SECTIONS = [
-        'notifications' => 'Notifications',
-        'aide'          => 'Aide & support',
-    ];
+    /**
+     * Sections « prochainement » de l'espace client. Toutes les sections du
+     * menu ont désormais leur propre écran : cette liste est vide et toute
+     * autre URL /mon-compte/... renvoie un 404.
+     */
+    private const SECTIONS = [];
 
     public function show(string $section): void
     {

@@ -107,7 +107,7 @@ class LotteryEntry extends Model
     public static function forUser(int $userId): array
     {
         $stmt = self::db()->prepare(
-            'SELECT e.*, l.title AS lottery_title, l.prize, l.status AS lottery_status, l.ends_at, l.winner_user_id
+            'SELECT e.*, l.title AS lottery_title, l.prize, l.status AS lottery_status, l.ends_at, l.winner_user_id, l.drawn_at
              FROM lottery_entries e
              JOIN lotteries l ON l.id = e.lottery_id
              WHERE e.user_id = :user_id

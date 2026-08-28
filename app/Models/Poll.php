@@ -102,4 +102,23 @@ class Poll extends Model
         );
         return $stmt->fetchAll();
     }
+
+    /**
+     * Sondages ouverts auxquels le client n'a pas encore répondu — sert à
+     * lui notifier « Nouveau sondage disponible » dans son fil.
+     */
+    public static function openNotVotedBy(int $userId): array
+    {
+        $stmt = self::db()->prepare(
+            "SELECT p.id, p.question, p.created_at, p.ends_at
+             FROM polls p
+             WHERE p.status = 'actif' AND p.ends_at >= CURDATE()
+               AND NOT EXISTS (
+                   SELECT 1 FROM poll_votes v WHERE v.poll_id = p.id AND v.user_id = :user_id
+               )
+             ORDER BY p.created_at DESC"
+        );
+        $stmt->execute(['user_id' => $userId]);
+        return $stmt->fetchAll();
+    }
 }
