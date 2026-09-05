@@ -9,6 +9,7 @@ use App\Core\Middleware;
 use App\Models\Lottery;
 use App\Models\LotteryEntry;
 use App\Service\NotificationService;
+use App\Service\SmsCampaignService;
 use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\ErrorCorrectionLevel;
 use Endroid\QrCode\Writer\PngWriter;
@@ -16,11 +17,13 @@ use Endroid\QrCode\Writer\PngWriter;
 class AdminLotteryController extends Controller
 {
     private NotificationService $notificationService;
+    private SmsCampaignService $smsCampaignService;
 
     public function __construct()
     {
         parent::__construct();
         $this->notificationService = new NotificationService();
+        $this->smsCampaignService = new SmsCampaignService();
     }
 
     public function index(): void
@@ -31,15 +34,41 @@ class AdminLotteryController extends Controller
         $statusMap = ['actives' => 'active', 'brouillons' => 'brouillon', 'terminees' => 'terminee', 'toutes' => null];
         $status = array_key_exists($statusFilter, $statusMap) ? $statusMap[$statusFilter] : 'active';
 
+        $lotteries = Lottery::listWithStats($status);
+
+        // Statistiques AllMySms : solde du compte + stats par campagne SMS
+        // envoyée (une par loterie publiée), affichées sur cette page.
+        $smsConfigured = $this->smsCampaignService->isConfigured();
+        $smsAccountInfo = $smsConfigured ? $this->smsCampaignService->accountInfo() : null;
+        $smsCampaignStats = [];
+        $smsTotalSent = 0;
+        if ($smsConfigured) {
+            foreach ($lotteries as $lottery) {
+                if (empty($lottery['sms_campaign_id'])) {
+                    continue;
+                }
+                $stats = $this->smsCampaignService->campaignStats($lottery['sms_campaign_id']);
+                if ($stats) {
+                    $smsCampaignStats[(int) $lottery['id']] = $stats;
+                    $smsTotalSent += (int) ($stats['nbSms'] ?? 0);
+                }
+            }
+        }
+
         $this->view('admin/lotteries/index', [
             'title'     => 'Loterie — Administration Le Commerce',
             'pageTitle' => 'Loterie',
 
-            'lotteries'      => Lottery::listWithStats($status),
+            'lotteries'      => $lotteries,
             'activeTab'      => $statusFilter,
             'lotteriesActive'=> Lottery::countByStatus('active'),
             'lotteriesDraft' => Lottery::countByStatus('brouillon'),
             'lotteriesDone'  => Lottery::countByStatus('terminee'),
+
+            'smsConfigured'    => $smsConfigured,
+            'smsAccountInfo'   => $smsAccountInfo,
+            'smsCampaignStats' => $smsCampaignStats,
+            'smsTotalSent'     => $smsTotalSent,
         ], 'admin');
     }
 
@@ -96,7 +125,28 @@ class AdminLotteryController extends Controller
             'qr_token'    => Lottery::generateUniqueQrToken(),
         ]);
 
-        $this->setFlash('success', 'La loterie "' . $title . '" a bien été créée. Voici son QR code de participation.');
+        $flash = 'La loterie "' . $title . '" a bien été créée. Voici son QR code de participation.';
+
+        // SMS d'annonce automatique aux clients actifs, uniquement si la
+        // loterie est publiée immédiatement (inutile pour un brouillon).
+        if ($publish === 'active') {
+            $lottery = Lottery::find($lotteryId);
+            $smsResult = $this->smsCampaignService->announceLottery($lottery, $this->publicLotteryUrl($lottery));
+
+            if ($smsResult !== null) {
+                Lottery::update($lotteryId, [
+                    'sms_campaign_id'       => $smsResult['campaignId'],
+                    'sms_recipients_count'  => $smsResult['nbContacts'],
+                ]);
+                $flash = $smsResult['scheduledAt'] !== null
+                    ? 'La loterie "' . $title . '" a bien été créée. Le SMS d\'annonce à ' . $smsResult['nbContacts'] . ' client(s) est programmé pour le ' . date('d/m/Y à H\hi', strtotime($smsResult['scheduledAt'])) . ' (envoi commercial interdit hors de ce créneau).'
+                    : 'La loterie "' . $title . '" a bien été créée et annoncée par SMS à ' . $smsResult['nbContacts'] . ' client(s). Voici son QR code de participation.';
+            } elseif (!$this->smsCampaignService->isConfigured()) {
+                $flash .= ' (SMS non envoyé : configurez ALLMYSMS_LOGIN / ALLMYSMS_API_KEY dans .env pour activer l\'annonce automatique.)';
+            }
+        }
+
+        $this->setFlash('success', $flash);
         $this->redirect('/admin/loterie/' . $lotteryId . '/qrcode');
     }
 

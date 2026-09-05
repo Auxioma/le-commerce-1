@@ -21,6 +21,67 @@
   </div>
 </div>
 
+<!-- Statistiques SMS (AllMySms) -->
+<div class="card card-md mb-6">
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="font-bold text-ink text-xs uppercase tracking-wide">SMS d'annonce — AllMySms</h2>
+  </div>
+
+  {% if not smsConfigured %}
+    <p class="text-sm text-gray-400 py-2">Configuration requise pour l'envoi automatique de SMS et l'affichage des statistiques.</p>
+    <p class="text-xs text-gray-400">Renseignez <code class="text-gray-500">ALLMYSMS_LOGIN</code> et <code class="text-gray-500">ALLMYSMS_API_KEY</code> dans le fichier <code class="text-gray-500">.env</code> du serveur.</p>
+  {% else %}
+    <div class="grid sm:grid-cols-3 gap-4 mb-5">
+      <div>
+        <p class="text-xs text-gray-400 mb-1">Solde du compte</p>
+        <p class="font-bold text-ink">{{ smsAccountInfo and smsAccountInfo.balance is defined ? smsAccountInfo.balance ~ ' €' : '—' }}</p>
+      </div>
+      <div>
+        <p class="text-xs text-gray-400 mb-1">Crédits SMS restants</p>
+        <p class="font-bold text-ink">{{ smsAccountInfo and smsAccountInfo.credits is defined ? smsAccountInfo.credits : '—' }}</p>
+      </div>
+      <div>
+        <p class="text-xs text-gray-400 mb-1">SMS envoyés (loteries)</p>
+        <p class="font-bold text-ink">{{ smsTotalSent }}</p>
+      </div>
+    </div>
+
+    {% if smsCampaignStats is not empty %}
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-left text-gray-400 text-xs uppercase tracking-wide">
+              <th class="py-2 pr-4 font-semibold">Loterie</th>
+              <th class="py-2 pr-4 font-semibold">Envoyés</th>
+              <th class="py-2 pr-4 font-semibold">Délivrés</th>
+              <th class="py-2 pr-4 font-semibold">En attente</th>
+              <th class="py-2 pr-4 font-semibold">Erreurs</th>
+              <th class="py-2 pr-4 font-semibold">Clics sur le lien</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-50">
+            {% for l in lotteries %}
+              {% if smsCampaignStats[l.id] is defined %}
+                {% set s = smsCampaignStats[l.id] %}
+                <tr>
+                  <td class="py-2 pr-4 font-semibold text-ink">{{ l.title }}</td>
+                  <td class="py-2 pr-4">{{ s.nbSms|default(0) }}</td>
+                  <td class="py-2 pr-4 text-emerald-600 font-semibold">{{ s.delivered|default(0) }}</td>
+                  <td class="py-2 pr-4 text-amber-600">{{ s.pending|default(0) }}</td>
+                  <td class="py-2 pr-4 text-brand-500">{{ (s.error|default(0)) + (s.invalid|default(0)) }}</td>
+                  <td class="py-2 pr-4">{{ s.click|default(0) }}{% if s.uniqueClick is defined %} ({{ s.uniqueClick }} unique{{ s.uniqueClick > 1 ? 's' : '' }}){% endif %}</td>
+                </tr>
+              {% endif %}
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="text-sm text-gray-400 py-2">Aucune campagne SMS envoyée pour le moment — publiez une loterie pour déclencher l'annonce automatique.</p>
+    {% endif %}
+  {% endif %}
+</div>
+
 <div class="card overflow-hidden">
   <div class="flex items-center gap-1 px-5 pt-4 border-b border-gray-50 overflow-x-auto">
     {% set tabs = {'actives': 'Actives', 'brouillons': 'Brouillons', 'terminees': 'Terminées', 'toutes': 'Toutes'} %}
