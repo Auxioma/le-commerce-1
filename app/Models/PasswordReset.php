@@ -18,6 +18,13 @@ class PasswordReset extends Model
      * invalide les jetons précédemment émis (un seul lien actif à la fois).
      * Retourne le jeton en clair (à insérer dans le lien envoyé par e-mail) ;
      * seul son hash SHA-256 est conservé en base.
+     *
+     * expires_at est calculé côté MySQL (NOW() + INTERVAL) plutôt qu'avec
+     * l'horloge PHP : si le serveur web et le serveur de base de données
+     * n'ont pas le même fuseau horaire (ex. PHP en UTC, MySQL en UTC+2), un
+     * calcul en PHP peut produire une date déjà "expirée" au regard de
+     * l'horloge MySQL utilisée par findValidByToken() — le jeton serait
+     * alors invalide dès sa création.
      */
     public static function createForUser(int $userId): string
     {
@@ -25,10 +32,14 @@ class PasswordReset extends Model
 
         $token = bin2hex(random_bytes(32));
 
-        self::create([
+        $stmt = self::db()->prepare(
+            'INSERT INTO password_resets (user_id, token_hash, expires_at)
+             VALUES (:user_id, :token_hash, DATE_ADD(NOW(), INTERVAL :ttl MINUTE))'
+        );
+        $stmt->execute([
             'user_id'    => $userId,
             'token_hash' => hash('sha256', $token),
-            'expires_at' => date('Y-m-d H:i:s', time() + self::TTL_MINUTES * 60),
+            'ttl'        => self::TTL_MINUTES,
         ]);
 
         return $token;

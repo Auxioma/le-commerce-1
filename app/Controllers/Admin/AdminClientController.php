@@ -6,10 +6,13 @@ namespace App\Controllers\Admin;
 
 use App\Core\Controller;
 use App\Core\Middleware;
+use App\Core\View;
+use App\Models\PasswordReset;
 use App\Models\User;
 use App\Models\Wallet;
 use App\Models\WalletTransaction;
 use App\Service\CsvExportService;
+use App\Service\Mailer;
 use App\Service\NotificationService;
 use App\Service\WalletService;
 
@@ -93,6 +96,107 @@ class AdminClientController extends Controller
                 }
             }
         );
+    }
+
+    /**
+     * Formulaire d'ajout d'un client par un employé (au comptoir, par
+     * téléphone...). Volontairement réduit au strict nécessaire : le client
+     * complète lui-même le reste de sa fiche depuis son espace "Mes
+     * informations", une fois son mot de passe défini.
+     */
+    public function create(): void
+    {
+        Middleware::requireRole('admin');
+
+        $this->view('admin/clients/create', [
+            'title'     => 'Ajouter un client — Administration Le Commerce',
+            'pageTitle' => 'Ajouter un client',
+            'errors' => [],
+            'old'    => [],
+        ], 'admin');
+    }
+
+    public function store(): void
+    {
+        Middleware::requireRole('admin');
+        $this->verifyCsrf();
+
+        [$errors, $data] = $this->validateNewClient();
+
+        if ($errors) {
+            $this->view('admin/clients/create', [
+                'title'     => 'Ajouter un client — Administration Le Commerce',
+                'pageTitle' => 'Ajouter un client',
+                'errors' => $errors,
+                'old'    => $data,
+            ], 'admin');
+            return;
+        }
+
+        $userId = User::createByAdmin($data);
+        Wallet::createForUser($userId);
+
+        $this->dispatchWelcomeEmail(User::find($userId));
+
+        $this->setFlash('success', $data['first_name'] . ' ' . $data['last_name'] . ' a bien été ajouté(e). Un e-mail vient de lui être envoyé pour définir son mot de passe.');
+        $this->redirect('/admin/clients/' . $userId);
+    }
+
+    /**
+     * Envoie au client fraîchement créé un lien (jeton à usage unique, 60
+     * minutes) pour choisir son propre mot de passe — l'administrateur n'en
+     * définit ni n'en connaît aucun, pour des raisons de sécurité.
+     */
+    private function dispatchWelcomeEmail(array $user): void
+    {
+        $token = PasswordReset::createForUser((int) $user['id']);
+
+        $appUrl = rtrim((string) ($this->sharedData['app']['url'] ?? ''), '/');
+        $setUrl = $appUrl . '/reinitialiser-mot-de-passe/' . $token;
+
+        $html = View::render('emails/client-account-created', [
+            'shop'       => $this->sharedData['shop'],
+            'firstName'  => $user['first_name'],
+            'setUrl'     => $setUrl,
+            'ttlMinutes' => PasswordReset::TTL_MINUTES,
+        ]);
+
+        (new Mailer())->send(
+            (string) $user['email'],
+            'Bienvenue chez ' . $this->sharedData['shop']['name'] . ' — définissez votre mot de passe',
+            $html
+        );
+    }
+
+    /**
+     * @return array{0: array<string,string>, 1: array<string,mixed>} [errors, data]
+     */
+    private function validateNewClient(): array
+    {
+        $firstName = trim((string) $this->input('first_name', ''));
+        $lastName  = trim((string) $this->input('last_name', ''));
+        $phone     = User::normalizePhone((string) $this->input('phone_whatsapp', ''));
+        $email     = trim((string) $this->input('email', ''));
+
+        $errors = [];
+        if ($firstName === '' || mb_strlen($firstName) > 80) {
+            $errors['first_name'] = 'Le prénom est obligatoire.';
+        }
+        if ($lastName === '' || mb_strlen($lastName) > 80) {
+            $errors['last_name'] = 'Le nom est obligatoire.';
+        }
+        if (!preg_match('/^0[1-9]\d{8}$/', $phone)) {
+            $errors['phone_whatsapp'] = 'Numéro WhatsApp invalide (format attendu : 06 12 34 56 78).';
+        } elseif (User::phoneExists($phone)) {
+            $errors['phone_whatsapp'] = 'Ce numéro est déjà associé à un compte.';
+        }
+        if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $errors['email'] = "Une adresse e-mail valide est obligatoire : elle permet au client de définir son mot de passe.";
+        } elseif (User::emailExists($email)) {
+            $errors['email'] = 'Cette adresse e-mail est déjà utilisée par un autre compte.';
+        }
+
+        return [$errors, ['first_name' => $firstName, 'last_name' => $lastName, 'phone_whatsapp' => $phone, 'email' => $email]];
     }
 
     /**

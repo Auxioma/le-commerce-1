@@ -13,6 +13,13 @@
         <p class="font-black text-ink" style="font-size:22px; line-height:1;">{{ totalAll }} <span class="text-green-500 font-semibold" style="font-size:12px;">+{{ newThisMonth }} ce mois-ci</span></p>
       </div>
     </div>
+    <!-- Bouton nouveau client -->
+    <a href="{{ base_path }}/admin/clients/creer"
+       class="inline-flex items-center gap-2 text-white font-bold rounded-xl px-5 py-3 transition-opacity hover:opacity-90"
+       style="background:#c8272c; font-size:13px;">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+      NOUVEAU CLIENT
+    </a>
     <!-- Bouton export -->
     <a href="{{ base_path }}/admin/clients/export?q={{ filters.q|url_encode }}&status={{ filters.status|url_encode }}&segment={{ filters.segment|url_encode }}&from={{ filters.from|url_encode }}&to={{ filters.to|url_encode }}"
        class="inline-flex items-center gap-2 text-white font-bold rounded-xl px-5 py-3 transition-opacity hover:opacity-90"

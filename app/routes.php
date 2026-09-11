@@ -29,6 +29,7 @@ use App\Controllers\Auth\RegisterController;
 use App\Controllers\Auth\LogoutController;
 use App\Controllers\Auth\AdminLoginController;
 use App\Controllers\Auth\AdminPasswordResetController;
+use App\Controllers\Auth\ClientPasswordResetController;
 use App\Controllers\Admin\AdminDashboardController;
 use App\Controllers\Admin\AdminClientController;
 use App\Controllers\Admin\AdminOfferController;
@@ -89,6 +90,10 @@ $router->post('/inscription', RegisterController::class, 'store');
 $router->get('/connexion', LoginController::class, 'index');
 $router->post('/connexion', LoginController::class, 'store');
 $router->post('/deconnexion', LogoutController::class, 'destroy');
+$router->get('/mot-de-passe-oublie', ClientPasswordResetController::class, 'forgot');
+$router->post('/mot-de-passe-oublie', ClientPasswordResetController::class, 'sendLink');
+$router->get('/reinitialiser-mot-de-passe/{token}', ClientPasswordResetController::class, 'reset');
+$router->post('/reinitialiser-mot-de-passe/{token}', ClientPasswordResetController::class, 'update');
 
 // --- Espace client (protégé, voir Middleware::requireAuth) ---
 $router->get('/mon-compte', ClientDashboardController::class, 'index');
@@ -128,6 +133,8 @@ $router->get('/admin/etablissement', AdminEstablishmentController::class, 'index
 $router->post('/admin/etablissement', AdminEstablishmentController::class, 'update');
 $router->get('/admin/clients', AdminClientController::class, 'index');
 $router->get('/admin/clients/export', AdminClientController::class, 'export');
+$router->get('/admin/clients/creer', AdminClientController::class, 'create');
+$router->post('/admin/clients', AdminClientController::class, 'store');
 $router->get('/admin/clients/{id}', AdminClientController::class, 'show');
 $router->post('/admin/clients/{id}', AdminClientController::class, 'update');
 $router->post('/admin/clients/{id}/wallet', AdminClientController::class, 'adjustWallet');

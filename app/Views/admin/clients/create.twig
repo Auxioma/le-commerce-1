@@ -1,0 +1,52 @@
+{% set pageTitle = 'Ajouter un client' %}
+{% set pageSubtitle = "Renseignez le strict minimum : le client complètera lui-même le reste de sa fiche depuis son espace, après avoir défini son mot de passe." %}
+{% set pageActions = [] %}
+{% include 'partials/admin-page-header.twig' %}
+
+<div class="max-w-2xl">
+  <a href="{{ base_path }}/admin/clients" class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-brand-500 mb-4">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+    Retour aux clients
+  </a>
+
+  <div class="card card-md sm:p-8">
+    <form method="POST" action="{{ base_path }}/admin/clients" class="space-y-5">
+      {{ csrf_field() }}
+
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-semibold text-ink mb-1.5">Prénom</label>
+          <input type="text" name="first_name" required value="{{ old.first_name|default('') }}"
+                 class="form-input {{ errors.first_name is defined ? 'border-brand-400' : '' }}">
+          {% if errors.first_name is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.first_name }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-ink mb-1.5">Nom</label>
+          <input type="text" name="last_name" required value="{{ old.last_name|default('') }}"
+                 class="form-input {{ errors.last_name is defined ? 'border-brand-400' : '' }}">
+          {% if errors.last_name is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.last_name }}</p>{% endif %}
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Téléphone WhatsApp</label>
+        <input type="tel" name="phone_whatsapp" required placeholder="06 12 34 56 78" value="{{ old.phone_whatsapp|default('') }}"
+               class="form-input {{ errors.phone_whatsapp is defined ? 'border-brand-400' : '' }}">
+        {% if errors.phone_whatsapp is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.phone_whatsapp }}</p>{% endif %}
+        <p class="text-xs text-gray-400 mt-1">Utilisé par le client pour se connecter à son espace.</p>
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Adresse e-mail</label>
+        <input type="email" name="email" required value="{{ old.email|default('') }}"
+               class="form-input {{ errors.email is defined ? 'border-brand-400' : '' }}">
+        {% if errors.email is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.email }}</p>{% endif %}
+        <p class="text-xs text-gray-400 mt-1">Obligatoire : le client recevra un lien par e-mail pour choisir son propre mot de passe (l'administrateur n'en définit aucun, pour des raisons de sécurité).</p>
+      </div>
+
+      <button type="submit" class="btn-primary w-full">
+        Ajouter le client et envoyer l'invitation
+      </button>
+    </form>
+  </div>
+</div>

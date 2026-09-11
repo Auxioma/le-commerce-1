@@ -166,6 +166,30 @@ class User extends Model
     }
 
     /**
+     * Crée un compte client depuis le back-office (/admin/clients/creer),
+     * avec le minimum d'informations saisies par l'employé. Comme pour
+     * createLead(), aucun mot de passe n'est défini ici : le client reçoit
+     * un e-mail (voir AdminClientController::dispatchWelcomeEmail) pour en
+     * choisir un lui-même et complète ensuite librement sa fiche depuis son
+     * espace "Mes informations" — l'e-mail est donc obligatoire.
+     */
+    public static function createByAdmin(array $data): int
+    {
+        return self::create([
+            'first_name'     => $data['first_name'],
+            'last_name'      => $data['last_name'],
+            'phone_whatsapp' => $data['phone_whatsapp'],
+            'email'          => $data['email'],
+            'password_hash'  => null,
+            'role'           => 'client',
+            'segment'        => 'nouveau',
+            'status'         => 'actif',
+            'referral_code'  => strtoupper(substr($data['first_name'], 0, 4)) . random_int(1000, 9999),
+            'registration_source' => 'autre',
+        ]);
+    }
+
+    /**
      * Crée un compte client "léger" (sans mot de passe), utilisé pour les
      * participations anonymes via QR code (ex. loterie) — l'identité réelle
      * n'est confirmée que par le numéro de téléphone. Le client pourra plus
