@@ -1,0 +1,33 @@
+{% set pageTitle = 'Ajouter une suggestion' %}
+{% set pageSubtitle = "Bulle cliquable proposée par l'assistant sur la page d'accueil." %}
+{% set pageActions = [] %}
+{% include 'partials/admin-page-header.twig' %}
+
+<div class="max-w-2xl">
+  <a href="{{ base_path }}/admin/page-principale" class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-brand-500 mb-4">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+    Retour à la page principale
+  </a>
+
+  <div class="card card-md sm:p-8">
+    <form method="POST" action="{{ base_path }}/admin/page-principale/suggestions" class="space-y-5">
+      {{ csrf_field() }}
+
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Texte de la suggestion</label>
+        <input type="text" name="label" required value="{{ old.label|default('') }}" placeholder="Ex : Êtes-vous ouvert ?"
+               class="form-input {{ errors.label is defined ? 'border-brand-400' : '' }}">
+        {% if errors.label is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.label }}</p>{% endif %}
+      </div>
+
+      <label class="flex items-center gap-2.5 text-sm text-gray-600 bg-gray-50 rounded-2xl px-4 py-3">
+        <input type="checkbox" name="publish" value="1" checked class="rounded border-gray-300 text-brand-500 focus:ring-brand-500/30">
+        Publier immédiatement (sinon la suggestion est enregistrée inactive)
+      </label>
+
+      <button type="submit" class="btn-primary w-full">
+        Ajouter la suggestion
+      </button>
+    </form>
+  </div>
+</div>

@@ -9,6 +9,10 @@ use App\Core\GooglePlacesClient;
 use App\Models\Drink;
 use App\Models\Deal;
 use App\Models\GoogleReview;
+use App\Models\HomeCategory;
+use App\Models\HomeChip;
+use App\Models\HomeQuickService;
+use App\Service\HomeContentService;
 
 class HomeController extends Controller
 {
@@ -26,6 +30,10 @@ class HomeController extends Controller
             'googleRating'        => $summary['rating'] ?? $this->sharedData['shop']['google_rating'],
             'googleReviewsCount'  => $summary['total'] ?? $this->sharedData['shop']['google_reviews_count'],
             'googleReviewUrl'     => GooglePlacesClient::writeReviewUrl() ?? 'https://www.google.com/maps',
+            'homeContent'       => HomeContentService::get(),
+            'homeCategories'    => HomeCategory::listActiveOrdered(),
+            'homeQuickServices' => HomeQuickService::listActiveOrdered(),
+            'homeChips'         => HomeChip::listActiveOrdered(),
         ]);
     }
 }

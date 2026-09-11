@@ -8,17 +8,26 @@
     <div class="card card-md">
       <h2 class="font-bold text-ink mb-4">{{ sectionTitle }}</h2>
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
-        {% for slug, label in items %}
+        {% for slug, item in items %}
+          {% set label = item.label %}
           {% set current = values[slug]|default(null) %}
+          {% set defaultImg = item.default|default(null) %}
           <div class="space-y-2">
             <div class="aspect-video rounded-xl overflow-hidden border border-gray-200 bg-gray-50 flex items-center justify-center">
               {% if current %}
                 <img src="{{ base_path ~ current }}" alt="{{ label }}" class="w-full h-full object-cover">
+              {% elseif defaultImg %}
+                <img src="{{ defaultImg starts with 'http' ? defaultImg : base_path ~ defaultImg }}" alt="{{ label }}" class="w-full h-full object-cover opacity-70">
               {% else %}
-                <span class="text-[11px] text-gray-400 text-center px-2 leading-tight">Photo par défaut<br>(Unsplash)</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M4 8h.01M6 4h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2z"/>
+                </svg>
               {% endif %}
             </div>
             <p class="text-xs font-semibold text-ink leading-tight">{{ label }}</p>
+            {% if not current %}
+              <p class="text-[10px] text-gray-400 leading-tight -mt-1">{{ defaultImg ? 'Photo par défaut' : 'Aucune photo par défaut' }}</p>
+            {% endif %}
 
             <form method="POST" action="{{ base_path }}/admin/images" enctype="multipart/form-data" class="flex items-center gap-2">
               {{ csrf_field() }}

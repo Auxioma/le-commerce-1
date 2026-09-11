@@ -1,0 +1,51 @@
+{% set pageTitle = 'Ajouter un service' %}
+{% set pageSubtitle = 'Ce service apparaîtra dans la carte "Tous vos services du quotidien" de la page d\'accueil.' %}
+{% set pageActions = [] %}
+{% include 'partials/admin-page-header.twig' %}
+
+<div class="max-w-2xl">
+  <a href="{{ base_path }}/admin/page-principale" class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-brand-500 mb-4">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+    Retour à la page principale
+  </a>
+
+  <div class="card card-md sm:p-8">
+    <form method="POST" action="{{ base_path }}/admin/page-principale/services" class="space-y-5">
+      {{ csrf_field() }}
+
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Libellé</label>
+        <input type="text" name="label" required value="{{ old.label|default('') }}" placeholder="Ex : Payer vos factures"
+               class="form-input {{ errors.label is defined ? 'border-brand-400' : '' }}">
+        {% if errors.label is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.label }}</p>{% endif %}
+      </div>
+
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-semibold text-ink mb-1.5">Icône</label>
+          <select name="icon_key" required class="form-select {{ errors.icon_key is defined ? 'border-brand-400' : '' }}">
+            <option value="">Choisir une icône</option>
+            {% for key, label in iconChoices %}
+              <option value="{{ key }}" {{ old.icon_key|default('') == key ? 'selected' : '' }}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          {% if errors.icon_key is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.icon_key }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-ink mb-1.5">Couleur</label>
+          <input type="color" name="color" value="{{ old.color|default('#c8272c') }}" class="form-input h-11 p-1">
+          {% if errors.color is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.color }}</p>{% endif %}
+        </div>
+      </div>
+
+      <label class="flex items-center gap-2.5 text-sm text-gray-600 bg-gray-50 rounded-2xl px-4 py-3">
+        <input type="checkbox" name="publish" value="1" checked class="rounded border-gray-300 text-brand-500 focus:ring-brand-500/30">
+        Publier immédiatement (sinon le service est enregistré inactif)
+      </label>
+
+      <button type="submit" class="btn-primary w-full">
+        Ajouter le service
+      </button>
+    </form>
+  </div>
+</div>

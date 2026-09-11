@@ -47,6 +47,7 @@ use App\Controllers\Admin\AdminPlaceholderController;
 use App\Controllers\Admin\AdminEstablishmentController;
 use App\Controllers\Admin\AdminServiceController;
 use App\Controllers\Admin\AdminNewsController;
+use App\Controllers\Admin\AdminHomeController;
 use App\Controllers\Admin\AdminBarController;
 use App\Controllers\Admin\AdminTabacController;
 use App\Controllers\Admin\AdminPmuController;
@@ -132,6 +133,31 @@ $router->post('/admin/clients/{id}', AdminClientController::class, 'update');
 $router->post('/admin/clients/{id}/wallet', AdminClientController::class, 'adjustWallet');
 $router->post('/admin/clients/{id}/supprimer', AdminClientController::class, 'destroy');
 $router->post('/admin/clients/{id}/message', AdminClientController::class, 'sendMessage');
+
+// --- Page principale (contenu de l'accueil /) ---
+$router->get('/admin/page-principale', AdminHomeController::class, 'index');
+$router->post('/admin/page-principale/contenu', AdminHomeController::class, 'updateContent');
+
+$router->get('/admin/page-principale/categories/creer', AdminHomeController::class, 'createCategory');
+$router->post('/admin/page-principale/categories', AdminHomeController::class, 'storeCategory');
+$router->get('/admin/page-principale/categories/{id}/modifier', AdminHomeController::class, 'editCategory');
+$router->post('/admin/page-principale/categories/{id}', AdminHomeController::class, 'updateCategory');
+$router->post('/admin/page-principale/categories/{id}/statut', AdminHomeController::class, 'toggleCategory');
+$router->post('/admin/page-principale/categories/{id}/supprimer', AdminHomeController::class, 'destroyCategory');
+
+$router->get('/admin/page-principale/services/creer', AdminHomeController::class, 'createQuickService');
+$router->post('/admin/page-principale/services', AdminHomeController::class, 'storeQuickService');
+$router->get('/admin/page-principale/services/{id}/modifier', AdminHomeController::class, 'editQuickService');
+$router->post('/admin/page-principale/services/{id}', AdminHomeController::class, 'updateQuickService');
+$router->post('/admin/page-principale/services/{id}/statut', AdminHomeController::class, 'toggleQuickService');
+$router->post('/admin/page-principale/services/{id}/supprimer', AdminHomeController::class, 'destroyQuickService');
+
+$router->get('/admin/page-principale/suggestions/creer', AdminHomeController::class, 'createChip');
+$router->post('/admin/page-principale/suggestions', AdminHomeController::class, 'storeChip');
+$router->get('/admin/page-principale/suggestions/{id}/modifier', AdminHomeController::class, 'editChip');
+$router->post('/admin/page-principale/suggestions/{id}', AdminHomeController::class, 'updateChip');
+$router->post('/admin/page-principale/suggestions/{id}/statut', AdminHomeController::class, 'toggleChip');
+$router->post('/admin/page-principale/suggestions/{id}/supprimer', AdminHomeController::class, 'destroyChip');
 
 // --- Le Bar (bières, planches & softs affichés sur /le-bar) ---
 $router->get('/admin/bar', AdminBarController::class, 'index');
