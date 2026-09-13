@@ -39,7 +39,7 @@ final class SettingsSeeder extends AbstractSeed
             ['key' => 'shop_city', 'value' => 'Forges-les-Eaux'],
             ['key' => 'shop_email', 'value' => 'lecommercetabac@gmail.com'],
             ['key' => 'shop_name', 'value' => 'Le Commerce'],
-            ['key' => 'shop_phone', 'value' => '07 81 77 15 52'],
+            ['key' => 'shop_phone', 'value' => '02 35 90 50 16'],
             ['key' => 'shop_zipcode', 'value' => '76440'],
             ['key' => 'social_facebook', 'value' => 'https://facebook.com'],
             ['key' => 'social_instagram', 'value' => 'https://instagram.com'],

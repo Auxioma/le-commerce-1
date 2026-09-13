@@ -100,9 +100,9 @@ final class ShopSettingsService
     }
 
     /**
-     * Normalise un numéro français saisi en admin (ex. "07 81 77 15 52")
+     * Normalise un numéro français saisi en admin (ex. "02 35 90 50 16")
      * vers le format international utilisé par les liens tel:/wa.me
-     * (ex. "+33781771552").
+     * (ex. "+33235905016").
      */
     private static function phoneHref(string $phone): string
     {

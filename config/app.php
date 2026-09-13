@@ -28,13 +28,13 @@ return [
         'address'   => '3 Rue du Maréchal Leclerc',
         'zipcode'   => '76440',
         'city'      => 'Forges-les-Eaux',
-        'phone'     => '07 81 77 15 52',
-        'phone_href'=> '+33781771552',
+        'phone'     => '02 35 90 50 16',
+        'phone_href'=> '+33235905016',
         // Numéro WhatsApp, séparé du téléphone (ex. si une ligne dédiée est
         // utilisée pour les messages). Vide par défaut : les liens WhatsApp
         // utilisent alors le téléphone ci-dessus.
         'whatsapp'      => '',
-        'whatsapp_href' => '+33781771552',
+        'whatsapp_href' => '+33235905016',
         'email'     => 'lecommercetabac@gmail.com',
         'hours' => [
             'lun_sam' => '6h40 - 20h30',

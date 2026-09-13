@@ -14,7 +14,7 @@ INSERT INTO settings (`key`, `value`) VALUES
 ('shop_address', '3 Rue du Maréchal Leclerc'),
 ('shop_zipcode', '76440'),
 ('shop_city', 'Forges-les-Eaux'),
-('shop_phone', '07 81 77 15 52'),
+('shop_phone', '02 35 90 50 16'),
 ('shop_email', 'lecommercetabac@gmail.com'),
 ('hours_lun_sam', '6h40 - 20h30'),
 ('hours_dim', '6h40 - 20h00'),
