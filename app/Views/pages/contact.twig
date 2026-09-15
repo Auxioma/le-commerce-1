@@ -19,7 +19,7 @@
       <form id="contact-form" method="POST" action="{{ base_path }}/contact" class="space-y-4">
         {{ csrf_field() }}
 
-        <input type="hidden" id="website" name="website" value="">
+        <input type="text" id="website" name="website" value="" tabindex="-1" autocomplete="off" aria-hidden="true" style="display:none !important;">
 
         <div class="grid sm:grid-cols-2 gap-4">
           <div>
