@@ -35,10 +35,10 @@ return [
         // utilisent alors le téléphone ci-dessus.
         'whatsapp'      => '',
         'whatsapp_href' => '+33235905016',
-        'email'     => 'lecommercetabac@gmail.com',
+        'email'     => 'contact@lecommercetabac.com',
         'hours' => [
-            'lun_sam' => '6h40 - 20h30',
-            'dim'     => '6h40 - 20h00',
+            'lun_sam' => '07h - 19h30',
+            'dim'     => '08h - 18h30',
         ],
         'social' => [
             'facebook'  => 'https://facebook.com',

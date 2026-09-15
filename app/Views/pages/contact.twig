@@ -20,8 +20,8 @@
         {{ csrf_field() }}
 
         <!-- Piège à robots : champ invisible pour un humain, ne pas remplir -->
-        <div class="absolute -left-[9999px] w-px h-px overflow-hidden" aria-hidden="true">
-          <label for="website">Laisser ce champ vide</label>
+        <div class="absolute -left-[9999px] w-px h-px overflow-hidden" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;" aria-hidden="true">
+          <label for="website" hidden>Site web</label>
           <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
         </div>
 
