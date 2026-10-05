@@ -232,6 +232,13 @@ function initContactForm() {
     feedback.classList.add(isError ? 'bg-red-50' : 'bg-emerald-50', isError ? 'text-red-700' : 'text-emerald-700');
   };
 
+  // Anti-spam : le jeton n'est renvoyé (inversé) qu'après une vraie interaction humaine.
+  const jsCheck = form.querySelector('input[name="js_check"]');
+  const armJsCheck = () => {
+    if (jsCheck) jsCheck.value = (form.dataset.challenge || '').split('').reverse().join('');
+  };
+  ['keydown', 'pointerdown', 'touchstart'].forEach((evt) => form.addEventListener(evt, armJsCheck, { once: true, passive: true }));
+
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     submitBtn.disabled = true;

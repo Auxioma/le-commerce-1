@@ -59,6 +59,18 @@ class ContactMessage extends Model
         return (int) $stmt->fetchColumn();
     }
 
+    /** Nombre de messages envoyés avec cette adresse e-mail dans les $minutes dernières minutes. */
+    public static function countRecentByEmail(string $email, int $minutes): int
+    {
+        $stmt = self::db()->prepare(
+            'SELECT COUNT(*) FROM contact_messages WHERE email = :email AND created_at >= (NOW() - INTERVAL :minutes MINUTE)'
+        );
+        $stmt->bindValue('email', $email);
+        $stmt->bindValue('minutes', $minutes, \PDO::PARAM_INT);
+        $stmt->execute();
+        return (int) $stmt->fetchColumn();
+    }
+
     /**
      * Demandes d'aide envoyées par un client depuis son espace
      * (/mon-compte/aide) — pour lui afficher l'historique et le statut.
