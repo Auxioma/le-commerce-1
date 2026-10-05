@@ -14,7 +14,42 @@ document.addEventListener('DOMContentLoaded', () => {
   initCookieConsent();
   initEventTracking();
   initScrollReveal();
+  initImagePreview();
 });
+
+/**
+ * Aperçu d'une image avant envoi : chaque `input[type=file][data-image-preview]`
+ * met à jour l'`img[data-image-preview-target]` de son conteneur parent. Si la
+ * sélection est annulée, on revient à l'image d'origine (ou on masque l'aperçu).
+ */
+function initImagePreview() {
+  document.querySelectorAll('input[type="file"][data-image-preview]').forEach((input) => {
+    const img = input.parentElement.querySelector('[data-image-preview-target]');
+    if (!img) return;
+    let objectUrl = null;
+
+    input.addEventListener('change', () => {
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+      objectUrl = null;
+
+      const file = input.files && input.files[0];
+      if (file && file.type.startsWith('image/')) {
+        objectUrl = URL.createObjectURL(file);
+        img.src = objectUrl;
+        img.classList.remove('hidden');
+        return;
+      }
+
+      const original = img.dataset.originalSrc;
+      if (original) {
+        img.src = original;
+      } else {
+        img.removeAttribute('src');
+        img.classList.add('hidden');
+      }
+    });
+  });
+}
 
 /** Fait apparaître en fondu les éléments `.reveal` un à un lorsqu'ils entrent dans le viewport. */
 function initScrollReveal() {

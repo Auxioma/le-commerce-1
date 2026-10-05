@@ -1,0 +1,24 @@
+{#
+  Champ d'upload d'image avec aperçu avant envoi (géré par initImagePreview()
+  dans app.js). Le formulaire parent doit avoir enctype="multipart/form-data".
+
+  Variables :
+    - image_current : chemin de l'image actuelle (ou vide)
+    - image_alt     : texte alternatif de l'aperçu
+    - image_error   : message d'erreur éventuel
+#}
+<div>
+  <label class="block text-sm font-semibold text-ink mb-1.5">Photo</label>
+  {% set image_current = image_current|default(null) %}
+  <img data-image-preview-target
+       {% if image_current %}src="{{ base_path }}{{ image_current }}"{% endif %}
+       data-original-src="{{ image_current ? base_path ~ image_current : '' }}"
+       alt="{{ image_alt|default('Aperçu de l\'image') }}"
+       class="w-32 h-20 object-cover rounded-lg mb-2 {{ image_current ? '' : 'hidden' }}">
+  <input type="file" name="image" accept="image/jpeg,image/png,image/webp" data-image-preview
+         class="form-input {{ image_error ? 'border-brand-400' : '' }}">
+  {% if image_error %}<p class="text-brand-500 text-xs mt-1">{{ image_error }}</p>{% endif %}
+  <p class="text-xs text-gray-400 mt-1">
+    JPEG, PNG ou WEBP, 5 Mo maximum.{% if image_current %} Laissez vide pour conserver la photo actuelle.{% endif %}
+  </p>
+</div>

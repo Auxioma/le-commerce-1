@@ -10,7 +10,7 @@
   </a>
 
   <div class="card card-md sm:p-8">
-    <form method="POST" action="{{ base_path }}/admin/bar" class="space-y-5">
+    <form method="POST" action="{{ base_path }}/admin/bar" enctype="multipart/form-data" class="space-y-5">
       {{ csrf_field() }}
 
       <div>
@@ -44,6 +44,10 @@
           {% if errors.price is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.price }}</p>{% endif %}
         </div>
       </div>
+
+      {% include 'partials/admin-image-field.twig' with {
+        image_current: null, image_error: errors.image|default(null)
+      } only %}
 
       <button type="submit" class="btn-primary w-full">
         Ajouter la boisson

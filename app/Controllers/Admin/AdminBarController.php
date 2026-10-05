@@ -86,6 +86,7 @@ class AdminBarController extends Controller
             'category'      => $data['category'],
             'degree'        => $data['degree'],
             'price'         => $data['price'],
+            'image'         => $this->uploadImage('bar_drink_', null),
             'display_order' => Drink::nextDisplayOrder($data['category']),
         ]);
 
@@ -145,6 +146,7 @@ class AdminBarController extends Controller
             'category' => $data['category'],
             'degree'   => $data['degree'],
             'price'    => $data['price'],
+            'image'    => $this->uploadImage('bar_drink_', $drink['image']),
         ]);
 
         $this->setFlash('success', 'La boisson "' . $data['name'] . '" a bien été mise à jour.');
@@ -163,6 +165,9 @@ class AdminBarController extends Controller
             return;
         }
 
+        if ($drink['image']) {
+            $this->deleteImageFile($drink['image']);
+        }
         Drink::delete($id);
 
         $this->setFlash('success', 'La boisson "' . $drink['name'] . '" a été supprimée.');
@@ -202,7 +207,7 @@ class AdminBarController extends Controller
             'name'          => $data['name'],
             'description'   => $data['description'],
             'price'         => $data['price'],
-            'image'         => $this->uploadPlancheImage(null),
+            'image'         => $this->uploadImage('bar_planche_', null),
             'display_order' => BarPlanche::nextDisplayOrder(),
             'status'        => $data['publish'] ? 'active' : 'inactif',
         ]);
@@ -260,7 +265,7 @@ class AdminBarController extends Controller
             'name'        => $data['name'],
             'description' => $data['description'],
             'price'       => $data['price'],
-            'image'       => $this->uploadPlancheImage($planche['image']),
+            'image'       => $this->uploadImage('bar_planche_', $planche['image']),
             'status'      => $data['publish'] ? 'active' : 'inactif',
         ]);
 
@@ -300,7 +305,7 @@ class AdminBarController extends Controller
         }
 
         if ($planche['image']) {
-            $this->deletePlancheImageFile($planche['image']);
+            $this->deleteImageFile($planche['image']);
         }
         BarPlanche::delete($id);
 
@@ -448,15 +453,8 @@ class AdminBarController extends Controller
             $errors['price'] = 'Le prix est obligatoire et doit être un nombre.';
         }
 
-        $file = $_FILES['image'] ?? null;
-        if ($file && $file['error'] !== UPLOAD_ERR_OK && $file['error'] !== UPLOAD_ERR_NO_FILE) {
-            $errors['image'] = "Échec de l'envoi de l'image.";
-        } elseif ($file && $file['error'] === UPLOAD_ERR_OK) {
-            if ($file['size'] > self::MAX_IMAGE_SIZE) {
-                $errors['image'] = 'Le fichier dépasse la taille maximale autorisée (5 Mo).';
-            } elseif (!isset(self::ALLOWED_IMAGE_MIME[mime_content_type($file['tmp_name'])])) {
-                $errors['image'] = 'Format non supporté. Utilisez une image JPEG, PNG ou WEBP.';
-            }
+        if ($imageError = $this->validateImage()) {
+            $errors['image'] = $imageError;
         }
 
         return [$errors, [
@@ -470,11 +468,37 @@ class AdminBarController extends Controller
     }
 
     /**
-     * Traite un éventuel nouveau fichier envoyé pour le champ "image" d'une
-     * planche : si un fichier valide a été fourni, l'enregistre et supprime
+     * Vérifie l'éventuel fichier envoyé pour le champ "image".
+     *
+     * @return string|null message d'erreur, ou null si aucun fichier / fichier valide
+     */
+    private function validateImage(): ?string
+    {
+        $file = $_FILES['image'] ?? null;
+        if (!$file || $file['error'] === UPLOAD_ERR_NO_FILE) {
+            return null;
+        }
+        if ($file['error'] === UPLOAD_ERR_INI_SIZE || $file['error'] === UPLOAD_ERR_FORM_SIZE) {
+            return 'Le fichier dépasse la taille maximale autorisée (5 Mo).';
+        }
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            return "Échec de l'envoi de l'image.";
+        }
+        if ($file['size'] > self::MAX_IMAGE_SIZE) {
+            return 'Le fichier dépasse la taille maximale autorisée (5 Mo).';
+        }
+        if (!isset(self::ALLOWED_IMAGE_MIME[mime_content_type($file['tmp_name'])])) {
+            return 'Format non supporté. Utilisez une image JPEG, PNG ou WEBP.';
+        }
+        return null;
+    }
+
+    /**
+     * Traite un éventuel nouveau fichier envoyé pour le champ "image" (boisson
+     * ou planche) : si un fichier valide a été fourni, l'enregistre et supprime
      * l'ancien visuel ; sinon conserve $existingImage inchangé.
      */
-    private function uploadPlancheImage(?string $existingImage): ?string
+    private function uploadImage(string $prefix, ?string $existingImage): ?string
     {
         $file = $_FILES['image'] ?? null;
         if (!$file || $file['error'] !== UPLOAD_ERR_OK) {
@@ -492,19 +516,19 @@ class AdminBarController extends Controller
             mkdir($uploadDir, 0775, true);
         }
 
-        $filename = 'bar_planche_' . bin2hex(random_bytes(6)) . '.' . self::ALLOWED_IMAGE_MIME[$mime];
+        $filename = $prefix . bin2hex(random_bytes(6)) . '.' . self::ALLOWED_IMAGE_MIME[$mime];
         if (!move_uploaded_file($file['tmp_name'], $uploadDir . '/' . $filename)) {
             return $existingImage;
         }
 
         if ($existingImage) {
-            $this->deletePlancheImageFile($existingImage);
+            $this->deleteImageFile($existingImage);
         }
 
         return '/uploads/images/' . $filename;
     }
 
-    private function deletePlancheImageFile(string $image): void
+    private function deleteImageFile(string $image): void
     {
         if (str_starts_with($image, '/uploads/images/')) {
             @unlink(dirname(__DIR__, 3) . '/public' . $image);
@@ -533,6 +557,9 @@ class AdminBarController extends Controller
         }
         if ($price !== '' && !is_numeric(str_replace(',', '.', $price))) {
             $errors['price'] = 'Le prix doit être un nombre.';
+        }
+        if ($imageError = $this->validateImage()) {
+            $errors['image'] = $imageError;
         }
 
         return [$errors, [
