@@ -3,6 +3,7 @@ module.exports = {
   content: [
     './app/Views/**/*.{php,twig}',
     './public/assets/js/**/*.js',
+    './app/Service/**/*.php',
   ],
   theme: {
     extend: {

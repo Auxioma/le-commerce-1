@@ -108,6 +108,7 @@
             <th class="px-5 py-3 font-semibold">Lot à gagner</th>
             <th class="px-5 py-3 font-semibold">Participants</th>
             <th class="px-5 py-3 font-semibold">Fin</th>
+            <th class="px-5 py-3 font-semibold">Diffusion</th>
             <th class="px-5 py-3 font-semibold">Statut / Gagnant</th>
             <th class="px-5 py-3 font-semibold text-right">Actions</th>
           </tr>
@@ -124,6 +125,23 @@
               <td class="px-5 py-3.5 text-gray-600">{{ l.prize }}</td>
               <td class="px-5 py-3.5 font-semibold text-ink">{{ l.entries_count }}</td>
               <td class="px-5 py-3.5 text-gray-500">{{ l.ends_at|date('d/m/Y') }}</td>
+              <td class="px-5 py-3.5 text-xs text-gray-600" style="max-width:240px;">
+                {% set lChannels = l.announce_channels ? l.announce_channels|split(',') : [] %}
+                {% if lChannels is empty and l.sms_recipients_count is null %}
+                  <span class="text-gray-400">Aucune annonce</span>
+                {% else %}
+                  {% if 'sms' in lChannels or (lChannels is empty and l.sms_recipients_count is not null) %}
+                    <p>📱 SMS : <strong>{{ l.sms_recipients_count ?? 0 }}</strong></p>
+                  {% endif %}
+                  {% if 'email' in lChannels %}
+                    <p>✉️ E-mail : <strong>{{ l.email_recipients_count ?? 0 }}</strong></p>
+                  {% endif %}
+                  {% set lSegments = l.announce_segments ? l.announce_segments|split(',') : ['tous'] %}
+                  <p class="text-gray-400 mt-0.5">
+                    {% if 'tous' in lSegments %}Tous les clients{% else %}{% for key in lSegments %}{{ segmentLabels[key].label|default(key) }}{{ loop.last ? '' : ', ' }}{% endfor %}{% endif %}
+                  </p>
+                {% endif %}
+              </td>
               <td class="px-5 py-3.5">
                 {% if l.status == 'terminee' %}
                   <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">Terminée</span>

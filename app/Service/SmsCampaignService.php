@@ -35,16 +35,17 @@ final class SmsCampaignService
      * publicitaire et le lien de participation — automatiquement raccourci
      * et suivi (clics) par AllMySms.
      *
+     * @param list<array>|null $clients destinataires (lignes users) ; null = tous les clients actifs
      * @return array{campaignId:?string, nbSms:int, nbContacts:int}|null null si l'API n'est pas configurée, si aucun destinataire n'est éligible, ou si l'envoi échoue.
      */
-    public function announceLottery(array $lottery, string $publicUrl): ?array
+    public function announceLottery(array $lottery, string $publicUrl, ?array $clients = null): ?array
     {
         if ($this->client === null) {
             return null;
         }
 
         $recipients = [];
-        foreach (User::activeClientsForSelect() as $client) {
+        foreach ($clients ?? User::activeClientsForSelect() as $client) {
             $phone = trim((string) ($client['phone_whatsapp'] ?? ''));
             if ($phone === '') {
                 continue;

@@ -1,0 +1,39 @@
+<div style="font-family: Arial, Helvetica, sans-serif; background:#f4f4f5; padding:32px 16px;">
+  <div style="max-width:480px; margin:0 auto; background:#ffffff; border-radius:12px; padding:32px; border:1px solid #e5e7eb;">
+    <p style="font-weight:800; font-size:20px; color:#111827; margin:0 0 24px;">{{ shopName }}</p>
+
+    <p style="font-size:14px; color:#111827; margin:0 0 16px;">Bonjour {{ firstName }},</p>
+    <p style="font-size:14px; color:#374151; line-height:1.6; margin:0 0 20px;">
+      {{ shopName }} lance une nouvelle loterie : <strong>{{ lottery.title }}</strong>.
+    </p>
+
+    <div style="background:#fdf1f1; border-radius:10px; padding:16px 20px; margin:0 0 20px;">
+      <p style="font-size:12px; font-weight:700; color:#c8272c; text-transform:uppercase; letter-spacing:.5px; margin:0 0 4px;">À gagner</p>
+      <p style="font-size:18px; font-weight:800; color:#111827; margin:0;">{{ lottery.prize }}</p>
+    </div>
+
+    {% if lottery.description %}
+      <p style="font-size:14px; color:#374151; line-height:1.6; margin:0 0 20px;">{{ lottery.description }}</p>
+    {% endif %}
+
+    <p style="font-size:14px; color:#374151; line-height:1.6; margin:0 0 24px;">
+      Participation ouverte jusqu'au <strong>{{ lottery.ends_at|date('d/m/Y') }}</strong>.
+    </p>
+
+    <p style="text-align:center; margin:0 0 24px;">
+      <a href="{{ lotteryUrl }}" style="display:inline-block; background:#c8272c; color:#ffffff; font-weight:700; font-size:14px; text-decoration:none; padding:14px 28px; border-radius:8px;">
+        Je participe
+      </a>
+    </p>
+
+    <p style="font-size:12px; color:#9ca3af; line-height:1.6; margin:0 0 8px;">
+      Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur :<br>
+      <a href="{{ lotteryUrl }}" style="color:#c8272c; word-break:break-all;">{{ lotteryUrl }}</a>
+    </p>
+
+    <p style="font-size:11px; color:#9ca3af; line-height:1.6; margin:24px 0 0; border-top:1px solid #f3f4f6; padding-top:16px;">
+      Vous recevez cet e-mail car vous êtes client de {{ shopName }}.
+      <a href="{{ unsubscribeUrl }}" style="color:#6b7280;">Ne plus recevoir nos e-mails</a>.
+    </p>
+  </div>
+</div>

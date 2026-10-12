@@ -1,4 +1,4 @@
-{% set segmentLabels = {'fidele': 'Fidèle', 'nouveau': 'Nouveau', 'occasionnel': 'Occasionnel'} %}
+{# Les segments sont calculés automatiquement (ClientSegmentationService). #}
 {% set avatarColors  = ['bg-blue-500', 'bg-purple-500', 'bg-green-500', 'bg-orange-500', 'bg-pink-500', 'bg-teal-500'] %}
 {% set colorIdx = hash_mod(client.first_name, avatarColors|length) %}
 {% set initials = (client.first_name|slice(0, 1) ~ client.last_name|slice(0, 1))|upper %}
@@ -26,9 +26,11 @@
         <span class="px-2.5 py-1 rounded-full font-semibold {{ client.status == 'actif' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500' }}" style="font-size:11.5px;">
           {{ client.status == 'actif' ? 'Actif' : 'Inactif' }}
         </span>
-        <span class="px-2.5 py-1 rounded-full font-semibold bg-gray-100 text-gray-700" style="font-size:11.5px;">
-          {{ segmentLabels[client.segment]|default(client.segment) }}
-        </span>
+        {% if segmentation %}
+          {% for key in [segmentation.lifecycle]|merge(segmentation.profiles) %}
+            <span class="px-2.5 py-1 rounded-full font-semibold {{ segmentDefs[key].color }}" style="font-size:11.5px;" title="{{ segmentation.reasons[key] }}">{{ segmentDefs[key].label }}</span>
+          {% endfor %}
+        {% endif %}
         <span class="text-gray-400" style="font-size:12px;">Client depuis le {{ client.created_at|date('d/m/Y') }}</span>
       </div>
     </div>
@@ -39,6 +41,44 @@
 
   <!-- Colonne gauche -->
   <div class="space-y-5">
+
+    {% if segmentation %}
+      {% set m = segmentation.metrics %}
+      <!-- Segmentation automatique -->
+      <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-5">
+        <div class="flex items-start justify-between gap-3 mb-4">
+          <div>
+            <h2 class="font-bold text-ink" style="font-size:15px;">Segmentation automatique</h2>
+            <p class="text-gray-500" style="font-size:12.5px;">Calculée à partir de l'activité réelle du client — <a href="{{ base_path }}/admin/clients" class="text-brand-500 font-semibold hover:underline">voir la légende</a>.</p>
+          </div>
+        </div>
+        <ul class="space-y-2 mb-4">
+          {% for key in [segmentation.lifecycle]|merge(segmentation.profiles) %}
+            <li class="flex items-start gap-3">
+              <span class="px-2 py-0.5 rounded-full font-semibold shrink-0 {{ segmentDefs[key].color }}" style="font-size:11px; min-width:150px; text-align:center;">{{ segmentDefs[key].label }}</span>
+              <span class="text-gray-600" style="font-size:12.5px;">{{ segmentation.reasons[key] }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {% for stat in [
+              {label: 'Visites (90 j)', value: m.visits_window},
+              {label: 'Visites au total', value: m.visits_total},
+              {label: 'Dépensé (90 j)', value: m.spend_window|number_format(2, ',', ' ') ~ ' €'},
+              {label: 'Panier moyen', value: m.purchases > 0 ? m.avg_ticket|number_format(2, ',', ' ') ~ ' €' : '—'},
+              {label: 'Dernière visite', value: m.last_visit ? m.last_visit|date('d/m/Y') : 'Jamais'},
+              {label: 'Achats', value: m.purchases},
+              {label: 'Parrainages', value: m.referrals},
+              {label: 'Loteries / sondages', value: m.participations},
+          ] %}
+            <div class="rounded-lg bg-gray-50 px-3 py-2">
+              <p class="text-gray-500" style="font-size:11px;">{{ stat.label }}</p>
+              <p class="font-bold text-ink" style="font-size:14px;">{{ stat.value }}</p>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
 
     <!-- Informations -->
     <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-5">
@@ -67,13 +107,15 @@
         </div>
         <div class="grid sm:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-semibold text-ink mb-1.5">Segment</label>
-            <select name="segment" class="form-select">
-              {% for key, label in segmentLabels %}
-                <option value="{{ key }}" {{ client.segment == key ? 'selected' : '' }}>{{ label }}</option>
-              {% endfor %}
-            </select>
+            <label class="block text-sm font-semibold text-ink mb-1.5">Date de naissance <span class="text-gray-400 font-normal">(segment Anniversaire)</span></label>
+            <input type="date" name="birth_date" value="{{ client.birth_date|default('') }}" max="{{ 'now'|date('Y-m-d') }}" class="form-input">
           </div>
+          <div>
+            <label class="block text-sm font-semibold text-ink mb-1.5">Entreprise <span class="text-gray-400 font-normal">(segment Professionnel)</span></label>
+            <input type="text" name="company_name" maxlength="150" value="{{ client.company_name|default('') }}" placeholder="Laisser vide pour un particulier" class="form-input">
+          </div>
+        </div>
+        <div class="grid sm:grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-semibold text-ink mb-1.5">Statut du compte</label>
             <select name="status" class="form-select">

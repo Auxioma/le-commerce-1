@@ -8,6 +8,8 @@ use App\Core\Controller;
 use App\Core\Middleware;
 use App\Models\Lottery;
 use App\Models\LotteryEntry;
+use App\Service\ClientSegmentationService;
+use App\Service\LotteryAnnouncementService;
 use App\Service\NotificationService;
 use App\Service\SmsCampaignService;
 use Endroid\QrCode\Builder\Builder;
@@ -69,6 +71,7 @@ class AdminLotteryController extends Controller
             'smsAccountInfo'   => $smsAccountInfo,
             'smsCampaignStats' => $smsCampaignStats,
             'smsTotalSent'     => $smsTotalSent,
+            'segmentLabels'    => ClientSegmentationService::allDefinitions(),
         ], 'admin');
     }
 
@@ -76,12 +79,11 @@ class AdminLotteryController extends Controller
     {
         Middleware::requireRole('admin');
 
-        $this->view('admin/lotteries/create', [
-            'title'     => 'Créer une loterie — Administration Le Commerce',
-            'pageTitle' => 'Créer une nouvelle loterie',
-            'errors' => [],
-            'old'    => [],
-        ], 'admin');
+        $this->renderCreateForm([], [
+            'channels' => ['sms'],
+            'segments' => [LotteryAnnouncementService::ALL],
+            'publish'  => true,
+        ]);
     }
 
     public function store(): void
@@ -94,6 +96,14 @@ class AdminLotteryController extends Controller
         $prize       = trim((string) $this->input('prize', ''));
         $endsAt      = (string) $this->input('ends_at', '');
         $publish     = $this->input('publish') ? 'active' : 'brouillon';
+        $channels    = array_values(array_intersect(array_keys(LotteryAnnouncementService::CHANNELS), (array) $this->input('channels', [])));
+        $segments    = array_values(array_intersect(
+            array_merge([LotteryAnnouncementService::ALL], array_keys(ClientSegmentationService::allDefinitions())),
+            (array) $this->input('segments', [])
+        ));
+        if (in_array(LotteryAnnouncementService::ALL, $segments, true)) {
+            $segments = [LotteryAnnouncementService::ALL];
+        }
 
         $errors = [];
         if ($title === '' || mb_strlen($title) > 150) {
@@ -105,14 +115,12 @@ class AdminLotteryController extends Controller
         if ($endsAt === '' || strtotime($endsAt) === false || strtotime($endsAt) < strtotime('today')) {
             $errors['ends_at'] = 'La date de fin doit être aujourd\'hui ou une date future.';
         }
+        if ($publish === 'active' && $channels !== [] && $segments === []) {
+            $errors['segments'] = 'Cochez « Tous les clients » ou au moins un segment à qui envoyer l\'annonce.';
+        }
 
         if ($errors) {
-            $this->view('admin/lotteries/create', [
-                'title'     => 'Créer une loterie — Administration Le Commerce',
-                'pageTitle' => 'Créer une nouvelle loterie',
-                'errors' => $errors,
-                'old'    => compact('title', 'description', 'prize', 'endsAt'),
-            ], 'admin');
+            $this->renderCreateForm($errors, compact('title', 'description', 'prize', 'endsAt', 'channels', 'segments') + ['publish' => $publish === 'active']);
             return;
         }
 
@@ -125,29 +133,82 @@ class AdminLotteryController extends Controller
             'qr_token'    => Lottery::generateUniqueQrToken(),
         ]);
 
-        $flash = 'La loterie "' . $title . '" a bien été créée. Voici son QR code de participation.';
+        $flash = 'La loterie "' . $title . '" a bien été créée.';
 
-        // SMS d'annonce automatique aux clients actifs, uniquement si la
-        // loterie est publiée immédiatement (inutile pour un brouillon).
-        if ($publish === 'active') {
+        // Annonce aux clients : seulement si la loterie est publiée tout de
+        // suite (inutile pour un brouillon) et si au moins un canal est coché.
+        if ($publish === 'active' && $channels !== []) {
             $lottery = Lottery::find($lotteryId);
-            $smsResult = $this->smsCampaignService->announceLottery($lottery, $this->publicLotteryUrl($lottery));
+            $report = (new LotteryAnnouncementService())->announce($lottery, $this->siteUrl(), $channels, $segments);
 
-            if ($smsResult !== null) {
-                Lottery::update($lotteryId, [
-                    'sms_campaign_id'       => $smsResult['campaignId'],
-                    'sms_recipients_count'  => $smsResult['nbContacts'],
-                ]);
-                $flash = $smsResult['scheduledAt'] !== null
-                    ? 'La loterie "' . $title . '" a bien été créée. Le SMS d\'annonce à ' . $smsResult['nbContacts'] . ' client(s) est programmé pour le ' . date('d/m/Y à H\hi', strtotime($smsResult['scheduledAt'])) . ' (envoi commercial interdit hors de ce créneau).'
-                    : 'La loterie "' . $title . '" a bien été créée et annoncée par SMS à ' . $smsResult['nbContacts'] . ' client(s). Voici son QR code de participation.';
-            } elseif (!$this->smsCampaignService->isConfigured()) {
-                $flash .= ' (SMS non envoyé : configurez ALLMYSMS_LOGIN / ALLMYSMS_API_KEY dans .env pour activer l\'annonce automatique.)';
+            Lottery::update($lotteryId, [
+                'announce_channels'      => implode(',', $channels),
+                'announce_segments'      => implode(',', $segments),
+                'sms_campaign_id'        => $report['sms']['campaignId'] ?? null,
+                'sms_recipients_count'   => $report['sms']['nbContacts'] ?? null,
+                'email_recipients_count' => $report['emailSent'],
+            ]);
+
+            $flash .= ' ' . $this->announcementSummary($report, $channels);
+        }
+
+        $this->setFlash('success', $flash . ' Voici son QR code de participation.');
+        $this->redirect('/admin/loterie/' . $lotteryId . '/qrcode');
+    }
+
+    private function renderCreateForm(array $errors, array $old): void
+    {
+        $audience = LotteryAnnouncementService::audienceData();
+        $counts = array_fill_keys(array_keys(ClientSegmentationService::allDefinitions()), 0);
+        foreach ($audience as $client) {
+            foreach ($client['s'] as $segment) {
+                $counts[$segment]++;
             }
         }
 
-        $this->setFlash('success', $flash);
-        $this->redirect('/admin/loterie/' . $lotteryId . '/qrcode');
+        $this->view('admin/lotteries/create', [
+            'title'     => 'Créer une loterie — Administration Le Commerce',
+            'pageTitle' => 'Créer une nouvelle loterie',
+            'errors' => $errors,
+            'old'    => $old,
+            'channelLabels' => LotteryAnnouncementService::CHANNELS,
+            'segmentDefs'   => ClientSegmentationService::definitions(),
+            'segmentCounts' => $counts,
+            'audience'      => $audience,
+            'smsConfigured' => $this->smsCampaignService->isConfigured(),
+        ], 'admin');
+    }
+
+    /** Résumé lisible de l'envoi, pour le message de confirmation. */
+    private function announcementSummary(array $report, array $channels): string
+    {
+        $parts = [];
+        if (in_array('sms', $channels, true)) {
+            if (!$report['smsConfigured']) {
+                $parts[] = 'SMS non envoyé : configurez ALLMYSMS_LOGIN / ALLMYSMS_API_KEY dans .env';
+            } elseif ($report['sms'] === null) {
+                $parts[] = $report['smsEligible'] === 0 ? 'aucun client ciblé n\'a de numéro pour le SMS' : 'l\'envoi SMS a échoué';
+            } elseif (!empty($report['sms']['scheduledAt'])) {
+                $parts[] = 'SMS à ' . $report['sms']['nbContacts'] . ' client(s) programmé le ' . date('d/m/Y à H\hi', strtotime($report['sms']['scheduledAt'])) . ' (envoi commercial interdit hors de ce créneau)';
+            } else {
+                $parts[] = 'SMS envoyé à ' . $report['sms']['nbContacts'] . ' client(s)';
+            }
+        }
+        if (in_array('email', $channels, true)) {
+            $parts[] = 'e-mail envoyé à ' . $report['emailSent'] . ' client(s)' . ($report['emailFailed'] > 0 ? ' (' . $report['emailFailed'] . ' échec(s))' : '');
+        }
+        return 'Annonce : ' . implode(' ; ', $parts) . '.';
+    }
+
+    /**
+     * Adresse publique du site (QR code, liens des SMS et e-mails) —
+     * reconstruite depuis l'hôte de la requête courante (et non depuis
+     * APP_URL, qui peut être désynchronisé du domaine réellement servi).
+     */
+    private function siteUrl(): string
+    {
+        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        return 'https://' . $host . BASE_PATH;
     }
 
     public function toggleStatus(int $id): void
@@ -272,13 +333,10 @@ class AdminLotteryController extends Controller
     }
 
     /**
-     * URL publique encodée dans le QR code — reconstruite depuis l'hôte de
-     * la requête courante (et non depuis APP_URL, qui peut être désynchronisé
-     * du domaine réellement servi en production).
+     * URL publique encodée dans le QR code.
      */
     private function publicLotteryUrl(array $lottery): string
     {
-        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-        return 'https://' . $host . BASE_PATH . '/loterie/' . $lottery['qr_token'];
+        return $this->siteUrl() . '/loterie/' . $lottery['qr_token'];
     }
 }

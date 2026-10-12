@@ -11,6 +11,7 @@ use App\Models\PasswordReset;
 use App\Models\User;
 use App\Models\Wallet;
 use App\Models\WalletTransaction;
+use App\Service\ClientSegmentationService;
 use App\Service\CsvExportService;
 use App\Service\Mailer;
 use App\Service\NotificationService;
@@ -34,13 +35,7 @@ class AdminClientController extends Controller
     {
         Middleware::requireRole('admin');
 
-        $filters = [
-            'q'       => trim((string) $this->input('q', '')),
-            'status'  => (string) $this->input('status', 'tous'),
-            'segment' => (string) $this->input('segment', 'tous'),
-            'from'    => (string) $this->input('from', ''),
-            'to'      => (string) $this->input('to', ''),
-        ];
+        $filters = $this->listFilters();
         $page = max(1, (int) $this->input('page', 1));
 
         $result = User::paginateClients($filters, $page, 8);
@@ -56,7 +51,49 @@ class AdminClientController extends Controller
             'totalAll'   => User::countAll(),
             'newThisMonth' => User::countThisMonth(),
             'filters'    => $filters,
+            'segments'        => ClientSegmentationService::computeAll(),
+            'segmentDefs'     => ClientSegmentationService::definitions(),
+            'segmentCounts'   => ClientSegmentationService::counts(),
         ], 'admin');
+    }
+
+    /**
+     * Filtres de la liste (et de l'export). Le segment est calculé
+     * automatiquement : on le traduit en liste d'ids de clients.
+     */
+    private function listFilters(): array
+    {
+        $segment = (string) $this->input('segment', 'tous');
+        if (!array_key_exists($segment, ClientSegmentationService::allDefinitions())) {
+            $segment = 'tous';
+        }
+
+        $filters = [
+            'q'       => trim((string) $this->input('q', '')),
+            'status'  => (string) $this->input('status', 'tous'),
+            'segment' => $segment,
+            'from'    => (string) $this->input('from', ''),
+            'to'      => (string) $this->input('to', ''),
+        ];
+        if ($segment !== 'tous') {
+            $filters['ids'] = ClientSegmentationService::idsInSegment($segment);
+        }
+
+        return $filters;
+    }
+
+    /** Libellés des segments d'un client, ex. « Client fidèle, Client afterwork ». */
+    private function segmentLabels(int $clientId): string
+    {
+        $segments = ClientSegmentationService::forUser($clientId);
+        if (!$segments) {
+            return '';
+        }
+        $defs = ClientSegmentationService::allDefinitions();
+        return implode(', ', array_map(
+            static fn(string $key) => $defs[$key]['label'],
+            array_merge([$segments['lifecycle']], $segments['profiles'])
+        ));
     }
 
     /**
@@ -66,13 +103,7 @@ class AdminClientController extends Controller
     {
         Middleware::requireRole('admin');
 
-        $filters = [
-            'q'       => trim((string) $this->input('q', '')),
-            'status'  => (string) $this->input('status', 'tous'),
-            'segment' => (string) $this->input('segment', 'tous'),
-            'from'    => (string) $this->input('from', ''),
-            'to'      => (string) $this->input('to', ''),
-        ];
+        $filters = $this->listFilters();
 
         // perPage volontairement très large pour tout récupérer en un export
         $result = User::paginateClients($filters, 1, 100000);
@@ -88,7 +119,7 @@ class AdminClientController extends Controller
                         $client['last_name'],
                         $client['phone_whatsapp'],
                         $client['email'],
-                        $client['segment'],
+                        $this->segmentLabels((int) $client['id']),
                         $client['status'],
                         number_format((float) $client['wallet_balance'], 2, ',', ''),
                         date('d/m/Y', strtotime($client['created_at'])),
@@ -227,11 +258,15 @@ class AdminClientController extends Controller
             'wallet'         => $wallet,
             'transactions'   => $transactions,
             'referralsCount' => $referralsCount,
+            'segmentation'   => ClientSegmentationService::forUser($id),
+            'segmentDefs'    => ClientSegmentationService::allDefinitions(),
         ], 'admin');
     }
 
     /**
-     * Met à jour les informations d'un client (identité, segment, statut).
+     * Met à jour les informations d'un client (identité, date de naissance,
+     * entreprise, statut). Le segment n'est plus saisi : il est calculé
+     * automatiquement par ClientSegmentationService.
      */
     public function update(int $id): void
     {
@@ -249,8 +284,23 @@ class AdminClientController extends Controller
         $lastName  = trim((string) $this->input('last_name', ''));
         $phone     = User::normalizePhone(trim((string) $this->input('phone_whatsapp', '')));
         $email     = trim((string) $this->input('email', ''));
-        $segment   = (string) $this->input('segment', $client['segment']);
+        $birthDate = trim((string) $this->input('birth_date', ''));
+        $company   = trim((string) $this->input('company_name', ''));
         $status    = (string) $this->input('status', $client['status']);
+
+        if ($birthDate !== '') {
+            $date = \DateTimeImmutable::createFromFormat('!Y-m-d', $birthDate);
+            if (!$date || $date->format('Y-m-d') !== $birthDate || $date > new \DateTimeImmutable('today') || (int) $date->format('Y') < 1900) {
+                $this->setFlash('error', 'Date de naissance invalide.');
+                $this->redirect('/admin/clients/' . $id);
+                return;
+            }
+        }
+        if (mb_strlen($company) > 150) {
+            $this->setFlash('error', 'Le nom de l\'entreprise ne peut pas dépasser 150 caractères.');
+            $this->redirect('/admin/clients/' . $id);
+            return;
+        }
 
         if ($firstName === '' || $lastName === '' || $phone === '') {
             $this->setFlash('error', 'Le prénom, le nom et le téléphone WhatsApp sont obligatoires.');
@@ -276,8 +326,9 @@ class AdminClientController extends Controller
             'last_name'      => $lastName,
             'phone_whatsapp' => $phone,
             'email'          => $email !== '' ? $email : null,
-            'segment'        => in_array($segment, ['nouveau', 'fidele', 'occasionnel'], true) ? $segment : $client['segment'],
-            'status'         => in_array($status, ['actif', 'inactif'], true) ? $status : $client['status'],
+            'birth_date'     => $birthDate !== '' ? $birthDate : null,
+            'company_name'   => $company !== '' ? $company : null,
+            'status'       => in_array($status, ['actif', 'inactif'], true) ? $status : $client['status'],
         ]);
 
         $this->setFlash('success', 'Fiche client mise à jour.');

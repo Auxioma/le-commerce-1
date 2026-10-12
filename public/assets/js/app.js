@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initAdminMobileSidebar();
   initAdminSidebarCollapse();
   initAdminSidebarAccordion();
+  initLotteryAnnounce();
   initWeatherWidget();
   initChatChips();
   initChatFab();
@@ -551,4 +552,62 @@ function initGalleryPage() {
     if (e.key === 'ArrowLeft') show(index - 1);
     if (e.key === 'ArrowRight') show(index + 1);
   });
+}
+
+/**
+ * Création d'une loterie : choix du mode de diffusion (SMS / e-mail) et des
+ * segments ciblés, avec estimation en direct du nombre de destinataires.
+ */
+function initLotteryAnnounce() {
+  const root = document.querySelector('[data-announce]');
+  const dataEl = document.getElementById('lottery-audience');
+  if (!root || !dataEl) return;
+
+  const audience = JSON.parse(dataEl.textContent || '[]');
+  const publish = document.querySelector('[data-announce-publish]');
+  const all = root.querySelector('[data-announce-all]');
+  const segments = [...root.querySelectorAll('[data-announce-segment]')];
+  const channels = [...root.querySelectorAll('[data-announce-channel]')];
+  const summary = root.querySelector('[data-announce-summary]');
+  const submit = document.querySelector('[data-announce-submit]');
+  const plural = (n, word) => `${n} ${word}${n > 1 ? 's' : ''}`;
+
+  const update = () => {
+    const draft = publish && !publish.checked;
+    root.querySelector('[data-announce-draft-note]').hidden = !draft;
+    root.querySelectorAll('[data-announce-options]').forEach((el) => { el.hidden = draft; });
+
+    const activeChannels = channels.filter((c) => c.checked).map((c) => c.value);
+    const selected = new Set(segments.filter((s) => s.checked).map((s) => s.value));
+    const targeted = all.checked ? audience : audience.filter((c) => c.s.some((s) => selected.has(s)));
+
+    let text;
+    let sending = false;
+    if (activeChannels.length === 0) {
+      text = 'Aucun mode de diffusion coché : la loterie sera publiée sans annonce.';
+    } else if (!all.checked && selected.size === 0) {
+      text = 'Cochez « Tous les clients actifs » ou au moins un segment.';
+    } else {
+      const parts = [];
+      if (activeChannels.includes('sms')) parts.push(`SMS : ${targeted.filter((c) => c.sms).length}`);
+      if (activeChannels.includes('email')) parts.push(`e-mail : ${targeted.filter((c) => c.email).length}`);
+      text = `${plural(targeted.length, 'client')} ciblé${targeted.length > 1 ? 's' : ''} → ${parts.join(' · ')}`
+        + ' (sans numéro ou sans e-mail valide, ou désinscrits des e-mails, certains clients ne reçoivent pas tous les canaux).';
+      sending = targeted.length > 0;
+    }
+    summary.textContent = text;
+    if (submit) submit.textContent = !draft && sending ? 'Créer la loterie et envoyer l\'annonce' : 'Créer la loterie';
+  };
+
+  all.addEventListener('change', () => {
+    if (all.checked) segments.forEach((s) => { s.checked = false; });
+    update();
+  });
+  segments.forEach((s) => s.addEventListener('change', () => {
+    if (s.checked) all.checked = false;
+    update();
+  }));
+  channels.forEach((c) => c.addEventListener('change', update));
+  publish?.addEventListener('change', update);
+  update();
 }

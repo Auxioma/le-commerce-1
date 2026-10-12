@@ -289,41 +289,43 @@ class User extends Model
     /**
      * Liste paginée et filtrée des clients pour le back-office.
      *
-     * @param array{q?:string, status?:string, segment?:string, from?:string, to?:string} $filters
+     * @param array{q?:string, status?:string, ids?:list<int>, from?:string, to?:string} $filters
      * @return array{data: array, total: int, page: int, perPage: int, totalPages: int}
      */
     public static function paginateClients(array $filters, int $page = 1, int $perPage = 8): array
     {
-        $where  = ["role = 'client'", 'deleted_at IS NULL'];
+        $where  = ["u.role = 'client'", 'u.deleted_at IS NULL'];
         $params = [];
 
         if (!empty($filters['q'])) {
-            $where[] = '(first_name LIKE :q1 OR last_name LIKE :q2 OR phone_whatsapp LIKE :q3)';
+            $where[] = '(u.first_name LIKE :q1 OR u.last_name LIKE :q2 OR u.phone_whatsapp LIKE :q3)';
             $needle = '%' . $filters['q'] . '%';
             $params['q1'] = $needle;
             $params['q2'] = $needle;
             $params['q3'] = $needle;
         }
         if (!empty($filters['status']) && $filters['status'] !== 'tous') {
-            $where[] = 'status = :status';
+            $where[] = 'u.status = :status';
             $params['status'] = $filters['status'];
         }
-        if (!empty($filters['segment']) && $filters['segment'] !== 'tous') {
-            $where[] = 'segment = :segment';
-            $params['segment'] = $filters['segment'];
+        // Segment : calculé automatiquement (ClientSegmentationService), le
+        // contrôleur transmet directement les ids des clients concernés.
+        if (isset($filters['ids'])) {
+            $ids = array_map('intval', $filters['ids']);
+            $where[] = $ids ? 'u.id IN (' . implode(',', $ids) . ')' : '0 = 1';
         }
         if (!empty($filters['from'])) {
-            $where[] = 'DATE(created_at) >= :from';
+            $where[] = 'DATE(u.created_at) >= :from';
             $params['from'] = $filters['from'];
         }
         if (!empty($filters['to'])) {
-            $where[] = 'DATE(created_at) <= :to';
+            $where[] = 'DATE(u.created_at) <= :to';
             $params['to'] = $filters['to'];
         }
 
         $whereSql = implode(' AND ', $where);
 
-        $countStmt = self::db()->prepare("SELECT COUNT(*) FROM users WHERE {$whereSql}");
+        $countStmt = self::db()->prepare("SELECT COUNT(*) FROM users u WHERE {$whereSql}");
         $countStmt->execute($params);
         $total = (int) $countStmt->fetchColumn();
 
