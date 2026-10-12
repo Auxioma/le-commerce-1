@@ -76,6 +76,20 @@
               </span>
             </label>
           </div>
+
+          <!-- Sélection manuelle des destinataires e-mail (visible quand « E-mail » est coché) -->
+          <div class="border border-gray-200 rounded-xl p-4 mt-3" data-email-picker hidden>
+            <p class="text-sm font-semibold text-ink mb-1">Destinataires de l'e-mail <span class="text-gray-400 font-normal">(facultatif)</span></p>
+            <p class="text-xs text-gray-500 mb-3">Recherchez puis sélectionnez une ou plusieurs adresses : l'e-mail ne partira qu'à elles (les segments ci-dessous ne s'appliqueront plus qu'au SMS). Laissez vide pour cibler par segments.</p>
+            <div class="flex flex-wrap gap-1.5 mb-2" data-email-picker-chips></div>
+            <div class="relative">
+              <input type="search" autocomplete="off" placeholder="Rechercher un nom ou une adresse e-mail…" class="form-input" data-email-picker-search>
+              <ul class="absolute z-10 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-white border border-gray-200 rounded-xl shadow-lg" data-email-picker-results hidden></ul>
+            </div>
+            <div data-email-picker-inputs>
+              {% for id in old.emailRecipients|default([]) %}<input type="hidden" name="email_recipients[]" value="{{ id }}">{% endfor %}
+            </div>
+          </div>
         </div>
 
         <div data-announce-options>

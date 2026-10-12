@@ -104,6 +104,12 @@ class AdminLotteryController extends Controller
         if (in_array(LotteryAnnouncementService::ALL, $segments, true)) {
             $segments = [LotteryAnnouncementService::ALL];
         }
+        // Destinataires e-mail choisis un par un via le moteur de recherche.
+        $emailRecipients = in_array('email', $channels, true)
+            ? array_values(array_unique(array_filter(array_map('intval', (array) $this->input('email_recipients', [])), static fn(int $id) => $id > 0)))
+            : [];
+        // Les segments ne servent qu'au SMS et à l'e-mail sans sélection manuelle.
+        $needsSegments = in_array('sms', $channels, true) || (in_array('email', $channels, true) && $emailRecipients === []);
 
         $errors = [];
         if ($title === '' || mb_strlen($title) > 150) {
@@ -115,12 +121,12 @@ class AdminLotteryController extends Controller
         if ($endsAt === '' || strtotime($endsAt) === false || strtotime($endsAt) < strtotime('today')) {
             $errors['ends_at'] = 'La date de fin doit être aujourd\'hui ou une date future.';
         }
-        if ($publish === 'active' && $channels !== [] && $segments === []) {
+        if ($publish === 'active' && $needsSegments && $segments === []) {
             $errors['segments'] = 'Cochez « Tous les clients » ou au moins un segment à qui envoyer l\'annonce.';
         }
 
         if ($errors) {
-            $this->renderCreateForm($errors, compact('title', 'description', 'prize', 'endsAt', 'channels', 'segments') + ['publish' => $publish === 'active']);
+            $this->renderCreateForm($errors, compact('title', 'description', 'prize', 'endsAt', 'channels', 'segments', 'emailRecipients') + ['publish' => $publish === 'active']);
             return;
         }
 
@@ -139,7 +145,7 @@ class AdminLotteryController extends Controller
         // suite (inutile pour un brouillon) et si au moins un canal est coché.
         if ($publish === 'active' && $channels !== []) {
             $lottery = Lottery::find($lotteryId);
-            $report = (new LotteryAnnouncementService())->announce($lottery, $this->siteUrl(), $channels, $segments);
+            $report = (new LotteryAnnouncementService())->announce($lottery, $this->siteUrl(), $channels, $segments, $emailRecipients);
 
             Lottery::update($lotteryId, [
                 'announce_channels'      => implode(',', $channels),
