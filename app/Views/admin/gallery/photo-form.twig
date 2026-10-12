@@ -1,0 +1,75 @@
+{% set isEdit = photo is not null %}
+{% set pageSubtitle = isEdit ? 'Modifiez la légende, la galerie ou remplacez la photo.' : "La photo apparaîtra dans le carrousel de l'accueil et sur la page /galerie une fois publiée." %}
+{% set pageActions = [] %}
+{% include 'partials/admin-page-header.twig' %}
+
+{% set v = {
+    title: old.title ?? (isEdit ? photo.title : ''),
+    taken_at: old.taken_at ?? (isEdit ? photo.taken_at : ''),
+    gallery_id: old.gallery_id ?? (isEdit ? photo.gallery_id : null),
+    publish: old.publish ?? (isEdit ? photo.status == 'active' : true),
+} %}
+
+<div class="max-w-2xl">
+  <a href="{{ base_path }}/admin/galerie{{ v.gallery_id ? '/albums/' ~ v.gallery_id : '' }}" class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-brand-500 mb-4">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+    Retour à la galerie
+  </a>
+
+  <div class="card card-md sm:p-8">
+    <form method="POST" action="{{ base_path }}/admin/galerie/photos{{ isEdit ? '/' ~ photo.id : '' }}" enctype="multipart/form-data" class="space-y-5">
+      {{ csrf_field() }}
+
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Photo</label>
+        {% if isEdit %}
+          <img src="{{ base_path }}{{ photo.image }}" data-original-src="{{ base_path }}{{ photo.image }}" data-image-preview-target alt="" class="w-full max-h-72 object-cover rounded-2xl mb-3">
+        {% else %}
+          <img data-image-preview-target alt="" class="hidden w-full max-h-72 object-cover rounded-2xl mb-3">
+        {% endif %}
+        <input type="file" name="image" accept="image/jpeg,image/png,image/webp" {{ isEdit ? '' : 'required' }} data-image-preview
+               class="form-input {{ errors.image is defined ? 'border-brand-400' : '' }}">
+        {% if errors.image is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.image }}</p>{% endif %}
+        <p class="text-xs text-gray-400 mt-1">JPEG, PNG ou WEBP, 5 Mo maximum.{{ isEdit ? ' Laissez vide pour conserver la photo actuelle.' : '' }}</p>
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Légende</label>
+        <input type="text" name="title" required maxlength="120" value="{{ v.title }}" placeholder="Ex : Soirée match OM - PSG"
+               class="form-input {{ errors.title is defined ? 'border-brand-400' : '' }}">
+        {% if errors.title is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.title }}</p>{% endif %}
+      </div>
+
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="block text-sm font-semibold text-ink">Galerie</label>
+            <a href="{{ base_path }}/admin/galerie/albums/creer" class="text-xs font-semibold text-brand-500 hover:underline">+ Nouvelle galerie</a>
+          </div>
+          <select name="gallery_id" required class="form-input {{ errors.gallery_id is defined ? 'border-brand-400' : '' }}">
+            <option value="">— Choisir une galerie —</option>
+            {% for g in galleries %}
+              <option value="{{ g.id }}" {{ v.gallery_id == g.id ? 'selected' : '' }}>{{ g.title }}{{ g.status != 'active' ? ' (masquée)' : '' }}</option>
+            {% endfor %}
+          </select>
+          {% if errors.gallery_id is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.gallery_id }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-ink mb-1.5">Date de la photo</label>
+          <input type="date" name="taken_at" required value="{{ v.taken_at }}"
+                 class="form-input {{ errors.taken_at is defined ? 'border-brand-400' : '' }}">
+          {% if errors.taken_at is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.taken_at }}</p>{% endif %}
+        </div>
+      </div>
+
+      <label class="flex items-center gap-2.5 text-sm text-gray-600 bg-gray-50 rounded-2xl px-4 py-3">
+        <input type="checkbox" name="publish" value="1" {{ v.publish ? 'checked' : '' }} class="rounded border-gray-300 text-brand-500 focus:ring-brand-500/30">
+        Publier la photo (sinon elle est enregistrée mais masquée côté public)
+      </label>
+
+      <button type="submit" class="btn-primary w-full">
+        {{ isEdit ? 'Enregistrer les modifications' : 'Ajouter la photo' }}
+      </button>
+    </form>
+  </div>
+</div>

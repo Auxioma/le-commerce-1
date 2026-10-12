@@ -55,9 +55,9 @@ class HomeContentService
             'home_weather_title'       => 'MÉTÉO À',
             'home_weather_footer_text' => 'Profitez de notre terrasse !',
 
-            'home_assistant_title'       => 'ASSISTANT LE COMMERCE',
-            'home_assistant_greeting'    => "Bonjour ! 👋<br>Que recherchez-vous aujourd'hui ?",
-            'home_assistant_placeholder' => 'Écrivez votre question...',
+            'home_gallery_title'        => 'LE COMMERCE EN IMAGES',
+            'home_gallery_subtitle'     => "Découvrez l'ambiance du Commerce.",
+            'home_gallery_button_label' => 'VOIR TOUTES LES PHOTOS',
         ];
     }
 

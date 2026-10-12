@@ -255,3 +255,86 @@
     @apply text-sm text-slate-300 hover:text-white transition-colors;
   }
 }
+
+/* Galerie « Le Commerce en images » (accueil + page /galerie) */
+@layer components {
+  .gallery-filter {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 9999px;
+    background: #fff;
+    color: #6b7280;
+    border: 1px solid #e5e7eb;
+    transition: background-color .15s, color .15s, border-color .15s;
+  }
+  .gallery-filter:hover {
+    color: #c8272c;
+    border-color: #c8272c;
+  }
+  .gallery-filter-lg {
+    font-size: 13px;
+    padding: 8px 18px;
+  }
+  .gallery-filter.is-active {
+    background: #c8272c;
+    color: #fff;
+    border-color: #c8272c;
+  }
+  .gallery-track {
+    --per: 3;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+  }
+  .gallery-track::-webkit-scrollbar {
+    display: none;
+  }
+  .gallery-item {
+    flex: 0 0 calc((100% - (var(--per) - 1) * 8px) / var(--per));
+    min-width: 0;
+    scroll-snap-align: start;
+    background: #fff;
+    border-radius: 8px;
+    padding: 4px 4px 6px;
+  }
+  .gallery-item[hidden] {
+    display: none;
+  }
+  @media (min-width: 640px)  { .gallery-track { --per: 5; } }
+  @media (min-width: 1024px) { .gallery-track { --per: 4; } }
+  @media (min-width: 1280px) { .gallery-track { --per: 5; } }
+  @media (min-width: 1440px) { .gallery-track { --per: 7; } }
+  .gallery-nav {
+    position: absolute;
+    top: 38%;
+    transform: translateY(-50%);
+    z-index: 2;
+    width: 30px;
+    height: 30px;
+    border-radius: 9999px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity .15s;
+  }
+  .gallery-nav[disabled] {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .gallery-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 9999px;
+    background: #d1d5db;
+    transition: background-color .15s;
+  }
+  .gallery-dot.is-active {
+    background: #c8272c;
+  }
+}

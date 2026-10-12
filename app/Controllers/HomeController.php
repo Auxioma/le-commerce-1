@@ -8,9 +8,10 @@ use App\Core\Controller;
 use App\Core\GooglePlacesClient;
 use App\Models\Drink;
 use App\Models\Deal;
+use App\Models\GalleryCategory;
+use App\Models\GalleryPhoto;
 use App\Models\GoogleReview;
 use App\Models\HomeCategory;
-use App\Models\HomeChip;
 use App\Models\HomeQuickService;
 use App\Service\HomeContentService;
 
@@ -33,7 +34,8 @@ class HomeController extends Controller
             'homeContent'       => HomeContentService::get(),
             'homeCategories'    => HomeCategory::listActiveOrdered(),
             'homeQuickServices' => HomeQuickService::listActiveOrdered(),
-            'homeChips'         => HomeChip::listActiveOrdered(),
+            'galleryPhotos'     => GalleryPhoto::listPublished(24),
+            'galleryCategories' => GalleryCategory::listWithPublishedPhotos(),
         ]);
     }
 }

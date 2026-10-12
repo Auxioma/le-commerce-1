@@ -1,0 +1,68 @@
+{% set heroEyebrow = 'GALERIE PHOTOS' %}
+{% set heroText = "L'ambiance du Commerce en images : le bar, les soirées, les matchs et tous nos bons moments." %}
+{% set heroSlug = 'hero_galerie' %}
+{% include 'partials/page-hero.twig' %}
+
+<section class="max-w-[1536px] mx-auto px-6 lg:px-10 pb-12" data-gallery-page>
+  {% if galleries is empty %}
+    <div class="card card-md text-center py-16">
+      <p class="text-gray-500 font-medium">Aucune photo pour le moment. Revenez bientôt !</p>
+    </div>
+  {% else %}
+    {% if categories is not empty %}
+      <div class="sticky top-0 z-20 -mx-2 px-2 py-3 mb-4 flex flex-wrap gap-2" style="background:rgba(255,255,255,.92); backdrop-filter:blur(6px);" role="tablist" aria-label="Filtrer par catégorie">
+        <button type="button" class="gallery-filter gallery-filter-lg is-active" data-filter="all" role="tab" aria-selected="true">Tous</button>
+        {% for category in categories %}
+          <button type="button" class="gallery-filter gallery-filter-lg" data-filter="{{ category.slug }}" role="tab" aria-selected="false">{{ category.name }}</button>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    {# Une section par galerie : un clic sur une catégorie ne laisse visibles
+       que les sections (donc les images) de cette catégorie. #}
+    {% for gallery in galleries %}
+      {% set galleryPhotos = photosByGallery[gallery.id]|default([]) %}
+      <div class="mb-10 scroll-mt-20" id="album-{{ gallery.slug }}" data-category="{{ gallery.category_slug|default('') }}" data-album="{{ gallery.slug }}">
+        <div class="flex flex-wrap items-end justify-between gap-2 mb-4">
+          <div>
+            {% if gallery.category_name %}<p class="text-xs font-bold uppercase tracking-wide text-brand-500 mb-0.5">{{ gallery.category_name }}</p>{% endif %}
+            <h2 class="text-xl sm:text-2xl font-black text-ink">{{ gallery.title }}</h2>
+            {% if gallery.description %}<p class="text-gray-600 text-sm mt-1 max-w-2xl">{{ gallery.description }}</p>{% endif %}
+          </div>
+          <p class="text-sm text-gray-500">{{ gallery.event_date|date('d/m/Y') }} · {{ galleryPhotos|length }} photo{{ galleryPhotos|length > 1 ? 's' : '' }}</p>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {% for photo in galleryPhotos %}
+            <a href="{{ base_path }}{{ photo.image }}" class="group block rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow"
+               data-photo data-full="{{ base_path }}{{ photo.image }}" data-title="{{ photo.title }}" data-date="{{ photo.taken_at|date('d/m/Y') }}">
+              <span class="block overflow-hidden" style="aspect-ratio:4/3;">
+                <img src="{{ base_path }}{{ photo.image }}" alt="{{ photo.title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" decoding="async">
+              </span>
+              <span class="block px-3 py-2.5">
+                <span class="block font-semibold text-sm text-ink truncate">{{ photo.title }}</span>
+                <span class="block text-xs text-gray-500">{{ photo.taken_at|date('d/m/Y') }}</span>
+              </span>
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+    <p class="text-gray-500 text-center py-16" data-gallery-empty hidden>Aucune photo dans cette catégorie pour le moment.</p>
+  {% endif %}
+</section>
+
+<dialog id="gallery-lightbox" class="bg-transparent p-0 max-w-none max-h-none w-full h-full backdrop:bg-black/85">
+  <div class="w-full h-full flex flex-col items-center justify-center gap-3 p-4">
+    <button type="button" data-lightbox-close class="absolute top-4 right-4 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center" aria-label="Fermer">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <button type="button" data-lightbox-prev class="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center" aria-label="Photo précédente">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>
+    </button>
+    <img data-lightbox-img src="" alt="" class="max-w-full rounded-xl object-contain" style="max-height:80vh;">
+    <p data-lightbox-caption class="text-white font-semibold text-sm text-center"></p>
+    <button type="button" data-lightbox-next class="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center" aria-label="Photo suivante">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+    </button>
+  </div>
+</dialog>

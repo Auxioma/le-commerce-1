@@ -1,0 +1,71 @@
+{% set pageSubtitle = (gallery.category_name ? gallery.category_name ~ ' · ' : '') ~ gallery.event_date|date('d/m/Y') ~ ' · ' ~ gallery.photos_count ~ ' photo' ~ (gallery.photos_count > 1 ? 's' : '') ~ (gallery.status != 'active' ? ' · galerie masquée' : '') %}
+{% set pageActions = [
+    {href: base_path ~ '/galerie#album=' ~ gallery.slug, label: 'Voir en ligne', class: 'btn-secondary'},
+    {href: base_path ~ '/admin/galerie/albums/' ~ gallery.id ~ '/modifier', label: 'Modifier la galerie', class: 'btn-secondary'},
+] %}
+{% include 'partials/admin-page-header.twig' %}
+
+<a href="{{ base_path }}/admin/galerie" class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-brand-500 mb-4">
+  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+  Retour aux galeries
+</a>
+
+<!-- Envoi de plusieurs photos -->
+<div class="card card-md mb-6">
+  <h2 class="font-bold text-ink mb-1">Ajouter des photos</h2>
+  <p class="text-sm text-gray-500 mb-4">Sélectionnez une ou plusieurs photos (20 maximum, 5 Mo chacune). Elles prennent la date de la galerie ; légende et date restent modifiables photo par photo.</p>
+  <form method="POST" action="{{ base_path }}/admin/galerie/albums/{{ gallery.id }}/photos" enctype="multipart/form-data" class="grid sm:grid-cols-[1fr_1fr_auto] gap-3 items-end">
+    {{ csrf_field() }}
+    <div>
+      <label class="block text-sm font-semibold text-ink mb-1.5">Photos</label>
+      <input type="file" name="images[]" accept="image/jpeg,image/png,image/webp" multiple required class="form-input">
+    </div>
+    <div>
+      <label class="block text-sm font-semibold text-ink mb-1.5">Légende <span class="text-gray-400 font-normal">(facultatif)</span></label>
+      <input type="text" name="title" maxlength="120" placeholder="{{ gallery.title }}" class="form-input">
+    </div>
+    <button type="submit" class="btn-primary">Envoyer</button>
+  </form>
+</div>
+
+<div class="card overflow-hidden">
+  <div class="px-5 py-4 border-b border-gray-50 flex items-center justify-between gap-3">
+    <h2 class="font-bold text-ink">Photos de la galerie</h2>
+    <a href="{{ base_path }}/admin/galerie/photos/creer?galerie={{ gallery.id }}" class="text-sm font-semibold text-brand-500 hover:underline shrink-0">Ajouter une photo avec légende</a>
+  </div>
+  {% if photos is empty %}
+    <div class="text-center py-16 px-6">
+      <p class="text-gray-500 font-medium">Cette galerie ne contient encore aucune photo.</p>
+      <p class="text-gray-400 text-sm mt-1">Elle n'apparaîtra côté public qu'une fois une photo publiée.</p>
+    </div>
+  {% else %}
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 p-5">
+      {% for photo in photos %}
+        <div class="rounded-2xl border border-gray-100 overflow-hidden bg-white {{ photo.status != 'active' ? 'opacity-60' : '' }}">
+          <div class="relative" style="aspect-ratio:4/3;">
+            <img src="{{ base_path }}{{ photo.image }}" alt="{{ photo.title }}" class="w-full h-full object-cover" loading="lazy">
+            {% if photo.status != 'active' %}
+              <span class="absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/90 text-gray-600">Masquée</span>
+            {% endif %}
+          </div>
+          <div class="p-3">
+            <p class="font-semibold text-ink text-sm truncate">{{ photo.title }}</p>
+            <p class="text-xs text-gray-400">{{ photo.taken_at|date('d/m/Y') }}</p>
+            <div class="flex items-center gap-3 mt-2">
+              <a href="{{ base_path }}/admin/galerie/photos/{{ photo.id }}/modifier" class="text-xs font-bold text-gray-500 hover:text-brand-500">Modifier</a>
+              <form method="POST" action="{{ base_path }}/admin/galerie/photos/{{ photo.id }}/statut" class="inline">
+                {{ csrf_field() }}
+                <button type="submit" class="text-xs font-bold text-gray-500 hover:text-brand-500">{{ photo.status == 'active' ? 'Masquer' : 'Publier' }}</button>
+              </form>
+              <form method="POST" action="{{ base_path }}/admin/galerie/photos/{{ photo.id }}/supprimer" class="inline"
+                    onsubmit="return confirm('Supprimer définitivement cette photo ?');">
+                {{ csrf_field() }}
+                <button type="submit" class="text-xs font-bold text-brand-500 hover:text-brand-600">Supprimer</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>

@@ -63,7 +63,6 @@ class AdminHomeController extends Controller
             'categoryIcons'   => self::CATEGORY_ICON_CHOICES,
             'quickServices'       => HomeQuickService::listAllOrdered(),
             'quickServiceIcons'   => self::QUICK_SERVICE_ICON_CHOICES,
-            'chips' => HomeChip::listAllOrdered(),
         ], 'admin');
     }
 

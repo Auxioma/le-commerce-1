@@ -14,6 +14,7 @@ use App\Controllers\PmuController;
 use App\Controllers\FdjController;
 use App\Controllers\PresseController;
 use App\Controllers\ActualitesController;
+use App\Controllers\GalleryController;
 use App\Controllers\ServicesController;
 use App\Controllers\ContactController;
 use App\Controllers\ReservationController;
@@ -49,6 +50,7 @@ use App\Controllers\Admin\AdminEstablishmentController;
 use App\Controllers\Admin\AdminServiceController;
 use App\Controllers\Admin\AdminNewsController;
 use App\Controllers\Admin\AdminHomeController;
+use App\Controllers\Admin\AdminGalleryController;
 use App\Controllers\Admin\AdminBarController;
 use App\Controllers\Admin\AdminTabacController;
 use App\Controllers\Admin\AdminPmuController;
@@ -73,6 +75,7 @@ $router->get('/presse', PresseController::class, 'index');
 $router->get('/nos-services', ServicesController::class, 'index');
 $router->get('/actualites', ActualitesController::class, 'index');
 $router->get('/actualites/{slug}', ActualitesController::class, 'show');
+$router->get('/galerie', GalleryController::class, 'index');
 $router->get('/contact', ContactController::class, 'index');
 $router->post('/contact', ContactController::class, 'send');
 $router->get('/reservation', ReservationController::class, 'index');
@@ -250,6 +253,30 @@ $router->get('/admin/actualites/{id}/modifier', AdminNewsController::class, 'edi
 $router->post('/admin/actualites/{id}', AdminNewsController::class, 'update');
 $router->post('/admin/actualites/{id}/statut', AdminNewsController::class, 'toggleStatus');
 $router->post('/admin/actualites/{id}/supprimer', AdminNewsController::class, 'destroy');
+
+// --- Galerie photos (carrousel de l'accueil + page /galerie) ---
+$router->get('/admin/galerie', AdminGalleryController::class, 'index');
+// « creer » avant « {id} » : le routeur prend la première route qui correspond.
+$router->get('/admin/galerie/albums/creer', AdminGalleryController::class, 'createAlbum');
+$router->post('/admin/galerie/albums', AdminGalleryController::class, 'storeAlbum');
+$router->get('/admin/galerie/albums/{id}', AdminGalleryController::class, 'showAlbum');
+$router->get('/admin/galerie/albums/{id}/modifier', AdminGalleryController::class, 'editAlbum');
+$router->post('/admin/galerie/albums/{id}', AdminGalleryController::class, 'updateAlbum');
+$router->post('/admin/galerie/albums/{id}/photos', AdminGalleryController::class, 'uploadAlbumPhotos');
+$router->post('/admin/galerie/albums/{id}/statut', AdminGalleryController::class, 'toggleAlbum');
+$router->post('/admin/galerie/albums/{id}/supprimer', AdminGalleryController::class, 'destroyAlbum');
+$router->get('/admin/galerie/photos/creer', AdminGalleryController::class, 'createPhoto');
+$router->post('/admin/galerie/photos', AdminGalleryController::class, 'storePhoto');
+$router->get('/admin/galerie/photos/{id}/modifier', AdminGalleryController::class, 'editPhoto');
+$router->post('/admin/galerie/photos/{id}', AdminGalleryController::class, 'updatePhoto');
+$router->post('/admin/galerie/photos/{id}/statut', AdminGalleryController::class, 'togglePhoto');
+$router->post('/admin/galerie/photos/{id}/supprimer', AdminGalleryController::class, 'destroyPhoto');
+$router->get('/admin/galerie/categories/creer', AdminGalleryController::class, 'createCategory');
+$router->post('/admin/galerie/categories', AdminGalleryController::class, 'storeCategory');
+$router->get('/admin/galerie/categories/{id}/modifier', AdminGalleryController::class, 'editCategory');
+$router->post('/admin/galerie/categories/{id}', AdminGalleryController::class, 'updateCategory');
+$router->post('/admin/galerie/categories/{id}/statut', AdminGalleryController::class, 'toggleCategory');
+$router->post('/admin/galerie/categories/{id}/supprimer', AdminGalleryController::class, 'destroyCategory');
 
 // --- Offres & Avantages (Lot 6) ---
 $router->get('/admin/offres', AdminOfferController::class, 'index');

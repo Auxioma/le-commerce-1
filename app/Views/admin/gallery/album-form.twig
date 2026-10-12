@@ -1,0 +1,70 @@
+{% set isEdit = gallery is not null %}
+{% set pageSubtitle = isEdit ? 'Modifiez les informations de la galerie.' : 'Créez la galerie, vous pourrez ensuite y envoyer vos photos.' %}
+{% set pageActions = [] %}
+{% include 'partials/admin-page-header.twig' %}
+
+{% set v = {
+    title: old.title ?? (isEdit ? gallery.title : ''),
+    description: old.description ?? (isEdit ? gallery.description : ''),
+    event_date: old.event_date ?? (isEdit ? gallery.event_date : ''),
+    category_id: old.category_id is defined ? old.category_id : (isEdit ? gallery.category_id : null),
+    publish: old.publish ?? (isEdit ? gallery.status == 'active' : true),
+} %}
+
+<div class="max-w-2xl">
+  <a href="{{ base_path }}/admin/galerie{{ isEdit ? '/albums/' ~ gallery.id : '' }}" class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-brand-500 mb-4">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+    {{ isEdit ? 'Retour à la galerie' : 'Retour aux galeries' }}
+  </a>
+
+  <div class="card card-md sm:p-8">
+    <form method="POST" action="{{ base_path }}/admin/galerie/albums{{ isEdit ? '/' ~ gallery.id : '' }}" class="space-y-5">
+      {{ csrf_field() }}
+
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Titre de la galerie</label>
+        <input type="text" name="title" required maxlength="120" value="{{ v.title }}" placeholder="Ex : Soirée match OM - PSG"
+               class="form-input {{ errors.title is defined ? 'border-brand-400' : '' }}">
+        {% if errors.title is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.title }}</p>{% endif %}
+      </div>
+
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="block text-sm font-semibold text-ink">Catégorie</label>
+            <a href="{{ base_path }}/admin/galerie/categories/creer" class="text-xs font-semibold text-brand-500 hover:underline">+ Nouvelle catégorie</a>
+          </div>
+          <select name="category_id" class="form-input {{ errors.category_id is defined ? 'border-brand-400' : '' }}">
+            <option value="">— Aucune (visible dans « Tous ») —</option>
+            {% for category in categories %}
+              <option value="{{ category.id }}" {{ v.category_id == category.id ? 'selected' : '' }}>{{ category.name }}{{ category.status != 'active' ? ' (inactive)' : '' }}</option>
+            {% endfor %}
+          </select>
+          {% if errors.category_id is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.category_id }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-ink mb-1.5">Date</label>
+          <input type="date" name="event_date" required value="{{ v.event_date }}"
+                 class="form-input {{ errors.event_date is defined ? 'border-brand-400' : '' }}">
+          {% if errors.event_date is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.event_date }}</p>{% endif %}
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Description <span class="text-gray-400 font-normal">(facultatif)</span></label>
+        <textarea name="description" rows="2" maxlength="300" placeholder="Une phrase affichée en haut de la galerie"
+                  class="form-textarea {{ errors.description is defined ? 'border-brand-400' : '' }}">{{ v.description }}</textarea>
+        {% if errors.description is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.description }}</p>{% endif %}
+      </div>
+
+      <label class="flex items-center gap-2.5 text-sm text-gray-600 bg-gray-50 rounded-2xl px-4 py-3">
+        <input type="checkbox" name="publish" value="1" {{ v.publish ? 'checked' : '' }} class="rounded border-gray-300 text-brand-500 focus:ring-brand-500/30">
+        Publier la galerie (visible dès qu'elle contient une photo publiée)
+      </label>
+
+      <button type="submit" class="btn-primary w-full">
+        {{ isEdit ? 'Enregistrer les modifications' : 'Créer la galerie' }}
+      </button>
+    </form>
+  </div>
+</div>

@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initMobileMenu();
   initAdminMobileSidebar();
   initAdminSidebarCollapse();
+  initAdminSidebarAccordion();
   initWeatherWidget();
   initChatChips();
   initChatFab();
@@ -15,6 +16,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initEventTracking();
   initScrollReveal();
   initImagePreview();
+  initGalleryCarousel();
+  initGalleryPage();
 });
 
 /**
@@ -151,6 +154,21 @@ function initAdminSidebarCollapse() {
     const collapsed = !sidebar.classList.contains('sidebar-collapsed');
     applyState(collapsed);
     localStorage.setItem(storageKey, collapsed ? '1' : '0');
+  });
+}
+
+/** Groupes de la sidebar admin en accordéon : ouvrir un groupe referme celui déjà ouvert. */
+function initAdminSidebarAccordion() {
+  const groups = [...document.querySelectorAll('#admin-sidebar details.sidebar-group')];
+  groups.forEach((group) => {
+    // Au clic sur le titre d'un groupe fermé (donc sur le point de s'ouvrir),
+    // on referme les autres tout de suite.
+    group.querySelector(':scope > summary')?.addEventListener('click', () => {
+      if (group.open) return;
+      groups.forEach((other) => {
+        if (other !== group) other.open = false;
+      });
+    });
   });
 }
 
@@ -379,5 +397,158 @@ function initEventTracking() {
   });
   document.querySelectorAll('a[href^="tel:"]').forEach((link) => {
     link.addEventListener('click', () => trackEvent('click_phone', { page: location.pathname }));
+  });
+}
+
+/**
+ * Filtre une galerie : active le bouton `[data-filter]` choisi et masque les
+ * `[data-category]` qui n'appartiennent pas à la catégorie ("all" = tout).
+ * Renvoie le nombre de photos restées visibles.
+ */
+function applyGalleryFilter(root, filter) {
+  root.querySelectorAll('[data-filter]').forEach((btn) => {
+    const active = btn.dataset.filter === filter;
+    btn.classList.toggle('is-active', active);
+    btn.setAttribute('aria-selected', active ? 'true' : 'false');
+  });
+  let visible = 0;
+  root.querySelectorAll('[data-category]').forEach((item) => {
+    item.hidden = filter !== 'all' && item.dataset.category !== filter;
+    if (!item.hidden) visible++;
+  });
+  const empty = root.querySelector('[data-gallery-empty]');
+  if (empty) empty.hidden = visible > 0;
+  return visible;
+}
+
+/** Carrousel « Le Commerce en images » de l'accueil : flèches, pastilles et filtres. */
+function initGalleryCarousel() {
+  document.querySelectorAll('[data-gallery]').forEach((root) => {
+    const track = root.querySelector('[data-gallery-track]');
+    if (!track) return;
+    const prev = root.querySelector('[data-gallery-prev]');
+    const next = root.querySelector('[data-gallery-next]');
+    const dots = root.querySelector('[data-gallery-dots]');
+    const gap = () => parseFloat(getComputedStyle(track).columnGap) || 0;
+    const pageWidth = () => track.clientWidth + gap();
+    const pageCount = () => Math.max(1, Math.ceil((track.scrollWidth + gap()) / pageWidth() - 0.01));
+    const goTo = (page) => track.scrollTo({ left: page * pageWidth() });
+
+    const update = () => {
+      const maxScroll = track.scrollWidth - track.clientWidth;
+      const current = track.scrollLeft >= maxScroll - 1 ? pageCount() - 1 : Math.round(track.scrollLeft / pageWidth());
+      if (prev) prev.disabled = track.scrollLeft <= 1;
+      if (next) next.disabled = track.scrollLeft >= maxScroll - 1;
+      dots?.querySelectorAll('.gallery-dot').forEach((dot, i) => dot.classList.toggle('is-active', i === current));
+    };
+
+    const buildDots = () => {
+      if (!dots) return;
+      const count = pageCount();
+      dots.innerHTML = '';
+      if (count > 1) {
+        for (let i = 0; i < count; i++) {
+          const dot = document.createElement('button');
+          dot.type = 'button';
+          dot.className = 'gallery-dot';
+          dot.setAttribute('aria-label', `Page ${i + 1}`);
+          dot.addEventListener('click', () => goTo(i));
+          dots.appendChild(dot);
+        }
+      }
+      update();
+    };
+
+    prev?.addEventListener('click', () => track.scrollBy({ left: -pageWidth() }));
+    next?.addEventListener('click', () => track.scrollBy({ left: pageWidth() }));
+
+    let ticking = false;
+    track.addEventListener('scroll', () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => { update(); ticking = false; });
+    }, { passive: true });
+
+    root.querySelectorAll('[data-filter]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        applyGalleryFilter(root, btn.dataset.filter);
+        track.scrollTo({ left: 0, behavior: 'instant' });
+        buildDots();
+      });
+    });
+
+    window.addEventListener('resize', buildDots);
+    buildDots();
+  });
+}
+
+/**
+ * Page /galerie, dynamique (pas de rechargement) :
+ * - un clic sur une catégorie n'affiche que les images de cette catégorie (#categorie=slug) ;
+ * - #album=slug (lien depuis l'accueil) fait défiler jusqu'à la galerie concernée ;
+ * - un clic sur une photo l'ouvre en plein écran (flèches clavier, Échap).
+ */
+function initGalleryPage() {
+  const root = document.querySelector('[data-gallery-page]');
+  if (!root) return;
+
+  const setFilter = (filter) => {
+    if (!root.querySelector(`[data-filter="${CSS.escape(filter)}"]`)) filter = 'all';
+    applyGalleryFilter(root, filter);
+  };
+
+  const route = () => {
+    const match = location.hash.slice(1).match(/^(categorie|album)=(.+)$/);
+    const value = match ? decodeURIComponent(match[2]) : null;
+    if (match && match[1] === 'album') {
+      setFilter('all');
+      document.getElementById(`album-${value}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      setFilter(match ? value : 'all');
+    }
+  };
+
+  root.querySelectorAll('[data-filter]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const filter = btn.dataset.filter;
+      history.replaceState(null, '', filter === 'all' ? location.pathname + location.search : `#categorie=${filter}`);
+      setFilter(filter);
+    });
+  });
+  window.addEventListener('hashchange', route);
+  route();
+
+  const dialog = document.getElementById('gallery-lightbox');
+  if (!dialog || typeof dialog.showModal !== 'function') return;
+  const img = dialog.querySelector('[data-lightbox-img]');
+  const caption = dialog.querySelector('[data-lightbox-caption]');
+  let index = 0;
+  // Photos actuellement visibles (celles de la catégorie choisie), dans l'ordre de la page.
+  const photos = () => [...root.querySelectorAll('[data-photo]')].filter((p) => !p.closest('[hidden]'));
+
+  const show = (i) => {
+    const items = photos();
+    if (!items.length) return;
+    index = (i + items.length) % items.length;
+    const item = items[index];
+    img.src = item.dataset.full;
+    img.alt = item.dataset.title;
+    caption.textContent = `${item.dataset.title} — ${item.dataset.date}`;
+  };
+
+  root.querySelectorAll('[data-photo]').forEach((item) => {
+    item.addEventListener('click', (e) => {
+      e.preventDefault();
+      show(photos().indexOf(item));
+      dialog.showModal();
+    });
+  });
+  dialog.querySelector('[data-lightbox-prev]')?.addEventListener('click', () => show(index - 1));
+  dialog.querySelector('[data-lightbox-next]')?.addEventListener('click', () => show(index + 1));
+  dialog.querySelector('[data-lightbox-close]')?.addEventListener('click', () => dialog.close());
+  dialog.addEventListener('click', (e) => { if (e.target === dialog) dialog.close(); });
+  dialog.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') show(index - 1);
+    if (e.key === 'ArrowRight') show(index + 1);
   });
 }

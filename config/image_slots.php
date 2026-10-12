@@ -26,6 +26,7 @@ return [
         'hero_fdj'      => ['label' => 'Page FDJ', 'default' => 'https://images.unsplash.com/photo-1528605248644-14dd04022da1?q=80&auto=format&fit=crop&w=1600'],
         'hero_presse'   => ['label' => 'Page Presse', 'default' => 'https://images.unsplash.com/photo-1528605248644-14dd04022da1?q=80&auto=format&fit=crop&w=1600'],
         'hero_services'   => ['label' => 'Page Nos Services', 'default' => 'https://images.unsplash.com/photo-1528605248644-14dd04022da1?q=80&auto=format&fit=crop&w=1600'],
+        'hero_galerie'    => ['label' => 'Page Galerie photos', 'default' => 'https://images.unsplash.com/photo-1528605248644-14dd04022da1?q=80&auto=format&fit=crop&w=1600'],
         'hero_actualites' => ['label' => 'Page Actualités', 'default' => 'https://images.unsplash.com/photo-1528605248644-14dd04022da1?q=80&auto=format&fit=crop&w=1600'],
         'hero_contact'    => ['label' => 'Page Contact', 'default' => 'https://images.unsplash.com/photo-1528605248644-14dd04022da1?q=80&auto=format&fit=crop&w=1600'],
     ],

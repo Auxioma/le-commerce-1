@@ -1,5 +1,5 @@
 {% set pageTitle = 'Page principale' %}
-{% set pageSubtitle = "Gérez tous les textes, catégories et listes affichés sur la page d'accueil publique (/). Les photos se gèrent depuis Contenu du site." %}
+{% set pageSubtitle = "Gérez tous les textes, catégories et listes affichés sur la page d'accueil publique (/). Les photos se gèrent depuis Mon site › Image du site." %}
 {% set pageActions = [
     {href: base_path ~ '/admin/images', label: 'Photos du site', class: 'btn-secondary'},
     {href: base_path ~ '/', label: 'Voir la page publique', class: 'btn-primary'},
@@ -262,7 +262,7 @@
 <div class="card overflow-hidden mb-6">
   <div class="px-5 py-4 border-b border-gray-50">
     <h2 class="font-bold text-ink">Rangée d'informations</h2>
-    <p class="text-sm text-gray-500 mt-0.5">Avis Google, bons plans, météo et assistant.</p>
+    <p class="text-sm text-gray-500 mt-0.5">Avis Google, bons plans, météo et galerie photos.</p>
   </div>
   <form method="POST" action="{{ base_path }}/admin/page-principale/contenu" class="p-5 space-y-6">
     {{ csrf_field() }}
@@ -316,67 +316,24 @@
     </div>
 
     <div class="border-t border-gray-100 pt-5">
-      <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Assistant</p>
+      <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Le Commerce en images</p>
       <div class="grid sm:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-semibold text-ink mb-1.5">Titre</label>
-          <input type="text" name="home_assistant_title" value="{{ content.home_assistant_title }}" class="form-input">
+          <input type="text" name="home_gallery_title" value="{{ content.home_gallery_title }}" class="form-input">
         </div>
         <div>
-          <label class="block text-sm font-semibold text-ink mb-1.5">Texte du champ de saisie</label>
-          <input type="text" name="home_assistant_placeholder" value="{{ content.home_assistant_placeholder }}" class="form-input">
+          <label class="block text-sm font-semibold text-ink mb-1.5">Texte du bouton</label>
+          <input type="text" name="home_gallery_button_label" value="{{ content.home_gallery_button_label }}" class="form-input">
         </div>
       </div>
       <div class="mt-4">
-        <label class="block text-sm font-semibold text-ink mb-1.5">Message d'accueil <span class="text-gray-400 font-normal">(HTML autorisé)</span></label>
-        <textarea name="home_assistant_greeting" rows="2" class="form-textarea">{{ content.home_assistant_greeting }}</textarea>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Sous-titre</label>
+        <input type="text" name="home_gallery_subtitle" value="{{ content.home_gallery_subtitle }}" class="form-input">
       </div>
+      <p class="text-xs text-gray-400 mt-2">Les photos et les filtres se gèrent depuis <a href="{{ base_path }}/admin/galerie" class="text-brand-500 font-semibold hover:underline">Galerie photos</a>.</p>
     </div>
 
     <button type="submit" class="btn-primary">Enregistrer la rangée d'informations</button>
   </form>
-</div>
-
-<!-- =====================  SUGGESTIONS ASSISTANT  ===================== -->
-<div class="card overflow-hidden max-w-2xl">
-  <div class="px-5 py-4 border-b border-gray-50 flex items-center justify-between gap-3">
-    <div>
-      <h2 class="font-bold text-ink">Suggestions de l'assistant</h2>
-      <p class="text-sm text-gray-500 mt-0.5">Bulles cliquables proposées sous le message d'accueil.</p>
-    </div>
-    <a href="{{ base_path }}/admin/page-principale/suggestions/creer" class="btn-primary shrink-0">Ajouter une suggestion</a>
-  </div>
-  {% if chips is empty %}
-    <div class="text-center py-16 px-6">
-      <p class="text-gray-500 font-medium mb-1">Aucune suggestion pour le moment.</p>
-      <a href="{{ base_path }}/admin/page-principale/suggestions/creer" class="text-brand-500 text-sm font-semibold hover:underline">Ajouter votre première suggestion</a>
-    </div>
-  {% else %}
-    <ul class="divide-y divide-gray-50">
-      {% for chip in chips %}
-        <li class="flex items-center justify-between gap-3 px-5 py-3">
-          <div class="flex items-center gap-3">
-            <p class="font-semibold text-ink text-sm">{{ chip.label }}</p>
-            {% if chip.status != 'active' %}
-              <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Inactive</span>
-            {% endif %}
-          </div>
-          <div class="inline-flex items-center gap-3 shrink-0">
-            <a href="{{ base_path }}/admin/page-principale/suggestions/{{ chip.id }}/modifier" class="text-xs font-bold text-gray-500 hover:text-brand-500">Modifier</a>
-            <form method="POST" action="{{ base_path }}/admin/page-principale/suggestions/{{ chip.id }}/statut" class="inline">
-              {{ csrf_field() }}
-              <button type="submit" class="text-xs font-bold text-gray-500 hover:text-brand-500">
-                {{ chip.status == 'active' ? 'Désactiver' : 'Activer' }}
-              </button>
-            </form>
-            <form method="POST" action="{{ base_path }}/admin/page-principale/suggestions/{{ chip.id }}/supprimer" class="inline"
-                  onsubmit="return confirm('Supprimer définitivement cette suggestion ?');">
-              {{ csrf_field() }}
-              <button type="submit" class="text-xs font-bold text-brand-500 hover:text-brand-600">Supprimer</button>
-            </form>
-          </div>
-        </li>
-      {% endfor %}
-    </ul>
-  {% endif %}
 </div>

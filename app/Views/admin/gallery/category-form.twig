@@ -1,0 +1,45 @@
+{% set isEdit = category is not null %}
+{% set pageSubtitle = 'Les catégories regroupent vos galeries et servent de filtres côté public (accueil et /galerie).' %}
+{% set pageActions = [] %}
+{% include 'partials/admin-page-header.twig' %}
+
+{% set v = {
+    name: old.name ?? (isEdit ? category.name : ''),
+    display_order: old.display_order ?? (isEdit ? category.display_order : 0),
+    active: old.active ?? (isEdit ? category.status == 'active' : true),
+} %}
+
+<div class="max-w-xl">
+  <a href="{{ base_path }}/admin/galerie" class="inline-flex items-center gap-1.5 text-sm font-semibold text-gray-500 hover:text-brand-500 mb-4">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+    Retour à la galerie
+  </a>
+
+  <div class="card card-md sm:p-8">
+    <form method="POST" action="{{ base_path }}/admin/galerie/categories{{ isEdit ? '/' ~ category.id : '' }}" class="space-y-5">
+      {{ csrf_field() }}
+
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Nom</label>
+        <input type="text" name="name" required maxlength="60" value="{{ v.name }}" placeholder="Ex : Soirées"
+               class="form-input {{ errors.name is defined ? 'border-brand-400' : '' }}">
+        {% if errors.name is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.name }}</p>{% endif %}
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Ordre d'affichage</label>
+        <input type="number" name="display_order" min="0" value="{{ v.display_order }}" class="form-input">
+        <p class="text-xs text-gray-400 mt-1">Les plus petits numéros s'affichent en premier.</p>
+      </div>
+
+      <label class="flex items-center gap-2.5 text-sm text-gray-600 bg-gray-50 rounded-2xl px-4 py-3">
+        <input type="checkbox" name="active" value="1" {{ v.active ? 'checked' : '' }} class="rounded border-gray-300 text-brand-500 focus:ring-brand-500/30">
+        Afficher ce filtre côté public
+      </label>
+
+      <button type="submit" class="btn-primary w-full">
+        {{ isEdit ? 'Enregistrer les modifications' : 'Ajouter la catégorie' }}
+      </button>
+    </form>
+  </div>
+</div>

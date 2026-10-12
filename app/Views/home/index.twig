@@ -182,26 +182,60 @@
       <p class="text-slate-500 mt-auto" style="font-size:12.5px; line-height:1.6;">{{ content.home_weather_footer_text }}</p>
     </div>
 
-    <!-- Assistant -->
-    <div class="reveal rounded-xl p-5 flex flex-col shadow-sm" style="background:#f7f7f6; transition-delay:240ms;">
-      <div class="flex items-center gap-2 mb-3">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M4 4h16v11H8l-4 4V4z" fill="#c8272c"/></svg>
-        <h3 class="font-extrabold text-ink" style="font-size:14px;">{{ content.home_assistant_title }}</h3>
+    <!-- Le Commerce en images -->
+    {% set galleryPhotos = galleryPhotos|default([]) %}
+    {% set galleryCategories = galleryCategories|default([]) %}
+    <div class="reveal rounded-xl p-5 flex flex-col shadow-sm min-w-0" data-gallery style="background:#f7f7f6; transition-delay:240ms;">
+      <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
+        <div class="flex items-center gap-3 min-w-0">
+          <span class="shrink-0 flex items-center justify-center rounded-xl" style="width:42px; height:42px; border:2px solid #c8272c; color:#c8272c;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+          </span>
+          <div class="min-w-0">
+            <h3 class="font-extrabold text-ink leading-tight" style="font-size:14px;">{{ content.home_gallery_title }}</h3>
+            <p class="text-slate-500" style="font-size:12.5px;">{{ content.home_gallery_subtitle }}</p>
+          </div>
+        </div>
+        {% if galleryCategories is not empty %}
+          <div class="flex flex-wrap gap-1.5" role="tablist" aria-label="Filtrer les photos">
+            <button type="button" class="gallery-filter is-active" data-filter="all" role="tab" aria-selected="true">Tous</button>
+            {% for category in galleryCategories %}
+              <button type="button" class="gallery-filter" data-filter="{{ category.slug }}" role="tab" aria-selected="false">{{ category.name }}</button>
+            {% endfor %}
+          </div>
+        {% endif %}
       </div>
-      <div class="bg-white rounded-xl p-3 mb-3 self-start" style="font-size:13px; color:#2a2a2a; line-height:1.6; max-width:80%;">{{ content.home_assistant_greeting|raw }}</div>
-      <div class="flex flex-wrap gap-2 mb-3">
-        {% for suggestion in chips %}
-          <button type="button" class="chat-chip bg-white border border-gray-200 rounded-full transition-colors hover:border-brand-500 hover:text-brand-500" style="font-size:11.5px; font-weight:600; padding:8px 14px;">
-            {{ suggestion.label }}
+
+      {% if galleryPhotos is empty %}
+        <p class="text-slate-400 flex-1 text-sm">Aucune photo pour le moment.</p>
+      {% else %}
+        <div class="relative flex-1">
+          <button type="button" class="gallery-nav" data-gallery-prev aria-label="Photos précédentes" style="left:-6px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="#c8272c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
-        {% endfor %}
-      </div>
-      <form id="assistant-form" class="flex items-center bg-white border border-gray-200 rounded-full mt-auto" style="padding:10px 14px; gap:10px;">
-        <input type="text" placeholder="{{ content.home_assistant_placeholder }}" class="flex-1 min-w-0 focus:outline-none text-ink placeholder-gray-400" style="font-size:12.5px; background:transparent; border:none;">
-        <button type="submit" class="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-white transition-opacity hover:opacity-90" style="background:#c8272c;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M2 21l20-9L2 3v7l14 2-14 2v7z" fill="white"/></svg>
-        </button>
-      </form>
+          <div class="gallery-track" data-gallery-track>
+            {% for photo in galleryPhotos %}
+              <a href="{{ base_path }}/galerie#album={{ photo.gallery_slug }}" class="gallery-item group" data-category="{{ photo.category_slug|default('') }}">
+                <span class="block overflow-hidden rounded-md" style="aspect-ratio:1/1;">
+                  <img src="{{ base_path }}{{ photo.image }}" alt="{{ photo.title }}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" decoding="async">
+                </span>
+                <span class="block text-center font-bold text-ink truncate mt-1.5" style="font-size:11.5px;">{{ photo.title }}</span>
+                <span class="block text-center text-slate-500" style="font-size:10.5px;">{{ photo.taken_at|date('d/m/Y') }}</span>
+              </a>
+            {% endfor %}
+          </div>
+          <button type="button" class="gallery-nav" data-gallery-next aria-label="Photos suivantes" style="right:-6px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="#c8272c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+        <p class="text-slate-400 text-sm text-center py-6" data-gallery-empty hidden>Aucune photo dans cette catégorie.</p>
+        <div class="flex justify-center gap-1.5 mt-3" data-gallery-dots></div>
+      {% endif %}
+
+      <a href="{{ base_path }}/galerie" class="flex items-center justify-center gap-2 text-white font-bold rounded-lg py-3 mt-3 transition-opacity hover:opacity-90" style="background:#c8272c; font-size:12.5px;">
+        {{ content.home_gallery_button_label }}
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
     </div>
 
   </div>
