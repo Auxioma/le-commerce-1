@@ -135,6 +135,8 @@
                   {% endif %}
                   {% if 'email' in lChannels %}
                     <p>✉️ E-mail : <strong>{{ l.email_recipients_count ?? 0 }}</strong></p>
+                    {% set sentCount = l.email_recipients_count ?? 0 %}
+                    <p class="text-gray-500">👁️ Ouvert par <strong>{{ l.email_opens_count }}</strong>{% if sentCount > 0 %} ({{ (l.email_opens_count * 100 / sentCount)|round }} %){% endif %}</p>
                   {% endif %}
                   {% set lSegments = l.announce_segments ? l.announce_segments|split(',') : ['tous'] %}
                   <p class="text-gray-400 mt-0.5">

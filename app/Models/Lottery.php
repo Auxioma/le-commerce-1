@@ -12,12 +12,15 @@ class Lottery extends Model
     protected static bool $softDeletes = true;
 
     /**
-     * Liste des loteries avec le nombre de participations et, si tirée,
+     * Liste des loteries avec le nombre de participations, le nombre de
+     * clients ayant ouvert l'e-mail d'annonce et, si tirée,
      * le nom du gagnant.
      */
     public static function listWithStats(?string $status = null): array
     {
-        $sql = "SELECT l.*, COUNT(e.id) AS entries_count, w.first_name AS winner_first_name, w.last_name AS winner_last_name
+        $sql = "SELECT l.*, COUNT(e.id) AS entries_count,
+                       (SELECT COUNT(*) FROM lottery_email_opens o WHERE o.lottery_id = l.id) AS email_opens_count,
+                       w.first_name AS winner_first_name, w.last_name AS winner_last_name
                 FROM lotteries l
                 LEFT JOIN lottery_entries e ON e.lottery_id = l.id
                 LEFT JOIN users w ON w.id = l.winner_user_id

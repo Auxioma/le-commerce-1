@@ -135,6 +135,7 @@ final class LotteryAnnouncementService
                     'lottery'        => $lottery,
                     'lotteryUrl'     => $lotteryUrl,
                     'unsubscribeUrl' => self::unsubscribeUrl($siteUrl, (int) $client['id']),
+                    'trackingUrl'    => self::trackingUrl($siteUrl, (int) $lottery['id'], (int) $client['id']),
                 ]);
                 $sent = $mailer->send((string) $client['email'], 'Nouvelle loterie : ' . $lottery['prize'] . ' à gagner !', $html);
                 $sent ? $result['emailSent']++ : $result['emailFailed']++;
@@ -142,6 +143,24 @@ final class LotteryAnnouncementService
         }
 
         return $result;
+    }
+
+    // --- Suivi des ouvertures de l'e-mail (pixel) -----------------------
+
+    public static function trackingUrl(string $siteUrl, int $lotteryId, int $userId): string
+    {
+        return $siteUrl . '/email/ouverture/' . $lotteryId . '/' . $userId . '/' . self::trackingToken($lotteryId, $userId) . '.gif';
+    }
+
+    public static function isValidTrackingToken(int $lotteryId, int $userId, string $token): bool
+    {
+        return hash_equals(self::trackingToken($lotteryId, $userId), $token);
+    }
+
+    private static function trackingToken(int $lotteryId, int $userId): string
+    {
+        $key = (string) (getenv('APP_KEY') ?: 'le-commerce');
+        return substr(hash_hmac('sha256', 'email-open:' . $lotteryId . ':' . $userId, $key), 0, 32);
     }
 
     // --- Désinscription des e-mails commerciaux --------------------------
