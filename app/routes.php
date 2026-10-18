@@ -289,6 +289,7 @@ $router->get('/admin/offres/creer', AdminOfferController::class, 'create');
 $router->post('/admin/offres', AdminOfferController::class, 'store');
 $router->post('/admin/offres/generer', AdminOfferController::class, 'generateCode');
 $router->post('/admin/offres/envoyer', AdminOfferController::class, 'sendToClient');
+$router->post('/admin/offres/diffuser', AdminOfferController::class, 'broadcast');
 $router->post('/admin/offres/{id}/statut', AdminOfferController::class, 'toggleStatus');
 $router->get('/admin/offres/{id}/modifier', AdminOfferController::class, 'edit');
 $router->post('/admin/offres/{id}', AdminOfferController::class, 'update');
@@ -343,6 +344,7 @@ $router->post('/admin/images/{slug}/supprimer', AdminImageController::class, 'de
 // --- Messages (boîte de réception omnicanale : contact, SMS, WhatsApp) ---
 $router->get('/admin/messages', AdminMessageController::class, 'index');
 $router->post('/admin/messages/nouveau', AdminMessageController::class, 'newConversation');
+$router->post('/admin/messages/supprimer', AdminMessageController::class, 'delete');
 $router->post('/admin/messages/whatsapp/{userId}', AdminMessageController::class, 'sendWhatsapp');
 $router->post('/admin/messages/sms/{userId}', AdminMessageController::class, 'sendSms');
 $router->post('/admin/messages/contact/{id}/lu', AdminMessageController::class, 'toggleContactRead');

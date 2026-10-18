@@ -90,6 +90,109 @@ final class SmsCampaignService
     }
 
     /**
+     * Annonce par SMS un nouveau sondage aux clients donnés, avec le lien
+     * pour voter (suivi des clics par AllMySms).
+     *
+     * @param list<array> $clients destinataires (lignes users, avec un numéro)
+     * @return array{campaignId:?string, nbSms:int, nbContacts:int, scheduledAt:?string}|null null si l'API n'est pas configurée, sans destinataire, ou en cas d'échec.
+     */
+    public function announcePoll(array $poll, string $pollUrl, array $clients): ?array
+    {
+        if ($this->client === null) {
+            return null;
+        }
+
+        $recipients = [];
+        foreach ($clients as $client) {
+            $phone = trim((string) ($client['phone_whatsapp'] ?? ''));
+            if ($phone !== '') {
+                $recipients[] = ['phone' => $phone, 'firstName' => (string) $client['first_name']];
+            }
+        }
+        if ($recipients === []) {
+            return null;
+        }
+
+        $question = $poll['question'];
+        if (mb_strlen($question) > self::MAX_PRIZE_LENGTH) {
+            $question = mb_substr($question, 0, self::MAX_PRIZE_LENGTH - 3) . '...';
+        }
+
+        $message = sprintf(
+            'Bonjour #param_1# ! Le Commerce veut votre avis : %s Votez ici : %s STOP au 36180',
+            $question,
+            $pollUrl
+        );
+
+        $scheduledAt = $this->nextAllowedSendTime();
+
+        $result = $this->client->sendCampaign(
+            $message,
+            $recipients,
+            'Sondage #' . $poll['id'] . ' - ' . mb_substr($poll['question'], 0, 50),
+            $scheduledAt
+        );
+
+        if ($result === null || empty($result['campaignId'])) {
+            return null;
+        }
+
+        return [
+            'campaignId'  => $result['campaignId'],
+            'nbSms'       => $result['nbSms'],
+            'nbContacts'  => $result['nbContacts'],
+            'scheduledAt' => $scheduledAt,
+        ];
+    }
+
+    /**
+     * Envoie par SMS une offre aux clients donnés, chacun avec son propre
+     * code (variable dynamique #param_2#) à présenter en caisse, et le lien
+     * vers son espace « Mes offres ».
+     *
+     * @param list<array{phone:string, firstName:string, code:string}> $recipients
+     * @return array{campaignId:?string, nbSms:int, nbContacts:int, scheduledAt:?string}|null null si l'API n'est pas configurée, sans destinataire, ou en cas d'échec.
+     */
+    public function sendOffer(array $offer, string $offersUrl, array $recipients): ?array
+    {
+        if ($this->client === null || $recipients === []) {
+            return null;
+        }
+
+        $title = $offer['title'];
+        if (mb_strlen($title) > self::MAX_PRIZE_LENGTH) {
+            $title = mb_substr($title, 0, self::MAX_PRIZE_LENGTH - 3) . '...';
+        }
+
+        $message = sprintf(
+            'Bonjour #param_1# ! Le Commerce vous offre : %s, valable jusqu\'au %s. Votre code : #param_2# a presenter en caisse. Vos offres : %s STOP au 36180',
+            $title,
+            date('d/m/Y', strtotime($offer['valid_until'])),
+            $offersUrl
+        );
+
+        $scheduledAt = $this->nextAllowedSendTime();
+
+        $result = $this->client->sendCampaign(
+            $message,
+            array_map(static fn(array $r) => ['phone' => $r['phone'], 'firstName' => $r['firstName'], 'params' => [$r['code']]], $recipients),
+            'Offre #' . $offer['id'] . ' - ' . $offer['title'],
+            $scheduledAt
+        );
+
+        if ($result === null || empty($result['campaignId'])) {
+            return null;
+        }
+
+        return [
+            'campaignId'  => $result['campaignId'],
+            'nbSms'       => $result['nbSms'],
+            'nbContacts'  => $result['nbContacts'],
+            'scheduledAt' => $scheduledAt,
+        ];
+    }
+
+    /**
      * L'envoi de SMS commerciaux est interdit en France entre 20h00 et 8h00
      * du lundi au samedi, ainsi que toute la journée le dimanche (sanctions
      * légales en cas de non-respect, cf. doc. AllMySms). Si une loterie est

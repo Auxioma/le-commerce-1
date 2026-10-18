@@ -41,6 +41,27 @@ class User extends Model
         'autre'               => 'Autre',
     ];
 
+    /** Téléphone attribué à tous les clients supprimés (anonymisés). */
+    public const ANONYMIZED_PHONE = '00 00 00 00 00';
+
+    /**
+     * Supprime un client en l'anonymisant : e-mail remplacé par une adresse
+     * aléatoire non routable (domaine réservé .invalid) et téléphone par
+     * ANONYMIZED_PHONE. Le numéro et l'e-mail d'origine redeviennent ainsi
+     * libres pour une nouvelle inscription.
+     */
+    public static function anonymizeAndDelete(int $id): bool
+    {
+        $stmt = self::db()->prepare(
+            'UPDATE users SET email = :email, phone_whatsapp = :phone, deleted_at = NOW() WHERE id = :id'
+        );
+        return $stmt->execute([
+            'email' => 'anonyme-' . bin2hex(random_bytes(8)) . '@anonyme.invalid',
+            'phone' => self::ANONYMIZED_PHONE,
+            'id'    => $id,
+        ]);
+    }
+
     public static function findByPhone(string $phone): ?array
     {
         $stmt = self::db()->prepare('SELECT * FROM users WHERE phone_whatsapp = :phone AND deleted_at IS NULL LIMIT 1');

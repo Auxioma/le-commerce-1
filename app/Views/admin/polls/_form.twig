@@ -78,11 +78,16 @@
   </div>
 
   <label class="flex items-center gap-2.5 text-sm text-gray-600 bg-gray-50 rounded-lg px-4 py-3">
-    <input type="checkbox" name="publish" value="1" {{ old.publish|default(true) ? 'checked' : '' }} class="rounded border-gray-300 text-brand-500 focus:ring-brand-500/30">
+    <input type="checkbox" name="publish" value="1" {{ old.publish|default(true) ? 'checked' : '' }} data-announce-publish class="rounded border-gray-300 text-brand-500 focus:ring-brand-500/30">
     Publier immédiatement (sinon le sondage est enregistré comme programmé)
   </label>
 
-  <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold text-sm px-6 py-3.5 rounded-lg transition-colors">
+  {% if announce is defined %}
+    {% include 'admin/polls/_announce.twig' %}
+  {% endif %}
+
+  <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold text-sm px-6 py-3.5 rounded-lg transition-colors"
+          {% if announce is defined %}data-announce-submit data-label-idle="{{ submitLabel }}" data-label-send="{{ submitLabel }} et envoyer l'annonce"{% endif %}>
     {{ submitLabel }}
   </button>
 </form>

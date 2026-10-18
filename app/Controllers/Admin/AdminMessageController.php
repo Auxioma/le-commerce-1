@@ -301,6 +301,28 @@ class AdminMessageController extends Controller
     }
 
     /**
+     * Suppression (appelée en fetch) d'une ou plusieurs conversations ou
+     * messages. Chaque élément de items[] est « type:id » :
+     *   - contact:{id}        message du formulaire de contact,
+     *   - whatsapp:{userId}   tout le fil WhatsApp d'un client,
+     *   - sms:{userId}        tout le fil SMS d'un client,
+     *   - whatsapp_msg:{id} / sms_msg:{id}  un seul message d'un fil.
+     */
+    public function delete(): void
+    {
+        Middleware::requireRole('admin');
+        $this->verifyCsrf();
+
+        $deleted = $this->inboxService->delete((array) $this->input('items', []));
+
+        if (($_SERVER['HTTP_ACCEPT'] ?? '') === 'application/json') {
+            $this->json(['deleted' => $deleted]);
+        }
+        $this->setFlash('success', $deleted . ' élément(s) supprimé(s).');
+        $this->redirect('/admin/messages');
+    }
+
+    /**
      * Si le formulaire d'envoi contient une date de programmation, enregistre
      * le message dans scheduled_messages au lieu de l'envoyer immédiatement.
      */

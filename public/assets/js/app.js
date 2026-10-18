@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initAdminSidebarCollapse();
   initAdminSidebarAccordion();
   initLotteryAnnounce();
+  initInboxDelete();
   initWeatherWidget();
   initChatChips();
   initChatFab();
@@ -555,12 +556,101 @@ function initGalleryPage() {
 }
 
 /**
- * Création d'une loterie : choix du mode de diffusion (SMS / e-mail) et des
- * segments ciblés, avec estimation en direct du nombre de destinataires.
+ * Messagerie admin : suppression sans rechargement d'une ou plusieurs
+ * conversations (cases à cocher de la liste) ou d'un seul message d'un fil.
+ * Si la conversation affichée est supprimée, on revient à la boîte de réception.
+ */
+function initInboxDelete() {
+  const root = document.querySelector('[data-inbox]');
+  if (!root) return;
+
+  const checkAll = root.querySelector('[data-inbox-check-all]');
+  const deleteBtn = root.querySelector('[data-inbox-delete]');
+  const count = root.querySelector('[data-inbox-count]');
+  const checks = () => [...root.querySelectorAll('[data-inbox-check]')];
+
+  const refresh = () => {
+    const all = checks();
+    const checked = all.filter((c) => c.checked);
+    if (deleteBtn) deleteBtn.disabled = checked.length === 0;
+    if (count) count.textContent = checked.length ? `(${checked.length})` : '';
+    if (checkAll) {
+      checkAll.checked = all.length > 0 && checked.length === all.length;
+      checkAll.indeterminate = checked.length > 0 && checked.length < all.length;
+    }
+    root.querySelector('[data-inbox-empty]').hidden = all.length > 0;
+  };
+
+  const remove = async (items, confirmText) => {
+    if (items.length === 0 || !window.confirm(confirmText)) return false;
+    const body = new FormData();
+    body.append('_csrf', root.dataset.csrf);
+    items.forEach((item) => body.append('items[]', item));
+    try {
+      const res = await fetch(root.dataset.deleteUrl, { method: 'POST', body, headers: { Accept: 'application/json' } });
+      if (!res.ok) throw new Error(res.status);
+      await res.json();
+    } catch (e) {
+      window.alert('La suppression a échoué. Merci de recharger la page et réessayer.');
+      return false;
+    }
+    return true;
+  };
+
+  checkAll?.addEventListener('change', () => {
+    checks().forEach((c) => { c.checked = checkAll.checked; });
+    refresh();
+  });
+  root.addEventListener('change', (e) => {
+    if (e.target.matches('[data-inbox-check]')) refresh();
+  });
+
+  deleteBtn?.addEventListener('click', async () => {
+    const items = checks().filter((c) => c.checked).map((c) => c.value);
+    const label = items.length > 1 ? `ces ${items.length} conversations` : 'cette conversation';
+    if (!(await remove(items, `Supprimer définitivement ${label} ? Cette action est irréversible.`))) return;
+
+    let currentRemoved = false;
+    items.forEach((item) => {
+      const row = root.querySelector(`[data-inbox-item="${item}"]`);
+      if (row?.hasAttribute('data-inbox-selected')) currentRemoved = true;
+      row?.remove();
+    });
+    if (currentRemoved) {
+      window.location.href = root.dataset.resetUrl;
+      return;
+    }
+    refresh();
+  });
+
+  // Un seul message (fil WhatsApp/SMS) ou le message de contact affiché
+  document.querySelectorAll('[data-message-delete]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const item = btn.dataset.messageDelete;
+      if (!(await remove([item], 'Supprimer définitivement ce message ?'))) return;
+
+      if (item.startsWith('contact:')) {
+        window.location.href = root.dataset.resetUrl;
+        return;
+      }
+      const thread = btn.closest('[data-thread-message]')?.parentElement;
+      btn.closest('[data-thread-message]')?.remove();
+      if (thread && !thread.querySelector('[data-thread-message]')) {
+        // Fil vidé : la conversation disparaît de la liste
+        window.location.href = root.dataset.resetUrl;
+      }
+    });
+  });
+}
+
+/**
+ * Création d'une loterie / diffusion d'une offre : choix du mode de diffusion
+ * (SMS / e-mail) et des segments ciblés, avec estimation en direct du nombre
+ * de destinataires.
  */
 function initLotteryAnnounce() {
   const root = document.querySelector('[data-announce]');
-  const dataEl = document.getElementById('lottery-audience');
+  const dataEl = root?.querySelector('[data-announce-audience]');
   if (!root || !dataEl) return;
 
   const audience = JSON.parse(dataEl.textContent || '[]');
@@ -576,7 +666,8 @@ function initLotteryAnnounce() {
 
   const update = () => {
     const draft = publish && !publish.checked;
-    root.querySelector('[data-announce-draft-note]').hidden = !draft;
+    const draftNote = root.querySelector('[data-announce-draft-note]');
+    if (draftNote) draftNote.hidden = !draft;
     root.querySelectorAll('[data-announce-options]').forEach((el) => { el.hidden = draft; });
     if (picker) picker.el.hidden = !emailChannel?.checked;
 
@@ -590,7 +681,7 @@ function initLotteryAnnounce() {
     let text;
     let sending = false;
     if (activeChannels.length === 0) {
-      text = 'Aucun mode de diffusion coché : la loterie sera publiée sans annonce.';
+      text = root.dataset.announceEmpty || 'Aucun mode de diffusion coché : la loterie sera publiée sans annonce.';
     } else if (needsSegments && !all.checked && selected.size === 0) {
       text = 'Cochez « Tous les clients actifs » ou au moins un segment.';
     } else {
@@ -613,7 +704,7 @@ function initLotteryAnnounce() {
       sending = total > 0;
     }
     summary.textContent = text;
-    if (submit) submit.textContent = !draft && sending ? 'Créer la loterie et envoyer l\'annonce' : 'Créer la loterie';
+    if (submit) submit.textContent = !draft && sending ? submit.dataset.labelSend : submit.dataset.labelIdle;
   };
 
   all.addEventListener('change', () => {

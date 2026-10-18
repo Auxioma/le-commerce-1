@@ -9,7 +9,11 @@ use App\Core\Middleware;
 use App\Models\Offer;
 use App\Models\OfferRedemption;
 use App\Models\User;
+use App\Service\ClientSegmentationService;
+use App\Service\LotteryAnnouncementService;
 use App\Service\NotificationService;
+use App\Service\OfferCampaignService;
+use App\Service\SmsCampaignService;
 
 class AdminOfferController extends Controller
 {
@@ -29,6 +33,14 @@ class AdminOfferController extends Controller
         $statusMap = ['active' => 'active', 'brouillons' => 'brouillon', 'expirees' => 'expiree', 'toutes' => null];
         $status = $statusMap[$statusFilter] ?? 'active';
 
+        $audience = LotteryAnnouncementService::audienceData();
+        $counts = array_fill_keys(array_keys(ClientSegmentationService::allDefinitions()), 0);
+        foreach ($audience as $client) {
+            foreach ($client['s'] as $segment) {
+                $counts[$segment]++;
+            }
+        }
+
         $this->view('admin/offers/index', [
             'title'     => 'Offres & Avantages — Administration Le Commerce',
             'pageTitle' => 'Offres & Avantages',
@@ -45,6 +57,11 @@ class AdminOfferController extends Controller
             'segmentLabels' => Offer::SEGMENT_LABELS,
             'clients'       => User::activeClientsForSelect(),
             'activeOffers'  => Offer::activeForSelect(),
+
+            'segmentDefs'   => ClientSegmentationService::definitions(),
+            'segmentCounts' => $counts,
+            'audience'      => $audience,
+            'smsConfigured' => (new SmsCampaignService())->isConfigured(),
         ], 'admin');
     }
 
@@ -304,5 +321,76 @@ class AdminOfferController extends Controller
 
         $this->setFlash('success', 'Offre envoyée à ' . $user['first_name'] . ' ' . $user['last_name'] . ' par WhatsApp.');
         $this->redirect('/admin/offres');
+    }
+
+    /**
+     * Diffuse une offre par SMS et/ou e-mail aux clients ciblés (segments,
+     * ou sélection manuelle pour l'e-mail), chacun avec son propre code.
+     */
+    public function broadcast(): void
+    {
+        Middleware::requireRole('admin');
+        $this->verifyCsrf();
+
+        $offer = Offer::find((int) $this->input('offer_id', 0));
+        if (!$offer || $offer['status'] !== 'active' || strtotime($offer['valid_until']) < strtotime('today')) {
+            $this->setFlash('error', 'Choisissez une offre active et non expirée.');
+            $this->redirect('/admin/offres');
+            return;
+        }
+
+        $channels = array_values(array_intersect(array_keys(LotteryAnnouncementService::CHANNELS), (array) $this->input('channels', [])));
+        $segments = array_values(array_intersect(
+            array_merge([LotteryAnnouncementService::ALL], array_keys(ClientSegmentationService::allDefinitions())),
+            (array) $this->input('segments', [])
+        ));
+        if (in_array(LotteryAnnouncementService::ALL, $segments, true)) {
+            $segments = [LotteryAnnouncementService::ALL];
+        }
+        $emailRecipients = in_array('email', $channels, true)
+            ? array_values(array_unique(array_filter(array_map('intval', (array) $this->input('email_recipients', [])), static fn(int $id) => $id > 0)))
+            : [];
+        // Les segments ne servent qu'au SMS et à l'e-mail sans sélection manuelle.
+        $needsSegments = in_array('sms', $channels, true) || (in_array('email', $channels, true) && $emailRecipients === []);
+
+        $error = match (true) {
+            $channels === []                    => 'Cochez au moins un mode d\'envoi (SMS ou e-mail).',
+            $needsSegments && $segments === []  => 'Cochez « Tous les clients » ou au moins un segment à qui envoyer l\'offre.',
+            default                             => null,
+        };
+        if ($error !== null) {
+            $this->setFlash('error', $error);
+            $this->redirect('/admin/offres');
+            return;
+        }
+
+        $report = (new OfferCampaignService())->send($offer, $this->siteUrl(), $channels, $segments, $emailRecipients);
+
+        $parts = [];
+        if (in_array('sms', $channels, true)) {
+            if (!$report['smsConfigured']) {
+                $parts[] = 'SMS non envoyé : configurez ALLMYSMS_LOGIN / ALLMYSMS_API_KEY dans .env';
+            } elseif ($report['sms'] === null) {
+                $parts[] = $report['smsEligible'] === 0 ? 'aucun client ciblé n\'a de numéro pour le SMS' : 'l\'envoi SMS a échoué';
+            } elseif (!empty($report['sms']['scheduledAt'])) {
+                $parts[] = 'SMS à ' . $report['sms']['nbContacts'] . ' client(s) programmé le ' . date('d/m/Y à H\hi', strtotime($report['sms']['scheduledAt'])) . ' (envoi commercial interdit hors de ce créneau)';
+            } else {
+                $parts[] = 'SMS envoyé à ' . $report['sms']['nbContacts'] . ' client(s)';
+            }
+        }
+        if (in_array('email', $channels, true)) {
+            $parts[] = 'e-mail envoyé à ' . $report['emailSent'] . ' client(s)' . ($report['emailFailed'] > 0 ? ' (' . $report['emailFailed'] . ' échec(s))' : '');
+        }
+
+        $anySent = $report['sms'] !== null || (int) $report['emailSent'] > 0;
+        $this->setFlash($anySent ? 'success' : 'error', 'Offre « ' . $offer['title'] . ' » : ' . implode(' ; ', $parts) . '.');
+        $this->redirect('/admin/offres');
+    }
+
+    /** Adresse publique du site (liens des SMS et e-mails), depuis l'hôte de la requête. */
+    private function siteUrl(): string
+    {
+        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        return 'https://' . $host . BASE_PATH;
     }
 }

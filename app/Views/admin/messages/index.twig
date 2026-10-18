@@ -132,19 +132,38 @@
     <div class="grid h-full" style="grid-template-columns: 300px 1fr 300px;">
 
       <!-- Colonne 1 : liste -->
-      <div class="border-r border-gray-100 overflow-y-auto">
-        {% if inbox is empty %}
-          <div class="text-center py-16 px-4">
-            <p class="text-gray-400 text-sm">Aucun message ne correspond à ces filtres.</p>
+      <div class="border-r border-gray-100 overflow-y-auto" data-inbox
+           data-delete-url="{{ base_path }}/admin/messages/supprimer" data-csrf="{{ csrf_token() }}"
+           data-reset-url="{{ base_path }}/admin/messages?tab=inbox">
+        {% if inbox is not empty %}
+          <!-- Sélection multiple + suppression -->
+          <div class="sticky top-0 z-10 bg-white border-b border-gray-100 px-4 py-2 flex items-center justify-between gap-2">
+            <label class="flex items-center gap-2 text-gray-500 font-semibold cursor-pointer" style="font-size:11.5px;">
+              <input type="checkbox" data-inbox-check-all class="rounded border-gray-300 text-brand-500 focus:ring-brand-500/30">
+              Tout sélectionner
+            </label>
+            <button type="button" data-inbox-delete disabled
+                    class="inline-flex items-center gap-1 font-bold text-brand-500 hover:text-brand-600 disabled:text-gray-300 disabled:cursor-not-allowed transition-colors" style="font-size:11.5px;">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              Supprimer <span data-inbox-count></span>
+            </button>
           </div>
         {% endif %}
+        <div class="text-center py-16 px-4" data-inbox-empty {{ inbox is empty ? '' : 'hidden' }}>
+          <p class="text-gray-400 text-sm">Aucun message ne correspond à ces filtres.</p>
+        </div>
         {% for item in inbox %}
           {% set isSelected = (item.type == 'contact' and selectedContact and selectedContact.id == item.id)
                      or (item.type != 'contact' and selectedUser and selectedChannel == item.type and selectedUser.id == item.id) %}
           {% set href = item.type == 'contact'
             ? base_path ~ '/admin/messages?type=contact&id=' ~ item.id
             : base_path ~ '/admin/messages?type=' ~ item.type ~ '&user=' ~ item.id %}
-          <a href="{{ href }}" class="flex items-start gap-2.5 px-4 py-3 border-b border-gray-50 transition-colors {{ isSelected ? 'bg-brand-50' : 'hover:bg-gray-50' }}">
+          <div class="flex items-start border-b border-gray-50 transition-colors {{ isSelected ? 'bg-brand-50' : 'hover:bg-gray-50' }}"
+               data-inbox-item="{{ item.type }}:{{ item.id }}" {{ isSelected ? 'data-inbox-selected' : '' }}>
+          <label class="pl-4 pt-3 shrink-0 cursor-pointer" title="Sélectionner">
+            <input type="checkbox" value="{{ item.type }}:{{ item.id }}" data-inbox-check class="rounded border-gray-300 text-brand-500 focus:ring-brand-500/30">
+          </label>
+          <a href="{{ href }}" class="flex flex-1 min-w-0 items-start gap-2.5 pl-2.5 pr-4 py-3">
             <span class="w-2 h-2 rounded-full mt-1.5 shrink-0 {{ item.unread ? 'bg-brand-500' : 'bg-transparent' }}"></span>
             {% if item.type == 'whatsapp' %}
               <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 mt-1 shrink-0" style="color:#25D366;" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.4A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-2.9.8.8-2.8-.2-.3A8 8 0 1 1 12 20z"/></svg>
@@ -168,6 +187,7 @@
               {% endif %}
             </div>
           </a>
+          </div>
         {% endfor %}
       </div>
 
@@ -179,12 +199,17 @@
               <p class="font-bold text-ink" style="font-size:14px;">{{ selectedContact.name }}</p>
               <span class="px-2 py-0.5 rounded-full font-semibold" style="font-size:10px; background:#fee2e2; color:#c8272c;">E-mail</span>
             </div>
-            <form method="POST" action="{{ base_path }}/admin/messages/contact/{{ selectedContact.id }}/lu">
-              {{ csrf_field() }}
-              <button type="submit" class="text-xs font-semibold text-gray-400 hover:text-brand-500 transition-colors">
-                Marquer {{ selectedContact.is_read ? 'non lu' : 'lu' }}
+            <div class="flex items-center gap-4">
+              <form method="POST" action="{{ base_path }}/admin/messages/contact/{{ selectedContact.id }}/lu">
+                {{ csrf_field() }}
+                <button type="submit" class="text-xs font-semibold text-gray-400 hover:text-brand-500 transition-colors">
+                  Marquer {{ selectedContact.is_read ? 'non lu' : 'lu' }}
+                </button>
+              </form>
+              <button type="button" data-message-delete="contact:{{ selectedContact.id }}" class="text-xs font-semibold text-gray-400 hover:text-brand-500 transition-colors">
+                Supprimer
               </button>
-            </form>
+            </div>
           </div>
           <div class="flex-1 overflow-y-auto p-5">
             <p class="text-gray-400" style="font-size:12px;">{{ selectedContact.email }} · {{ selectedContact.created_at|date('d/m/Y H:i') }}</p>
@@ -219,7 +244,11 @@
             {% endif %}
             {% for msg in selectedThread %}
               {% set out = msg.direction == 'sortant' %}
-              <div class="flex {{ out ? 'justify-end' : 'justify-start' }}">
+              <div class="group flex items-center gap-1.5 {{ out ? 'justify-end' : 'justify-start' }}" data-thread-message>
+                <button type="button" data-message-delete="{{ selectedChannel }}_msg:{{ msg.id }}" title="Supprimer ce message"
+                        class="{{ out ? '' : 'order-last' }} opacity-0 group-hover:opacity-100 focus:opacity-100 p-1 text-gray-300 hover:text-brand-500 transition">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
                 <div class="max-w-[75%] rounded-2xl px-4 py-2.5 {{ out ? 'text-white' : 'bg-white border border-gray-100' }}" style="{{ out ? 'background:' ~ accent ~ ';' : '' }}">
                   <p class="whitespace-pre-line" style="font-size:13px;">{{ msg.content }}</p>
                   <p class="mt-1 {{ out ? 'text-white/70' : 'text-gray-400' }}" style="font-size:10.5px;">{{ msg.sent_at|date('d/m H:i') }}</p>

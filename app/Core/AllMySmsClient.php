@@ -62,7 +62,8 @@ class AllMySmsClient
      * (raccourcissement + comptage automatiques, aucune action requise ici).
      *
      * @param string $message Corps du message ; doit contenir #param_1# (prénom) et l'URL à suivre.
-     * @param array<int, array{phone: string, firstName: string}> $recipients
+     * @param array<int, array{phone: string, firstName: string, params?: list<string>}> $recipients
+     *        params : valeurs facultatives des variables #param_2#, #param_3#...
      * @param string|null $scheduledAt Date d'envoi différé (format YYYY-MM-JJ HH:MM:SS), ou null pour un envoi immédiat.
      * @return array{status:int, statusText:string, campaignId:?string, nbSms:int, nbContacts:int, creditsUsed:float, balance:?float, invalidNumbers:string}|null
      */
@@ -74,10 +75,14 @@ class AllMySmsClient
 
         $sms = [];
         foreach ($recipients as $recipient) {
-            $sms[] = [
+            $row = [
                 'MOBILEPHONE' => $recipient['phone'],
                 'PARAM_1'     => $recipient['firstName'],
             ];
+            foreach (array_values($recipient['params'] ?? []) as $i => $value) {
+                $row['PARAM_' . ($i + 2)] = $value;
+            }
+            $sms[] = $row;
         }
 
         $smsData = [

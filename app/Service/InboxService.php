@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Core\Database;
 use App\Models\ClientLabel;
 use App\Models\ContactMessage;
 use App\Models\SmsMessage;
@@ -72,6 +73,37 @@ final class InboxService
         usort($inbox, fn($a, $b) => strtotime($b['time']) <=> strtotime($a['time']));
 
         return $this->filter($inbox, $channel, $label, $q);
+    }
+
+    /**
+     * Supprime définitivement les conversations / messages désignés par des
+     * clés « type:id » (voir AdminMessageController::delete()).
+     *
+     * @return int nombre de messages supprimés en base
+     */
+    public function delete(array $items): int
+    {
+        $queries = [
+            'contact'      => 'DELETE FROM contact_messages WHERE id = :id',
+            'whatsapp'     => 'DELETE FROM whatsapp_messages WHERE user_id = :id',
+            'sms'          => 'DELETE FROM sms_messages WHERE user_id = :id',
+            'whatsapp_msg' => 'DELETE FROM whatsapp_messages WHERE id = :id',
+            'sms_msg'      => 'DELETE FROM sms_messages WHERE id = :id',
+        ];
+        $db = Database::connection();
+        $deleted = 0;
+
+        foreach (array_unique(array_map('strval', $items)) as $item) {
+            [$type, $id] = array_pad(explode(':', $item, 2), 2, '');
+            if (!isset($queries[$type]) || !ctype_digit($id)) {
+                continue;
+            }
+            $stmt = $db->prepare($queries[$type]);
+            $stmt->execute(['id' => (int) $id]);
+            $deleted += $stmt->rowCount();
+        }
+
+        return $deleted;
     }
 
     private function filter(array $inbox, string $channel, string $label, string $q): array

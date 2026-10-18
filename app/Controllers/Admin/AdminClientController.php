@@ -400,8 +400,8 @@ class AdminClientController extends Controller
             return;
         }
 
-        User::delete($id);
-        $this->setFlash('success', $client['first_name'] . ' ' . $client['last_name'] . ' a été supprimé.');
+        User::anonymizeAndDelete($id);
+        $this->setFlash('success', $client['first_name'] . ' ' . $client['last_name'] . ' a été supprimé (e-mail et téléphone anonymisés).');
         $this->redirect('/admin/clients');
     }
 

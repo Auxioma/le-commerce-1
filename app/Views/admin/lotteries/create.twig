@@ -122,10 +122,11 @@
         <div class="rounded-xl bg-brand-50 px-4 py-3 text-sm text-ink" data-announce-options>
           <span data-announce-summary>—</span>
         </div>
-        <script type="application/json" id="lottery-audience">{{ audience|json_encode|raw }}</script>
+        <script type="application/json" id="lottery-audience" data-announce-audience>{{ audience|json_encode|raw }}</script>
       </fieldset>
 
-      <button type="submit" class="btn-primary w-full" data-announce-submit>
+      <button type="submit" class="btn-primary w-full" data-announce-submit
+              data-label-idle="Créer la loterie" data-label-send="Créer la loterie et envoyer l'annonce">
         Créer la loterie
       </button>
     </form>
