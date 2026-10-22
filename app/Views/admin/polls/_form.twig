@@ -10,87 +10,115 @@
   </div>
 {% endif %}
 
-<form method="POST" action="{{ base_path ~ formAction }}" class="space-y-5">
+<form method="POST" action="{{ base_path ~ formAction }}" class="space-y-6">
   {{ csrf_field() }}
 
-  <div>
-    <label class="block text-sm font-semibold text-ink mb-1.5">Question</label>
-    <input type="text" name="question" required value="{{ old.question|default('') }}" placeholder="Ex : Quelle bière souhaitez-vous en pression ?"
-           class="form-input {{ errors.question is defined ? 'border-brand-400' : '' }}">
-    {% if errors.question is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.question }}</p>{% endif %}
-  </div>
+  <div class="grid lg:grid-cols-3 gap-6 items-start">
+    <!-- 1. Le sondage -->
+    <section class="card card-md lg:col-span-2 space-y-5">
+      <div class="flex items-center gap-3">
+        <span class="w-7 h-7 rounded-full bg-brand-50 text-brand-500 text-xs font-bold flex items-center justify-center shrink-0">1</span>
+        <h2 class="font-bold text-ink">Le sondage</h2>
+      </div>
 
-  <div>
-    <label class="block text-sm font-semibold text-ink mb-1.5">Description <span class="text-gray-400 font-normal">(facultatif)</span></label>
-    <textarea name="description" rows="2" placeholder="Ex : Choisissez votre bière préférée !"
-              class="form-textarea">{{ old.description|default('') }}</textarea>
-  </div>
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Question</label>
+        <input type="text" name="question" required value="{{ old.question|default('') }}" placeholder="Ex : Quelle bière souhaitez-vous en pression ?"
+               class="form-input {{ errors.question is defined ? 'border-brand-400' : '' }}">
+        {% if errors.question is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.question }}</p>{% endif %}
+      </div>
 
-  <div>
-    <label class="block text-sm font-semibold text-ink mb-1.5">Options de réponse</label>
-    <div id="options-list" class="space-y-2">
-      {% set rows = optionRows is not empty ? optionRows : [{'id': null, 'label': '', 'votes_count': null}, {'id': null, 'label': '', 'votes_count': null}] %}
-      {% for i, opt in rows %}
-        <div class="flex items-center gap-2 option-row">
-          <input type="hidden" name="options[{{ i }}][id]" value="{{ opt.id|default(0) }}">
-          <input type="text" name="options[{{ i }}][label]" value="{{ opt.label|default('') }}" required placeholder="Option {{ i + 1 }}"
-                 class="form-input">
-          {% if opt.votes_count is defined and opt.votes_count is not null %}
-            <span class="text-xs text-gray-400 shrink-0 whitespace-nowrap">{{ opt.votes_count }} vote{{ opt.votes_count > 1 ? 's' : '' }}</span>
-          {% endif %}
-          <button type="button" onclick="this.closest('.option-row').remove()" class="text-gray-300 hover:text-brand-500 p-2" aria-label="Retirer">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-          </button>
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Description <span class="text-gray-400 font-normal">(facultatif)</span></label>
+        <textarea name="description" rows="2" placeholder="Ex : Choisissez votre bière préférée !"
+                  class="form-textarea">{{ old.description|default('') }}</textarea>
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Options de réponse</label>
+        <div id="options-list" class="space-y-2">
+          {% set rows = optionRows is not empty ? optionRows : [{'id': null, 'label': '', 'votes_count': null}, {'id': null, 'label': '', 'votes_count': null}] %}
+          {% for i, opt in rows %}
+            <div class="flex items-center gap-2 option-row">
+              <input type="hidden" name="options[{{ i }}][id]" value="{{ opt.id|default(0) }}">
+              <input type="text" name="options[{{ i }}][label]" value="{{ opt.label|default('') }}" required placeholder="Option {{ i + 1 }}"
+                     class="form-input">
+              {% if opt.votes_count is defined and opt.votes_count is not null %}
+                <span class="text-xs text-gray-400 shrink-0 whitespace-nowrap">{{ opt.votes_count }} vote{{ opt.votes_count > 1 ? 's' : '' }}</span>
+              {% endif %}
+              <button type="button" onclick="this.closest('.option-row').remove()" class="text-gray-300 hover:text-brand-500 p-2" aria-label="Retirer">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+          {% endfor %}
         </div>
-      {% endfor %}
-    </div>
-    <button type="button" id="add-option" class="mt-2 text-sm font-semibold text-brand-500 hover:underline inline-flex items-center gap-1">
-      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-      Ajouter une option
-    </button>
-    {% if optionRows is not empty %}
-      <p class="text-xs text-gray-400 mt-2">Les options ayant déjà reçu des votes ne peuvent pas être supprimées ici pour préserver l'historique ; vous pouvez uniquement renommer leur libellé ou en ajouter de nouvelles.</p>
-    {% endif %}
-  </div>
+        <button type="button" id="add-option" class="mt-3 text-sm font-semibold text-brand-500 hover:text-brand-600 inline-flex items-center gap-1.5">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+          Ajouter une option
+        </button>
+        {% if optionRows is not empty %}
+          <p class="text-xs text-gray-400 mt-2">Les options ayant déjà reçu des votes ne peuvent pas être supprimées ici pour préserver l'historique ; vous pouvez uniquement renommer leur libellé ou en ajouter de nouvelles.</p>
+        {% endif %}
+      </div>
+    </section>
 
-  <div class="grid sm:grid-cols-2 gap-4">
-    <div>
-      <label class="block text-sm font-semibold text-ink mb-1.5">Fin du sondage</label>
-      <input type="date" name="ends_at" required value="{{ old.endsAt|default('') }}"
-             class="form-input {{ errors.ends_at is defined ? 'border-brand-400' : '' }}">
-      {% if errors.ends_at is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.ends_at }}</p>{% endif %}
-    </div>
-    <div>
-      <label class="block text-sm font-semibold text-ink mb-1.5">Récompense</label>
-      <select name="reward_type" id="reward-type" required class="form-select">
-        {% for key, label in rewardLabels %}
-          <option value="{{ key }}" {{ old.rewardType|default('points') == key ? 'selected' : '' }}>{{ label }}</option>
-        {% endfor %}
-      </select>
-    </div>
-  </div>
+    <!-- 2. Durée et récompense -->
+    <section class="card card-md space-y-5">
+      <div class="flex items-center gap-3">
+        <span class="w-7 h-7 rounded-full bg-brand-50 text-brand-500 text-xs font-bold flex items-center justify-center shrink-0">2</span>
+        <h2 class="font-bold text-ink">Durée et récompense</h2>
+      </div>
 
-  <div id="reward-value-wrapper">
-    <label class="block text-sm font-semibold text-ink mb-1.5" id="reward-value-label">Nombre de points</label>
-    <input type="number" name="reward_value" step="0.01" min="0" value="{{ old.rewardValue|default('10') }}"
-           class="form-input {{ errors.reward_value is defined ? 'border-brand-400' : '' }}">
-    {% if errors.reward_value is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.reward_value }}</p>{% endif %}
-  </div>
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Fin du sondage</label>
+        <input type="date" name="ends_at" required value="{{ old.endsAt|default('') }}"
+               class="form-input {{ errors.ends_at is defined ? 'border-brand-400' : '' }}">
+        {% if errors.ends_at is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.ends_at }}</p>{% endif %}
+      </div>
 
-  <label class="flex items-center gap-2.5 text-sm text-gray-600 bg-gray-50 rounded-lg px-4 py-3">
-    <input type="checkbox" name="publish" value="1" {{ old.publish|default(true) ? 'checked' : '' }} data-announce-publish class="rounded border-gray-300 text-brand-500 focus:ring-brand-500/30">
-    Publier immédiatement (sinon le sondage est enregistré comme programmé)
-  </label>
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Récompense</label>
+        <select name="reward_type" id="reward-type" required class="form-select">
+          {% for key, label in rewardLabels %}
+            <option value="{{ key }}" {{ old.rewardType|default('points') == key ? 'selected' : '' }}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div id="reward-value-wrapper">
+        <label class="block text-sm font-semibold text-ink mb-1.5" id="reward-value-label">Nombre de points</label>
+        <input type="number" name="reward_value" step="0.01" min="0" value="{{ old.rewardValue|default('10') }}"
+               class="form-input {{ errors.reward_value is defined ? 'border-brand-400' : '' }}">
+        {% if errors.reward_value is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.reward_value }}</p>{% endif %}
+      </div>
+
+      <label class="flex items-center justify-between gap-4 border-t border-gray-100 pt-5 cursor-pointer">
+        <span>
+          <span class="block text-sm font-semibold text-ink">Publier immédiatement</span>
+          <span class="block text-xs text-gray-500">Sinon, le sondage est enregistré comme programmé.</span>
+        </span>
+        <span class="relative shrink-0">
+          <input type="checkbox" name="publish" value="1" {{ old.publish|default(true) ? 'checked' : '' }} data-announce-publish class="peer sr-only">
+          <span class="block w-11 h-6 rounded-full bg-gray-200 transition-colors peer-checked:bg-brand-500 peer-focus-visible:ring-2 peer-focus-visible:ring-brand-500/30"></span>
+          <span class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform peer-checked:translate-x-5"></span>
+        </span>
+      </label>
+    </section>
+  </div>
 
   {% if announce is defined %}
     {% include 'admin/polls/_announce.twig' %}
   {% endif %}
 
-  <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold text-sm px-6 py-3.5 rounded-lg transition-colors"
-          {% if announce is defined %}data-announce-submit data-label-idle="{{ submitLabel }}" data-label-send="{{ submitLabel }} et envoyer l'annonce"{% endif %}>
-    {{ submitLabel }}
-  </button>
+  <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3">
+    <a href="{{ base_path }}/admin/sondages" class="text-center text-sm font-semibold text-gray-500 hover:text-ink px-5 py-3">Annuler</a>
+    <button type="submit" class="btn-primary px-8"
+            {% if announce is defined %}data-announce-submit data-label-idle="{{ submitLabel }}" data-label-send="{{ submitLabel }} et envoyer l'annonce"{% endif %}>
+      {{ submitLabel }}
+    </button>
+  </div>
 </form>
+
 
 <script>
   let optionIndex = {{ rows|length }};

@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initAdminSidebarCollapse();
   initAdminSidebarAccordion();
   initLotteryAnnounce();
+  initPollAnnounce();
   initInboxDelete();
   initWeatherWidget();
   initChatChips();
@@ -834,4 +835,168 @@ function initEmailRecipientPicker(root, audience, onChange) {
 
   render(false); // initial : update() est appelé ensuite par initLotteryAnnounce
   return { el, picked };
+}
+
+/**
+ * Création d'un sondage : mode de diffusion (SMS / e-mail) et choix des
+ * destinataires client par client dans un tableau filtrable et triable, avec
+ * un champ caché recipients[] par client coché et le décompte par canal.
+ */
+function initPollAnnounce() {
+  const root = document.querySelector('[data-poll-announce]');
+  const dataEl = root?.querySelector('[data-recipient-data]');
+  if (!root || !dataEl) return;
+
+  const { clients, groups } = JSON.parse(dataEl.textContent || '{}');
+  const publish = document.querySelector('[data-announce-publish]');
+  const channels = [...root.querySelectorAll('[data-announce-channel]')];
+  const summary = root.querySelector('[data-announce-summary]');
+  const submit = document.querySelector('[data-announce-submit]');
+  const tbody = root.querySelector('[data-recipient-rows]');
+  const inputs = root.querySelector('[data-recipient-inputs]');
+  const allBox = root.querySelector('[data-recipient-all]');
+  const count = root.querySelector('[data-recipient-count]');
+  const filters = [...root.querySelectorAll('[data-filter]')];
+  const sortHeaders = [...root.querySelectorAll('[data-sort]')];
+  const byId = new Map(clients.map((c) => [c.id, c]));
+  const picked = new Set([...inputs.querySelectorAll('input')].map((i) => Number(i.value)).filter((id) => byId.has(id)));
+  const normalize = (str) => String(str ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  const plural = (n, word) => `${n} ${word}${n > 1 ? 's' : ''}`;
+  const frDate = (iso) => (iso ? iso.slice(0, 10).split('-').reverse().join('/') : '—');
+  const money = (n) => (n > 0 ? `${n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €` : '—');
+  let sort = { key: 'created', dir: -1 };
+  const arrows = new Map(sortHeaders.map((th) => {
+    const arrow = document.createElement('span');
+    arrow.className = 'ml-1 text-brand-500';
+    return [th, th.appendChild(arrow)];
+  }));
+  let visible = [];
+
+  const matches = (c) => filters.every((f) => {
+    const v = f.value.trim();
+    if (v === '') return true;
+    switch (f.dataset.filter) {
+      case 'q': return normalize(`${c.id} ${c.first} ${c.last} ${c.email} ${c.phone}`).includes(normalize(v));
+      case 'group': return c.group === v;
+      case 'from': return c.created.slice(0, 10) >= v;
+      case 'to': return c.created.slice(0, 10) <= v;
+      default: return true;
+    }
+  });
+
+  const renderRows = () => {
+    visible = clients.filter(matches).sort((a, b) => {
+      const x = a[sort.key] ?? '';
+      const y = b[sort.key] ?? '';
+      const cmp = typeof x === 'number' && typeof y === 'number' ? x - y : normalize(x).localeCompare(normalize(y), 'fr');
+      return cmp * sort.dir;
+    });
+    arrows.forEach((arrow, th) => {
+      arrow.textContent = th.dataset.sort === sort.key ? (sort.dir > 0 ? '↑' : '↓') : '';
+    });
+
+    tbody.innerHTML = '';
+    if (visible.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="10" class="px-4 py-10 text-center text-gray-400">Aucun client ne correspond à ces filtres.</td></tr>';
+    }
+    visible.forEach((c) => {
+      const tr = document.createElement('tr');
+      tr.className = `cursor-pointer transition-colors ${picked.has(c.id) ? 'bg-brand-50/60 hover:bg-brand-50' : 'hover:bg-gray-50'}`;
+      const group = groups[c.group];
+      tr.innerHTML = `
+        <td class="pl-4 pr-2 py-3"><input type="checkbox" tabindex="-1" class="rounded border-gray-300 text-brand-500 pointer-events-none" ${picked.has(c.id) ? 'checked' : ''}></td>
+        <td class="px-3 py-3 text-gray-400 tabular-nums">${c.id}</td>
+        <td class="px-3 py-3 font-medium text-ink" data-col="first"></td>
+        <td class="px-3 py-3 font-medium text-ink" data-col="last"></td>
+        <td class="px-3 py-3 ${c.mail ? 'text-gray-600' : 'text-gray-300'}" data-col="email" ${c.mail ? '' : 'title="Ne recevra pas l\'e-mail (adresse invalide ou désinscrit)"'}></td>
+        <td class="px-3 py-3 whitespace-nowrap tabular-nums ${c.sms ? 'text-gray-600' : 'text-gray-300'}" data-col="phone"></td>
+        <td class="px-3 py-3">${group ? `<span class="px-2 py-0.5 rounded-full text-xs font-semibold whitespace-nowrap ${group.color}"></span>` : '<span class="text-gray-300">—</span>'}</td>
+        <td class="px-3 py-3 text-right whitespace-nowrap tabular-nums text-gray-600">${money(c.sales)}</td>
+        <td class="px-3 py-3 whitespace-nowrap tabular-nums text-gray-600">${frDate(c.created)}</td>
+        <td class="px-3 py-3 pr-4 whitespace-nowrap tabular-nums text-gray-600">${frDate(c.visit)}</td>`;
+      // Données saisies par les clients : insérées en texte, jamais en HTML.
+      ['first', 'last', 'email', 'phone'].forEach((key) => { tr.querySelector(`[data-col="${key}"]`).textContent = c[key] || '—'; });
+      if (group) tr.querySelector('span.rounded-full').textContent = group.label;
+      tr.addEventListener('click', () => {
+        if (picked.has(c.id)) picked.delete(c.id); else picked.add(c.id);
+        renderRows();
+        update();
+      });
+      tbody.appendChild(tr);
+    });
+
+    const pickedVisible = visible.filter((c) => picked.has(c.id)).length;
+    allBox.checked = visible.length > 0 && pickedVisible === visible.length;
+    allBox.indeterminate = pickedVisible > 0 && pickedVisible < visible.length;
+    count.innerHTML = `<span class="font-semibold text-ink">${plural(picked.size, 'client')} sélectionné${picked.size > 1 ? 's' : ''}</span> · ${visible.length} affiché${visible.length > 1 ? 's' : ''} sur ${clients.length}`;
+
+    inputs.innerHTML = '';
+    picked.forEach((id) => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'recipients[]';
+      input.value = String(id);
+      inputs.appendChild(input);
+    });
+  };
+
+  const update = () => {
+    const draft = publish && !publish.checked;
+    const draftNote = root.querySelector('[data-announce-draft-note]');
+    if (draftNote) draftNote.hidden = !draft;
+    root.querySelectorAll('[data-announce-options]').forEach((el) => { el.hidden = draft; });
+
+    const activeChannels = channels.filter((c) => c.checked).map((c) => c.value);
+    const selected = clients.filter((c) => picked.has(c.id));
+    let text;
+    let sending = false;
+    if (activeChannels.length === 0) {
+      text = root.dataset.announceEmpty;
+    } else if (selected.length === 0) {
+      text = 'Cochez au moins un client dans le tableau.';
+    } else {
+      const parts = [];
+      let total = 0;
+      if (activeChannels.includes('sms')) {
+        const n = selected.filter((c) => c.sms).length;
+        total += n;
+        parts.push(`SMS : ${n}`);
+      }
+      if (activeChannels.includes('email')) {
+        const n = selected.filter((c) => c.mail).length;
+        total += n;
+        parts.push(`e-mail : ${n}`);
+      }
+      text = `${plural(selected.length, 'client')} choisi${selected.length > 1 ? 's' : ''} → ${parts.join(' · ')}`
+        + (total < selected.length * activeChannels.length ? ' (sans numéro ou sans e-mail valide, ou désinscrits des e-mails, certains clients ne reçoivent pas tous les canaux).' : '');
+      sending = total > 0;
+    }
+    summary.textContent = text;
+    if (submit) submit.textContent = !draft && sending ? submit.dataset.labelSend : submit.dataset.labelIdle;
+  };
+
+  allBox.addEventListener('change', () => {
+    visible.forEach((c) => { if (allBox.checked) picked.add(c.id); else picked.delete(c.id); });
+    renderRows();
+    update();
+  });
+  root.querySelector('[data-recipient-clear]').addEventListener('click', () => {
+    picked.clear();
+    renderRows();
+    update();
+  });
+  filters.forEach((f) => f.addEventListener(f.tagName === 'SELECT' || f.type === 'date' ? 'change' : 'input', renderRows));
+  filters.forEach((f) => f.addEventListener('keydown', (e) => { if (e.key === 'Enter') e.preventDefault(); }));
+  root.querySelector('[data-filter-reset]').addEventListener('click', () => {
+    filters.forEach((f) => { f.value = ''; });
+    renderRows();
+  });
+  sortHeaders.forEach((th) => th.addEventListener('click', () => {
+    sort = { key: th.dataset.sort, dir: sort.key === th.dataset.sort ? -sort.dir : 1 };
+    renderRows();
+  }));
+  channels.forEach((c) => c.addEventListener('change', update));
+  publish?.addEventListener('change', update);
+  renderRows();
+  update();
 }

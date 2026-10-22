@@ -53,21 +53,13 @@ class AdminPollController extends Controller
         Middleware::requireRole('admin');
 
         $this->renderCreateForm([], [
-            'channels' => [],
-            'segments' => [LotteryAnnouncementService::ALL],
+            'channels'   => [],
+            'recipients' => [],
         ]);
     }
 
     private function renderCreateForm(array $errors, array $old): void
     {
-        $audience = LotteryAnnouncementService::audienceData();
-        $counts = array_fill_keys(array_keys(ClientSegmentationService::allDefinitions()), 0);
-        foreach ($audience as $client) {
-            foreach ($client['s'] as $segment) {
-                $counts[$segment]++;
-            }
-        }
-
         $this->view('admin/polls/create', [
             'title'      => 'Créer un sondage — Administration Le Commerce',
             'pageTitle'  => 'Créer un nouveau sondage',
@@ -75,9 +67,8 @@ class AdminPollController extends Controller
             'errors' => $errors,
             'old'    => $old,
             'announce' => [
-                'segmentDefs'   => ClientSegmentationService::definitions(),
-                'segmentCounts' => $counts,
-                'audience'      => $audience,
+                'clients'       => PollAnnouncementService::clientTable(),
+                'groups'        => ClientSegmentationService::definitions()['lifecycle'],
                 'smsConfigured' => (new SmsCampaignService())->isConfigured(),
             ],
         ], 'admin');
@@ -90,26 +81,15 @@ class AdminPollController extends Controller
 
         [$errors, $data] = $this->validate();
 
-        // Annonce aux clients (SMS / e-mail, par segments ou e-mails choisis)
+        // Annonce aux clients (SMS et/ou e-mail) choisis dans le tableau
         $channels = array_values(array_intersect(array_keys(LotteryAnnouncementService::CHANNELS), (array) $this->input('channels', [])));
-        $segments = array_values(array_intersect(
-            array_merge([LotteryAnnouncementService::ALL], array_keys(ClientSegmentationService::allDefinitions())),
-            (array) $this->input('segments', [])
-        ));
-        if (in_array(LotteryAnnouncementService::ALL, $segments, true)) {
-            $segments = [LotteryAnnouncementService::ALL];
-        }
-        $emailRecipients = in_array('email', $channels, true)
-            ? array_values(array_unique(array_filter(array_map('intval', (array) $this->input('email_recipients', [])), static fn(int $id) => $id > 0)))
-            : [];
-        // Les segments ne servent qu'au SMS et à l'e-mail sans sélection manuelle.
-        $needsSegments = in_array('sms', $channels, true) || (in_array('email', $channels, true) && $emailRecipients === []);
-        if ($data['publish'] && $needsSegments && $segments === []) {
-            $errors['segments'] = 'Cochez « Tous les clients » ou au moins un segment à qui envoyer l\'annonce.';
+        $recipients = array_values(array_unique(array_filter(array_map('intval', (array) $this->input('recipients', [])), static fn(int $id) => $id > 0)));
+        if ($data['publish'] && $channels !== [] && $recipients === []) {
+            $errors['recipients'] = 'Cochez au moins un client à qui envoyer l\'annonce.';
         }
 
         if ($errors) {
-            $this->renderCreateForm($errors, $data + compact('channels', 'segments', 'emailRecipients'));
+            $this->renderCreateForm($errors, $data + compact('channels', 'recipients'));
             return;
         }
 
@@ -126,7 +106,7 @@ class AdminPollController extends Controller
 
         $flash = 'Le sondage "' . $data['question'] . '" a bien été créé.';
         if ($data['publish'] && $channels !== []) {
-            $report = (new PollAnnouncementService())->announce(Poll::find($pollId), $this->siteUrl(), $channels, $segments, $emailRecipients);
+            $report = (new PollAnnouncementService())->announce(Poll::find($pollId), $this->siteUrl(), $channels, $recipients);
             $flash .= ' ' . $this->announcementSummary($report, $channels);
         }
 

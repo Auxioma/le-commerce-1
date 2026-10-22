@@ -32,7 +32,7 @@ final class LotteryAnnouncementService
     public static function recipients(array $segments): array
     {
         $clients = Database::connection()->query(
-            "SELECT id, first_name, last_name, phone_whatsapp, email, email_unsubscribed_at
+            "SELECT id, first_name, last_name, phone_whatsapp, email, email_unsubscribed_at, created_at
              FROM users WHERE role = 'client' AND status = 'actif' AND deleted_at IS NULL
              ORDER BY first_name ASC"
         )->fetchAll();

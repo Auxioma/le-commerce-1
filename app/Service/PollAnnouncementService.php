@@ -9,22 +9,54 @@ use App\Models\Poll;
 
 /**
  * Annonce d'un nouveau sondage aux clients par SMS (AllMySms) et/ou e-mail,
- * ciblée par segments de clients ou par sélection manuelle des destinataires
- * e-mail. Le ciblage, l'éligibilité (numéro, e-mail valide, désinscription)
- * et le lien de désinscription sont ceux de LotteryAnnouncementService.
+ * aux clients choisis un par un dans le tableau du formulaire. L'éligibilité
+ * (numéro, e-mail valide, désinscription) et le lien de désinscription sont
+ * ceux de LotteryAnnouncementService.
  */
 final class PollAnnouncementService
 {
     /**
+     * Lignes du tableau de choix des destinataires (clients actifs) :
+     * identité, coordonnées, groupe (segment de cycle de vie), ventes,
+     * joignabilité SMS / e-mail, inscription et dernière visite.
+     *
+     * @return list<array{id:int, first:string, last:string, email:string, phone:string, group:?string, sales:float, sms:bool, mail:bool, created:string, visit:?string}>
+     */
+    public static function clientTable(): array
+    {
+        $segmentation = ClientSegmentationService::computeAll();
+        $rows = [];
+        foreach (LotteryAnnouncementService::recipients([LotteryAnnouncementService::ALL]) as $client) {
+            $seg = $segmentation[(int) $client['id']] ?? null;
+            $rows[] = [
+                'id'      => (int) $client['id'],
+                'first'   => (string) $client['first_name'],
+                'last'    => (string) $client['last_name'],
+                'email'   => trim((string) $client['email']),
+                'phone'   => trim((string) $client['phone_whatsapp']),
+                'group'   => $seg['lifecycle'] ?? null,
+                'sales'   => round((float) ($seg['metrics']['spend_total'] ?? 0), 2),
+                'sms'     => LotteryAnnouncementService::canReceiveSms($client),
+                'mail'    => LotteryAnnouncementService::canReceiveEmail($client),
+                'created' => (string) $client['created_at'],
+                'visit'   => $seg['metrics']['last_visit'] ?? null,
+            ];
+        }
+        return $rows;
+    }
+
+    /**
      * @param list<string> $channels sous-ensemble de LotteryAnnouncementService::CHANNELS
-     * @param list<string> $segments segments ciblés, ou [LotteryAnnouncementService::ALL]
-     * @param list<int> $emailRecipientIds clients choisis un par un pour
-     *        l'e-mail (remplace alors le ciblage par segments pour ce canal)
+     * @param list<int> $recipientIds clients choisis dans le tableau
      * @return array{recipients:int, sms:?array, smsConfigured:bool, smsEligible:int, emailSent:?int, emailFailed:int}
      */
-    public function announce(array $poll, string $siteUrl, array $channels, array $segments, array $emailRecipientIds = []): array
+    public function announce(array $poll, string $siteUrl, array $channels, array $recipientIds): array
     {
-        $clients = LotteryAnnouncementService::recipients($segments);
+        $picked = array_flip($recipientIds);
+        $clients = array_values(array_filter(
+            LotteryAnnouncementService::recipients([LotteryAnnouncementService::ALL]),
+            static fn(array $c) => isset($picked[(int) $c['id']])
+        ));
         $pollUrl = $siteUrl . '/mon-compte/sondages/' . $poll['id'];
         $result = [
             'recipients'    => count($clients),
@@ -50,15 +82,7 @@ final class PollAnnouncementService
             $mailer = new Mailer();
             $shopName = (string) (require dirname(__DIR__, 2) . '/config/app.php')['shop']['name'];
             set_time_limit(0); // un e-mail par client : peut prendre du temps
-            $emailClients = $clients;
-            if ($emailRecipientIds !== []) {
-                $picked = array_flip($emailRecipientIds);
-                $emailClients = array_filter(
-                    LotteryAnnouncementService::recipients([LotteryAnnouncementService::ALL]),
-                    static fn(array $c) => isset($picked[(int) $c['id']])
-                );
-            }
-            foreach (array_filter($emailClients, [LotteryAnnouncementService::class, 'canReceiveEmail']) as $client) {
+            foreach (array_filter($clients, [LotteryAnnouncementService::class, 'canReceiveEmail']) as $client) {
                 $html = View::render('emails/poll-announcement', [
                     'shopName'       => $shopName,
                     'firstName'      => $client['first_name'],
