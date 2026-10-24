@@ -1,66 +1,108 @@
 {# Formulaire partagé Offre (création + édition).
-   Attend : formAction, submitLabel, typeLabels, segmentLabels, errors, old #}
-<form method="POST" action="{{ base_path ~ formAction }}" class="space-y-5">
+   Attend : formAction, submitLabel, typeLabels, segmentLabels, errors, old
+   et, en création seulement, announce {clients, groups, smsConfigured} #}
+<form method="POST" action="{{ base_path ~ formAction }}" class="space-y-6">
   {{ csrf_field() }}
 
-  <div>
-    <label class="block text-sm font-semibold text-ink mb-1.5">Nom de l'offre</label>
-    <input type="text" name="title" required value="{{ old.title|default('') }}" placeholder="Ex : Café offert"
-           class="form-input {{ errors.title is defined ? 'border-brand-400' : '' }}">
-    {% if errors.title is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.title }}</p>{% endif %}
+  <div class="grid lg:grid-cols-3 gap-6 items-start">
+    <!-- 1. L'offre -->
+    <section class="card card-md lg:col-span-2 space-y-5">
+      <div class="flex items-center gap-3">
+        <span class="w-7 h-7 rounded-full bg-brand-50 text-brand-500 text-xs font-bold flex items-center justify-center shrink-0">1</span>
+        <h2 class="font-bold text-ink">L'offre</h2>
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Nom de l'offre</label>
+        <input type="text" name="title" required value="{{ old.title|default('') }}" placeholder="Ex : Café offert"
+               class="form-input {{ errors.title is defined ? 'border-brand-400' : '' }}">
+        {% if errors.title is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.title }}</p>{% endif %}
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Description <span class="text-gray-400 font-normal">(facultatif)</span></label>
+        <textarea name="description" rows="2" placeholder="Ex : Un café offert pour bien commencer la journée !"
+                  class="form-textarea">{{ old.description|default('') }}</textarea>
+      </div>
+
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-semibold text-ink mb-1.5">Type d'offre</label>
+          <select name="type" id="offer-type" required class="form-select {{ errors.type is defined ? 'border-brand-400' : '' }}">
+            <option value="">Choisir un type</option>
+            {% for key, label in typeLabels %}
+              <option value="{{ key }}" {{ old.type|default('') == key ? 'selected' : '' }}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          {% if errors.type is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.type }}</p>{% endif %}
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-ink mb-1.5" id="value-label">Valeur estimée (€)</label>
+          <input type="number" name="value" step="0.01" min="0" value="{{ old.value|default('') }}" placeholder="Ex : 3.50"
+                 class="form-input {{ errors.value is defined ? 'border-brand-400' : '' }}">
+          {% if errors.value is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.value }}</p>{% endif %}
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Validité et publication -->
+    <section class="card card-md space-y-5">
+      <div class="flex items-center gap-3">
+        <span class="w-7 h-7 rounded-full bg-brand-50 text-brand-500 text-xs font-bold flex items-center justify-center shrink-0">2</span>
+        <h2 class="font-bold text-ink">Validité et publication</h2>
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Clients concernés</label>
+        <select name="target_segment" required class="form-select">
+          {% for key, label in segmentLabels %}
+            <option value="{{ key }}" {{ old.segment|default('tous') == key ? 'selected' : '' }}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold text-ink mb-1.5">Valable jusqu'au</label>
+        <input type="date" name="valid_until" required value="{{ old.validUntil|default('') }}"
+               class="form-input {{ errors.valid_until is defined ? 'border-brand-400' : '' }}">
+        {% if errors.valid_until is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.valid_until }}</p>{% endif %}
+      </div>
+
+      <label class="flex items-center justify-between gap-4 border-t border-gray-100 pt-5 cursor-pointer">
+        <span>
+          <span class="block text-sm font-semibold text-ink">Publier immédiatement</span>
+          <span class="block text-xs text-gray-500">Sinon, l'offre est enregistrée en brouillon.</span>
+        </span>
+        <span class="relative shrink-0">
+          <input type="checkbox" name="publish" value="1" {{ old.publish|default(true) ? 'checked' : '' }} data-announce-publish class="peer sr-only">
+          <span class="block w-11 h-6 rounded-full bg-gray-200 transition-colors peer-checked:bg-brand-500 peer-focus-visible:ring-2 peer-focus-visible:ring-brand-500/30"></span>
+          <span class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform peer-checked:translate-x-5"></span>
+        </span>
+      </label>
+    </section>
   </div>
 
-  <div>
-    <label class="block text-sm font-semibold text-ink mb-1.5">Description</label>
-    <textarea name="description" rows="2" placeholder="Ex : Un café offert pour bien commencer la journée !"
-              class="form-textarea">{{ old.description|default('') }}</textarea>
+  {% if announce is defined %}
+    <!-- 3. Envoi aux clients -->
+    {% include 'partials/admin-announce.twig' with {
+        announceStep: 3,
+        announceTitle: 'Envoyer l\'offre',
+        announceSubtitle: 'Choisissez comment envoyer l\'offre, puis à quels clients. Chacun reçoit son propre code à présenter en caisse.',
+        announceSmsHint: 'Offre, date de validité et code du client. Programmé automatiquement hors créneau légal (lun.–sam. 8 h–20 h).',
+        announceEmailHint: 'Offre, code à présenter en caisse et lien vers « Mes offres », avec lien de désinscription.',
+        announceEmpty: 'Aucun mode d\'envoi choisi : l\'offre sera publiée sans être envoyée.',
+        announceDraftNote: 'L\'offre sera enregistrée en brouillon : elle ne sera envoyée à personne.',
+    } %}
+  {% endif %}
+
+  <div class="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3">
+    <a href="{{ base_path }}/admin/offres" class="text-center text-sm font-semibold text-gray-500 hover:text-ink px-5 py-3">Annuler</a>
+    <button type="submit" class="btn-primary px-8"
+            {% if announce is defined %}data-announce-submit data-label-idle="{{ submitLabel }}" data-label-send="{{ submitLabel }} et l'envoyer"{% endif %}>
+      {{ submitLabel }}
+    </button>
   </div>
-
-  <div class="grid sm:grid-cols-2 gap-4">
-    <div>
-      <label class="block text-sm font-semibold text-ink mb-1.5">Type d'offre</label>
-      <select name="type" id="offer-type" required class="form-select {{ errors.type is defined ? 'border-brand-400' : '' }}">
-        <option value="">Choisir un type</option>
-        {% for key, label in typeLabels %}
-          <option value="{{ key }}" {{ old.type|default('') == key ? 'selected' : '' }}>{{ label }}</option>
-        {% endfor %}
-      </select>
-      {% if errors.type is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.type }}</p>{% endif %}
-    </div>
-
-    <div>
-      <label class="block text-sm font-semibold text-ink mb-1.5" id="value-label">Valeur estimée (€)</label>
-      <input type="number" name="value" step="0.01" min="0" value="{{ old.value|default('') }}" placeholder="Ex : 3.50"
-             class="form-input {{ errors.value is defined ? 'border-brand-400' : '' }}">
-      {% if errors.value is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.value }}</p>{% endif %}
-    </div>
-  </div>
-
-  <div class="grid sm:grid-cols-2 gap-4">
-    <div>
-      <label class="block text-sm font-semibold text-ink mb-1.5">Clients concernés</label>
-      <select name="target_segment" required class="form-select">
-        {% for key, label in segmentLabels %}
-          <option value="{{ key }}" {{ old.segment|default('tous') == key ? 'selected' : '' }}>{{ label }}</option>
-        {% endfor %}
-      </select>
-    </div>
-    <div>
-      <label class="block text-sm font-semibold text-ink mb-1.5">Valable jusqu'au</label>
-      <input type="date" name="valid_until" required value="{{ old.validUntil|default('') }}"
-             class="form-input {{ errors.valid_until is defined ? 'border-brand-400' : '' }}">
-      {% if errors.valid_until is defined %}<p class="text-brand-500 text-xs mt-1">{{ errors.valid_until }}</p>{% endif %}
-    </div>
-  </div>
-
-  <label class="flex items-center gap-2.5 text-sm text-gray-600 bg-gray-50 rounded-2xl px-4 py-3">
-    <input type="checkbox" name="publish" value="1" {{ old.publish|default(true) ? 'checked' : '' }} class="rounded border-gray-300 text-brand-500 focus:ring-brand-500/30">
-    Publier immédiatement (sinon l'offre est enregistrée en brouillon)
-  </label>
-
-  <button type="submit" class="btn-primary w-full">
-    {{ submitLabel }}
-  </button>
 </form>
 
 <script>

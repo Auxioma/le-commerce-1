@@ -80,9 +80,9 @@ class AdminLotteryController extends Controller
         Middleware::requireRole('admin');
 
         $this->renderCreateForm([], [
-            'channels' => ['sms'],
-            'segments' => [LotteryAnnouncementService::ALL],
-            'publish'  => true,
+            'channels'   => [],
+            'recipients' => [],
+            'publish'    => true,
         ]);
     }
 
@@ -97,19 +97,8 @@ class AdminLotteryController extends Controller
         $endsAt      = (string) $this->input('ends_at', '');
         $publish     = $this->input('publish') ? 'active' : 'brouillon';
         $channels    = array_values(array_intersect(array_keys(LotteryAnnouncementService::CHANNELS), (array) $this->input('channels', [])));
-        $segments    = array_values(array_intersect(
-            array_merge([LotteryAnnouncementService::ALL], array_keys(ClientSegmentationService::allDefinitions())),
-            (array) $this->input('segments', [])
-        ));
-        if (in_array(LotteryAnnouncementService::ALL, $segments, true)) {
-            $segments = [LotteryAnnouncementService::ALL];
-        }
-        // Destinataires e-mail choisis un par un via le moteur de recherche.
-        $emailRecipients = in_array('email', $channels, true)
-            ? array_values(array_unique(array_filter(array_map('intval', (array) $this->input('email_recipients', [])), static fn(int $id) => $id > 0)))
-            : [];
-        // Les segments ne servent qu'au SMS et à l'e-mail sans sélection manuelle.
-        $needsSegments = in_array('sms', $channels, true) || (in_array('email', $channels, true) && $emailRecipients === []);
+        // Destinataires cochés un par un dans le tableau.
+        $recipients  = array_values(array_unique(array_filter(array_map('intval', (array) $this->input('recipients', [])), static fn(int $id) => $id > 0)));
 
         $errors = [];
         if ($title === '' || mb_strlen($title) > 150) {
@@ -121,12 +110,12 @@ class AdminLotteryController extends Controller
         if ($endsAt === '' || strtotime($endsAt) === false || strtotime($endsAt) < strtotime('today')) {
             $errors['ends_at'] = 'La date de fin doit être aujourd\'hui ou une date future.';
         }
-        if ($publish === 'active' && $needsSegments && $segments === []) {
-            $errors['segments'] = 'Cochez « Tous les clients » ou au moins un segment à qui envoyer l\'annonce.';
+        if ($publish === 'active' && $channels !== [] && $recipients === []) {
+            $errors['recipients'] = 'Cochez au moins un client à qui envoyer l\'annonce.';
         }
 
         if ($errors) {
-            $this->renderCreateForm($errors, compact('title', 'description', 'prize', 'endsAt', 'channels', 'segments', 'emailRecipients') + ['publish' => $publish === 'active']);
+            $this->renderCreateForm($errors, compact('title', 'description', 'prize', 'endsAt', 'channels', 'recipients') + ['publish' => $publish === 'active']);
             return;
         }
 
@@ -145,11 +134,10 @@ class AdminLotteryController extends Controller
         // suite (inutile pour un brouillon) et si au moins un canal est coché.
         if ($publish === 'active' && $channels !== []) {
             $lottery = Lottery::find($lotteryId);
-            $report = (new LotteryAnnouncementService())->announce($lottery, $this->siteUrl(), $channels, $segments, $emailRecipients);
+            $report = (new LotteryAnnouncementService())->announce($lottery, $this->siteUrl(), $channels, $recipients);
 
             Lottery::update($lotteryId, [
                 'announce_channels'      => implode(',', $channels),
-                'announce_segments'      => implode(',', $segments),
                 'sms_campaign_id'        => $report['sms']['campaignId'] ?? null,
                 'sms_recipients_count'   => $report['sms']['nbContacts'] ?? null,
                 'email_recipients_count' => $report['emailSent'],
@@ -164,24 +152,16 @@ class AdminLotteryController extends Controller
 
     private function renderCreateForm(array $errors, array $old): void
     {
-        $audience = LotteryAnnouncementService::audienceData();
-        $counts = array_fill_keys(array_keys(ClientSegmentationService::allDefinitions()), 0);
-        foreach ($audience as $client) {
-            foreach ($client['s'] as $segment) {
-                $counts[$segment]++;
-            }
-        }
-
         $this->view('admin/lotteries/create', [
             'title'     => 'Créer une loterie — Administration Le Commerce',
             'pageTitle' => 'Créer une nouvelle loterie',
             'errors' => $errors,
             'old'    => $old,
-            'channelLabels' => LotteryAnnouncementService::CHANNELS,
-            'segmentDefs'   => ClientSegmentationService::definitions(),
-            'segmentCounts' => $counts,
-            'audience'      => $audience,
-            'smsConfigured' => $this->smsCampaignService->isConfigured(),
+            'announce' => [
+                'clients'       => LotteryAnnouncementService::clientTable(),
+                'groups'        => ClientSegmentationService::definitions()['lifecycle'],
+                'smsConfigured' => $this->smsCampaignService->isConfigured(),
+            ],
         ], 'admin');
     }
 

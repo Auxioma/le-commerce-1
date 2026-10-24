@@ -289,7 +289,6 @@ $router->get('/admin/offres/creer', AdminOfferController::class, 'create');
 $router->post('/admin/offres', AdminOfferController::class, 'store');
 $router->post('/admin/offres/generer', AdminOfferController::class, 'generateCode');
 $router->post('/admin/offres/envoyer', AdminOfferController::class, 'sendToClient');
-$router->post('/admin/offres/diffuser', AdminOfferController::class, 'broadcast');
 $router->post('/admin/offres/{id}/statut', AdminOfferController::class, 'toggleStatus');
 $router->get('/admin/offres/{id}/modifier', AdminOfferController::class, 'edit');
 $router->post('/admin/offres/{id}', AdminOfferController::class, 'update');

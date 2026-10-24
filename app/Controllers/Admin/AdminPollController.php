@@ -67,7 +67,7 @@ class AdminPollController extends Controller
             'errors' => $errors,
             'old'    => $old,
             'announce' => [
-                'clients'       => PollAnnouncementService::clientTable(),
+                'clients'       => LotteryAnnouncementService::clientTable(),
                 'groups'        => ClientSegmentationService::definitions()['lifecycle'],
                 'smsConfigured' => (new SmsCampaignService())->isConfigured(),
             ],

@@ -9,8 +9,8 @@ use App\Core\View;
 
 /**
  * Annonce d'une nouvelle loterie aux clients : choix du mode de diffusion
- * (SMS via AllMySms et/ou e-mail) et ciblage par segments de clients
- * (ClientSegmentationService). Seuls les clients au compte actif sont
+ * (SMS via AllMySms et/ou e-mail) aux clients cochés un par un dans le
+ * tableau des destinataires. Seuls les clients au compte actif sont
  * concernés ; les e-mails ne partent pas aux clients désinscrits et
  * contiennent toujours un lien de désinscription.
  */
@@ -62,42 +62,56 @@ final class LotteryAnnouncementService
     }
 
     /**
-     * Données compactes des clients actifs pour estimer en direct, dans le
-     * formulaire, le nombre de destinataires selon les cases cochées, et
-     * alimenter le moteur de recherche des destinataires e-mail :
-     * [[id, nom, e-mail (null si non joignable), segments[], sms bool, email bool], ...].
+     * Lignes du tableau de choix des destinataires (clients actifs) :
+     * identité, coordonnées, groupe (segment de cycle de vie), ventes,
+     * joignabilité SMS / e-mail, inscription et dernière visite.
+     *
+     * @return list<array{id:int, first:string, last:string, email:string, phone:string, group:?string, sales:float, sms:bool, mail:bool, created:string, visit:?string}>
      */
-    public static function audienceData(): array
+    public static function clientTable(): array
     {
         $segmentation = ClientSegmentationService::computeAll();
-        $data = [];
+        $rows = [];
         foreach (self::recipients([self::ALL]) as $client) {
             $seg = $segmentation[(int) $client['id']] ?? null;
-            $canEmail = self::canReceiveEmail($client);
-            $data[] = [
-                'id' => (int) $client['id'],
-                'n' => trim($client['first_name'] . ' ' . $client['last_name']),
-                'm' => $canEmail ? trim((string) $client['email']) : null,
-                's' => $seg ? array_merge([$seg['lifecycle']], $seg['profiles']) : [],
-                'sms' => self::canReceiveSms($client),
-                'email' => $canEmail,
+            $rows[] = [
+                'id'      => (int) $client['id'],
+                'first'   => (string) $client['first_name'],
+                'last'    => (string) $client['last_name'],
+                'email'   => trim((string) $client['email']),
+                'phone'   => trim((string) $client['phone_whatsapp']),
+                'group'   => $seg['lifecycle'] ?? null,
+                'sales'   => round((float) ($seg['metrics']['spend_total'] ?? 0), 2),
+                'sms'     => self::canReceiveSms($client),
+                'mail'    => self::canReceiveEmail($client),
+                'created' => (string) $client['created_at'],
+                'visit'   => $seg['metrics']['last_visit'] ?? null,
             ];
         }
-        return $data;
+        return $rows;
+    }
+
+    /**
+     * Clients actifs parmi ceux cochés dans le tableau des destinataires.
+     *
+     * @param list<int> $ids
+     */
+    public static function pickedClients(array $ids): array
+    {
+        $picked = array_flip($ids);
+        return array_values(array_filter(self::recipients([self::ALL]), static fn(array $c) => isset($picked[(int) $c['id']])));
     }
 
     /**
      * Envoie l'annonce sur les canaux choisis.
      *
      * @param list<string> $channels sous-ensemble de self::CHANNELS
-     * @param list<string> $segments segments ciblés, ou [self::ALL]
-     * @param list<int> $emailRecipientIds clients choisis un par un pour
-     *        l'e-mail (remplace alors le ciblage par segments pour ce canal)
+     * @param list<int> $recipientIds clients choisis dans le tableau
      * @return array{recipients:int, sms:?array, smsConfigured:bool, smsEligible:int, emailSent:?int, emailFailed:int}
      */
-    public function announce(array $lottery, string $siteUrl, array $channels, array $segments, array $emailRecipientIds = []): array
+    public function announce(array $lottery, string $siteUrl, array $channels, array $recipientIds): array
     {
-        $clients = self::recipients($segments);
+        $clients = self::pickedClients($recipientIds);
         $lotteryUrl = $siteUrl . '/loterie/' . $lottery['qr_token'];
         $result = [
             'recipients'    => count($clients),
@@ -123,12 +137,7 @@ final class LotteryAnnouncementService
             $mailer = new Mailer();
             $shopName = (string) (require dirname(__DIR__, 2) . '/config/app.php')['shop']['name'];
             set_time_limit(0); // un e-mail par client : peut prendre du temps
-            $emailClients = $clients;
-            if ($emailRecipientIds !== []) {
-                $picked = array_flip($emailRecipientIds);
-                $emailClients = array_filter(self::recipients([self::ALL]), static fn(array $c) => isset($picked[(int) $c['id']]));
-            }
-            foreach (array_filter($emailClients, [self::class, 'canReceiveEmail']) as $client) {
+            foreach (array_filter($clients, [self::class, 'canReceiveEmail']) as $client) {
                 $html = View::render('emails/lottery-announcement', [
                     'shopName'       => $shopName,
                     'firstName'      => $client['first_name'],

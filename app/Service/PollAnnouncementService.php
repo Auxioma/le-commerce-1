@@ -10,41 +10,11 @@ use App\Models\Poll;
 /**
  * Annonce d'un nouveau sondage aux clients par SMS (AllMySms) et/ou e-mail,
  * aux clients choisis un par un dans le tableau du formulaire. L'éligibilité
- * (numéro, e-mail valide, désinscription) et le lien de désinscription sont
- * ceux de LotteryAnnouncementService.
+ * (numéro, e-mail valide, désinscription), le tableau des destinataires et
+ * le lien de désinscription sont ceux de LotteryAnnouncementService.
  */
 final class PollAnnouncementService
 {
-    /**
-     * Lignes du tableau de choix des destinataires (clients actifs) :
-     * identité, coordonnées, groupe (segment de cycle de vie), ventes,
-     * joignabilité SMS / e-mail, inscription et dernière visite.
-     *
-     * @return list<array{id:int, first:string, last:string, email:string, phone:string, group:?string, sales:float, sms:bool, mail:bool, created:string, visit:?string}>
-     */
-    public static function clientTable(): array
-    {
-        $segmentation = ClientSegmentationService::computeAll();
-        $rows = [];
-        foreach (LotteryAnnouncementService::recipients([LotteryAnnouncementService::ALL]) as $client) {
-            $seg = $segmentation[(int) $client['id']] ?? null;
-            $rows[] = [
-                'id'      => (int) $client['id'],
-                'first'   => (string) $client['first_name'],
-                'last'    => (string) $client['last_name'],
-                'email'   => trim((string) $client['email']),
-                'phone'   => trim((string) $client['phone_whatsapp']),
-                'group'   => $seg['lifecycle'] ?? null,
-                'sales'   => round((float) ($seg['metrics']['spend_total'] ?? 0), 2),
-                'sms'     => LotteryAnnouncementService::canReceiveSms($client),
-                'mail'    => LotteryAnnouncementService::canReceiveEmail($client),
-                'created' => (string) $client['created_at'],
-                'visit'   => $seg['metrics']['last_visit'] ?? null,
-            ];
-        }
-        return $rows;
-    }
-
     /**
      * @param list<string> $channels sous-ensemble de LotteryAnnouncementService::CHANNELS
      * @param list<int> $recipientIds clients choisis dans le tableau
@@ -52,11 +22,7 @@ final class PollAnnouncementService
      */
     public function announce(array $poll, string $siteUrl, array $channels, array $recipientIds): array
     {
-        $picked = array_flip($recipientIds);
-        $clients = array_values(array_filter(
-            LotteryAnnouncementService::recipients([LotteryAnnouncementService::ALL]),
-            static fn(array $c) => isset($picked[(int) $c['id']])
-        ));
+        $clients = LotteryAnnouncementService::pickedClients($recipientIds);
         $pollUrl = $siteUrl . '/mon-compte/sondages/' . $poll['id'];
         $result = [
             'recipients'    => count($clients),

@@ -138,10 +138,13 @@
                     {% set sentCount = l.email_recipients_count ?? 0 %}
                     <p class="text-gray-500">👁️ Ouvert par <strong>{{ l.email_opens_count }}</strong>{% if sentCount > 0 %} ({{ (l.email_opens_count * 100 / sentCount)|round }} %){% endif %}</p>
                   {% endif %}
-                  {% set lSegments = l.announce_segments ? l.announce_segments|split(',') : ['tous'] %}
-                  <p class="text-gray-400 mt-0.5">
-                    {% if 'tous' in lSegments %}Tous les clients{% else %}{% for key in lSegments %}{{ segmentLabels[key].label|default(key) }}{{ loop.last ? '' : ', ' }}{% endfor %}{% endif %}
-                  </p>
+                  {# Ciblage par segments des anciennes loteries (les nouvelles sont envoyées aux clients cochés un par un) #}
+                  {% if l.announce_segments %}
+                    {% set lSegments = l.announce_segments|split(',') %}
+                    <p class="text-gray-400 mt-0.5">
+                      {% if 'tous' in lSegments %}Tous les clients{% else %}{% for key in lSegments %}{{ segmentLabels[key].label|default(key) }}{{ loop.last ? '' : ', ' }}{% endfor %}{% endif %}
+                    </p>
+                  {% endif %}
                 {% endif %}
               </td>
               <td class="px-5 py-3.5">

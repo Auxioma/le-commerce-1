@@ -8,27 +8,23 @@ use App\Core\View;
 use App\Models\OfferRedemption;
 
 /**
- * Diffusion d'une offre aux clients par SMS (AllMySms) et/ou e-mail, ciblée
- * par segments de clients ou par sélection manuelle des destinataires
- * e-mail. Chaque client reçoit son propre code (offer_redemptions, réutilisé
+ * Diffusion d'une offre aux clients par SMS (AllMySms) et/ou e-mail, aux
+ * clients cochés un par un dans le tableau des destinataires. Chaque client reçoit son propre code (offer_redemptions, réutilisé
  * s'il en a déjà un valide) à présenter en caisse.
  *
- * Le ciblage, l'éligibilité (numéro, e-mail valide, désinscription) et le
+ * Le tableau des destinataires, l'éligibilité (numéro, e-mail valide, désinscription) et le
  * lien de désinscription sont ceux de LotteryAnnouncementService.
  */
 final class OfferCampaignService
 {
     /**
      * @param list<string> $channels sous-ensemble de LotteryAnnouncementService::CHANNELS
-     * @param list<string> $segments segments ciblés, ou [LotteryAnnouncementService::ALL]
-     * @param list<int> $emailRecipientIds clients choisis un par un pour
-     *        l'e-mail (remplace alors le ciblage par segments pour ce canal)
+     * @param list<int> $recipientIds clients choisis dans le tableau
      * @return array{recipients:int, sms:?array, smsConfigured:bool, smsEligible:int, emailSent:?int, emailFailed:int}
      */
-    public function send(array $offer, string $siteUrl, array $channels, array $segments, array $emailRecipientIds = []): array
+    public function send(array $offer, string $siteUrl, array $channels, array $recipientIds): array
     {
-        $needsSegments = in_array('sms', $channels, true) || (in_array('email', $channels, true) && $emailRecipientIds === []);
-        $clients = $needsSegments ? LotteryAnnouncementService::recipients($segments) : [];
+        $clients = LotteryAnnouncementService::pickedClients($recipientIds);
         $offersUrl = $siteUrl . '/mon-compte/offres';
         $result = [
             'recipients'    => count($clients),
@@ -62,15 +58,7 @@ final class OfferCampaignService
             $mailer = new Mailer();
             $shopName = (string) (require dirname(__DIR__, 2) . '/config/app.php')['shop']['name'];
             set_time_limit(0); // un e-mail par client : peut prendre du temps
-            $emailClients = $clients;
-            if ($emailRecipientIds !== []) {
-                $picked = array_flip($emailRecipientIds);
-                $emailClients = array_filter(
-                    LotteryAnnouncementService::recipients([LotteryAnnouncementService::ALL]),
-                    static fn(array $c) => isset($picked[(int) $c['id']])
-                );
-            }
-            foreach (array_filter($emailClients, [LotteryAnnouncementService::class, 'canReceiveEmail']) as $client) {
+            foreach (array_filter($clients, [LotteryAnnouncementService::class, 'canReceiveEmail']) as $client) {
                 $redemption = OfferRedemption::generate((int) $offer['id'], (int) $client['id'], 'email');
                 $html = View::render('emails/offer', [
                     'shopName'       => $shopName,
